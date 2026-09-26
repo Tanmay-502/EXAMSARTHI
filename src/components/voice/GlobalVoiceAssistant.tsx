@@ -1,12 +1,15 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useVoice } from '@/lib/voice/VoiceProvider';
 import { useI18n } from '@/lib/i18n/I18nProvider';
 import { Locale } from '@/lib/i18n/registry';
 import { OptionalLLMIntentProvider } from '@/lib/voice/intentRouter';
 import { SafeAction, SafeActionRegistry } from '@/lib/voice/safeActionRegistry';
+import { createClient } from '@/lib/supabase/client';
+
+type ConversationState = 'IDLE' | 'AWAITING_LANGUAGE' | 'AWAITING_INTENT' | 'COLLECTING_PARAMETERS' | 'CONFIRMING_ACTION' | 'EXECUTING_ACTION' | 'ERROR_RECOVERY';
 
 type VoiceActionHandler = (action: SafeAction, payload?: Record<string, unknown> | null) => void;
 
@@ -25,7 +28,10 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const [handlers, setHandlers] = useState<VoiceActionHandler[]>([]);
+  const handlersRef = React.useRef<VoiceActionHandler[]>([]);
+  const conversationStateRef = React.useRef<ConversationState>('IDLE');
+  const pendingIntentRef = React.useRef<SafeAction | null>(null);
+  const collectedParamsRef = React.useRef<Record<string, unknown>>({});
   const intentProvider = React.useMemo(() => new OptionalLLMIntentProvider(), []);
   const registry = React.useMemo(() => new SafeActionRegistry(), []);
 
@@ -36,10 +42,25 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
     if (pathname.startsWith('/practice')) return 'practice';
     if (pathname.startsWith('/results')) return 'results';
     if (pathname.startsWith('/history')) return 'history';
+    if (pathname.startsWith('/auth')) return 'auth';
     return 'unknown';
   }, [pathname]);
 
-  const dispatchAction = React.useCallback((action: SafeAction, payload?: Record<string, unknown> | null) => {
+  const contextVersionRef = React.useRef(0);
+  const isNavigatingRef = React.useRef(false);
+  
+  React.useEffect(() => {
+    contextVersionRef.current += 1;
+    isNavigatingRef.current = false;
+    // Reset conversation state on navigation unless we're executing an action
+    if (conversationStateRef.current !== 'EXECUTING_ACTION') {
+      conversationStateRef.current = 'IDLE';
+      pendingIntentRef.current = null;
+      collectedParamsRef.current = {};
+    }
+  }, [pathname]);
+
+  const dispatchAction = React.useCallback(async (action: SafeAction, payload?: Record<string, unknown> | null) => {
     // 1. Check if action is allowed in current context
     const context = getContextName();
     if (action === 'QUESTION_SOLVING' as SafeAction) {
@@ -60,6 +81,90 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
     }
 
     // 2. Handle global actions directly
+    if (action === 'SIGN_IN' || action === 'SIGN_UP') {
+      try {
+        const supabase = createClient();
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('[VOICE] Auth getSession error:', error);
+        }
+        
+        if (session) {
+          if (action === 'SIGN_IN') {
+            speak(lang === 'hi-IN' ? 'आप पहले से ही साइन इन हैं। मैं आपकी कैसे मदद कर सकता हूँ?' : lang === 'te-IN' ? 'మీరు ఇప్పటికే సైన్ ఇన్ చేసారు. నేను మీకు ఎలా సహాయం చేయగలను?' : "You're already signed in. How can I help you?");
+          } else {
+            speak(lang === 'hi-IN' ? 'आप पहले से ही साइन इन हैं। मैं आपको डैशबोर्ड पर ले जा सकता हूँ या अभ्यास शुरू करने में मदद कर सकता हूँ।' : lang === 'te-IN' ? 'మీరు ఇప్పటికే సైన్ ఇన్ చేసారు. నేను మిమ్మల్ని డాష్బోర్డ్కు తీసుకెళ్లగలను లేదా ప్రాక్టీస్ ప్రారంభించడంలో సహాయపడగలను.' : "You're already signed in. I can take you to your dashboard or help you start a practice session.");
+          }
+        } else {
+          const msg = action === 'SIGN_IN' 
+            ? (lang === 'hi-IN' ? 'ठीक है। मैं आपको साइन इन करने में मदद करूँगा।' : lang === 'te-IN' ? 'సరే. సైన్ ఇన్ చేయడంలో నేను మీకు సహాయం చేస్తాను.' : "Sure. I'll help you sign in.")
+            : (lang === 'hi-IN' ? 'ठीक है। मैं आपका अकाउंट बनाने में मदद करूँगा।' : lang === 'te-IN' ? 'సరే. మీ ఖాతాను సృష్టించడంలో నేను మీకు సహాయం చేస్తాను.' : "Sure. I'll help you create your account.");
+          speak(msg);
+          isNavigatingRef.current = true;
+          setTimeout(() => {
+            router.push('/auth/login');
+          }, 500);
+        }
+      } catch (err) {
+        console.error('[VOICE] Critical failure in SIGN_IN handler:', err);
+        speak("I encountered an error trying to sign you in. Please try again.");
+      }
+      return;
+    }
+
+    if (action === 'OPEN_PRACTICE' || action === 'START_PRACTICE') {
+      const merged = { ...collectedParamsRef.current, ...(payload || {}) };
+      if (!merged.subject) {
+        pendingIntentRef.current = 'START_PRACTICE';
+        collectedParamsRef.current = merged;
+        conversationStateRef.current = 'COLLECTING_PARAMETERS';
+        speak("What subject would you like to practice?");
+        return;
+      }
+      if (!merged.count) {
+        pendingIntentRef.current = 'START_PRACTICE';
+        collectedParamsRef.current = merged;
+        conversationStateRef.current = 'COLLECTING_PARAMETERS';
+        speak("How many questions?");
+        return;
+      }
+      if (!merged.difficulty) {
+        pendingIntentRef.current = 'START_PRACTICE';
+        collectedParamsRef.current = merged;
+        conversationStateRef.current = 'COLLECTING_PARAMETERS';
+        speak("What difficulty: easy, medium, or hard?");
+        return;
+      }
+      
+      if (conversationStateRef.current !== 'CONFIRMING_ACTION' && conversationStateRef.current !== 'EXECUTING_ACTION') {
+        pendingIntentRef.current = 'START_PRACTICE';
+        collectedParamsRef.current = merged;
+        conversationStateRef.current = 'CONFIRMING_ACTION';
+        speak(`Okay. I'll start a ${merged.count}-question ${merged.difficulty} ${merged.subject} practice session. Shall I start?`);
+        return;
+      }
+
+      payload = merged;
+      conversationStateRef.current = 'EXECUTING_ACTION';
+      pendingIntentRef.current = null;
+      collectedParamsRef.current = {};
+    }
+
+    if (action === 'CONFIRM' && pendingIntentRef.current) {
+       action = pendingIntentRef.current;
+       payload = collectedParamsRef.current;
+       pendingIntentRef.current = null;
+       collectedParamsRef.current = {};
+       conversationStateRef.current = 'EXECUTING_ACTION';
+    }
+
+    if (['OPEN_DASHBOARD', 'OPEN_HISTORY', 'OPEN_SETTINGS', 'LOGOUT'].includes(action)) {
+       conversationStateRef.current = 'IDLE';
+       pendingIntentRef.current = null;
+       collectedParamsRef.current = {};
+    }
+
     if (action === 'CHANGE_LANGUAGE' && typeof payload?.lang === 'string') {
       setLang(payload.lang as Locale);
       const msg = payload.lang === 'hi-IN' ? 'हिंदी चुनी गई।' : payload.lang === 'te-IN' ? 'తెలుగు ఎంచుకోబడింది.' : 'English selected.';
@@ -67,31 +172,65 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
       // Let it fall through so page-level handlers (like VoiceGateway) can react
     }
     
-    if (action === 'OPEN_DASHBOARD') router.push('/dashboard');
+    if (action === 'OPEN_DASHBOARD') {
+      isNavigatingRef.current = true;
+      router.push('/dashboard');
+    }
     if (action === 'OPEN_EXAM' || action === 'START_EXAM') {
-      const query = new URLSearchParams();
-      if (payload?.subject) query.set('subject', payload.subject as string);
-      router.push(`/exam?${query.toString()}`);
+      if (getContextName() !== 'exam' && getContextName() !== 'practice') {
+        isNavigatingRef.current = true;
+        const query = new URLSearchParams();
+        if (payload?.subject) query.set('subject', payload.subject as string);
+        router.push(`/exam?${query.toString()}`);
+      }
     }
     if (action === 'OPEN_PRACTICE' || action === 'START_PRACTICE') {
-      const query = new URLSearchParams();
-      if (payload?.subject) query.set('subject', payload.subject as string);
-      if (payload?.count) query.set('count', String(payload.count));
-      if (payload?.difficulty) query.set('difficulty', payload.difficulty as string);
-      router.push(`/practice?${query.toString()}`);
+      if (getContextName() !== 'practice') {
+        isNavigatingRef.current = true;
+        const query = new URLSearchParams();
+        if (payload?.subject) query.set('subject', payload.subject as string);
+        if (payload?.count) query.set('count', String(payload.count));
+        if (payload?.difficulty) query.set('difficulty', payload.difficulty as string);
+        router.push(`/practice?${query.toString()}`);
+      }
     }
-    if (action === 'OPEN_HISTORY') router.push('/history');
-    if (action === 'OPEN_SETTINGS') router.push('/settings');
-    if (action === 'LOGOUT') router.push('/auth/login');
+    if (action === 'OPEN_HISTORY') {
+      isNavigatingRef.current = true;
+      router.push('/history');
+    }
+    if (action === 'OPEN_SETTINGS') {
+      isNavigatingRef.current = true;
+      router.push('/settings');
+    }
+    if (action === 'LOGOUT') {
+      isNavigatingRef.current = true;
+      router.push('/auth/login');
+    }
 
     // 3. Notify page-level handlers (like ExamEngine)
-    handlers.forEach(h => h(action, payload));
-  }, [getContextName, registry, router, setLang, speak, handlers, lang]);
+    handlersRef.current.forEach(h => h(action, payload));
+  }, [getContextName, registry, router, setLang, speak, lang]);
 
   useEffect(() => {
     setOnResult(async (transcript) => {
-      const command = await intentProvider.parse(transcript, lang, { context: getContextName() });
+      if (isNavigatingRef.current) {
+        console.log(`[VOICE] Dropping command "${transcript}" because a navigation is in progress.`);
+        return;
+      }
+      const capturedVersion = contextVersionRef.current;
       
+      const command = await intentProvider.parse(transcript, lang, { 
+        context: getContextName(),
+        conversationState: conversationStateRef.current,
+        pendingIntent: pendingIntentRef.current,
+        collectedParams: collectedParamsRef.current
+      });
+      
+      if (capturedVersion !== contextVersionRef.current) {
+        console.log(`[VOICE] Dropping stale command "${transcript}". Context changed during processing.`);
+        return;
+      }
+
       let action: SafeAction | null = null;
       let payload: Record<string, unknown> | null = null;
 
@@ -108,7 +247,6 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
         action = registry.getActionMapping(command.type);
         payload = { index: command.index };
       } else if (command.type === 'NATURAL_INTENT') {
-        // Assume LLM maps it safely if we enforce it
         action = command.intent as SafeAction;
         payload = command.payload || null;
       } else {
@@ -116,18 +254,33 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
       }
 
       if (action) {
+        console.log(`[VOICE]
+raw transcript: ${transcript}
+normalized transcript: ${transcript.trim().toLowerCase()}
+current route: ${pathname}
+current voice state: ${conversationStateRef.current}
+current context: ${getContextName()}
+deterministic intent: ${command.type}
+LLM intent (if used): ${command.type === 'NATURAL_INTENT' ? command.intent : 'N/A'}
+final intent: ${action}
+authorization: ${registry.isActionAllowed(action, getContextName()) ? 'ALLOWED' : 'REJECTED'}`);
         dispatchAction(action, payload);
       } else if (command.type === 'UNKNOWN') {
-         // Quiet retry or prompt if needed
-         console.log('Unknown command');
+        dispatchAction('UNKNOWN_COMMAND', { transcript });
       }
     });
-  }, [lang, setOnResult, intentProvider, getContextName, registry, dispatchAction]);
+  }, [lang, setOnResult, intentProvider, getContextName, registry, dispatchAction, pathname]);
 
   return (
     <GlobalVoiceContext.Provider value={{ 
-      registerHandler: (h) => setHandlers(prev => [...prev, h]), 
-      unregisterHandler: (h) => setHandlers(prev => prev.filter(x => x !== h)),
+      registerHandler: (h) => {
+        if (!handlersRef.current.includes(h)) {
+          handlersRef.current.push(h);
+        }
+      }, 
+      unregisterHandler: (h) => {
+        handlersRef.current = handlersRef.current.filter(x => x !== h);
+      },
       dispatchAction,
       getContextName
     }}>

@@ -67,7 +67,7 @@ test.describe('Authentication Flow & Middleware Routing', () => {
     await expect(page).toHaveURL(/.*message=(Check|Your).*email|link/i);
     
     // Verify accessible message is present
-    const messageAlert = page.locator('div[aria-live="polite"]').first();
+    const messageAlert = page.getByTestId('auth-message');
     await expect(messageAlert).toBeVisible();
   });
 
@@ -78,8 +78,8 @@ test.describe('Authentication Flow & Middleware Routing', () => {
     // Should redirect to login with a friendly error
     await expect(page).toHaveURL(/.*message=Your.*sign-in.*link.*could.*not.*be.*verified/i);
     
-    const messageAlert = page.locator('div[aria-live="polite"]').first();
-    await expect(messageAlert).toContainText('Your sign-in link could not be verified. Please request a new link.');
+    const messageAlert = page.getByTestId('auth-message');
+    await expect(messageAlert).toContainText('Your sign-in link could not be verified');
   });
   
   // Note: True authenticated behavior (clicking real email links, persistent sessions, 

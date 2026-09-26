@@ -5,6 +5,7 @@ import { I18nProvider } from "@/lib/i18n/I18nProvider";
 import { AccessibilityProvider } from "@/lib/accessibility/AccessibilityProvider";
 import { VoiceProvider } from "@/lib/voice/VoiceProvider";
 import { GlobalVoiceAssistant } from "@/components/voice/GlobalVoiceAssistant";
+import { VoiceOverlay } from "@/components/voice/VoiceOverlay";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,11 +22,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${inter.className} antialiased dark`}>
         <I18nProvider>
           <AccessibilityProvider>
             <VoiceProvider>
               <GlobalVoiceAssistant>
+                <VoiceOverlay />
                 {children}
               </GlobalVoiceAssistant>
             </VoiceProvider>

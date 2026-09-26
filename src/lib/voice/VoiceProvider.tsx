@@ -5,6 +5,13 @@ import { useI18n } from '../i18n/I18nProvider';
 
 type VoiceState = 'IDLE' | 'REQUESTING_PERMISSION' | 'LISTENING' | 'PROCESSING' | 'SPEAKING' | 'PAUSED' | 'ERROR';
 
+type TranscriptMessage = {
+  id: string;
+  sender: 'user' | 'assistant';
+  text: string;
+  timestamp: Date;
+};
+
 type VoiceContextType = {
   speak: (text: string) => void;
   stopSpeaking: () => void;
@@ -18,6 +25,7 @@ type VoiceContextType = {
   isContinuous: boolean;
   micError: string | null;
   voiceState: VoiceState;
+  transcript: TranscriptMessage[];
 };
 
 const VoiceContext = createContext<VoiceContextType | undefined>(undefined);
@@ -26,6 +34,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const [voiceState, setVoiceState] = useState<VoiceState>('IDLE');
   const [isContinuous, setIsContinuous] = useState(false);
   const [micError, setMicError] = useState<string | null>(null);
+  const [transcript, setTranscript] = useState<TranscriptMessage[]>([]);
   
   const { lang, t } = useI18n();
   
@@ -141,6 +150,13 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     
     updateVoiceState('SPEAKING');
     
+    setTranscript(prev => [...prev, {
+      id: Math.random().toString(36).substring(7),
+      sender: 'assistant',
+      text: text,
+      timestamp: new Date()
+    }]);
+    
     // Stop listening temporarily to prevent hearing itself
     const reco = recognitionRef.current;
     if (reco) {
@@ -202,9 +218,17 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onresult = (event: any) => {
-      const transcript = event.results[event.results.length - 1][0].transcript;
+      const resultTranscript = event.results[event.results.length - 1][0].transcript;
       updateVoiceState('PROCESSING');
-      if (onResultRef.current) onResultRef.current(transcript);
+      
+      setTranscript(prev => [...prev, {
+        id: Math.random().toString(36).substring(7),
+        sender: 'user',
+        text: resultTranscript,
+        timestamp: new Date()
+      }]);
+      
+      if (onResultRef.current) onResultRef.current(resultTranscript);
     };
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -304,7 +328,8 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       startContinuousListening, pauseListening, isContinuous,
       setOnResult,
       micError,
-      voiceState 
+      voiceState,
+      transcript
     }}>
       {children}
     </VoiceContext.Provider>

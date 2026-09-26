@@ -2,6 +2,18 @@ import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ResultsAnnouncer } from '@/components/exam/ResultsAnnouncer';
+import { 
+  Trophy, 
+  Target, 
+  AlertCircle, 
+  HelpCircle, 
+  ArrowRight,
+  BarChart3,
+  BookOpen,
+  History,
+  Home
+} from 'lucide-react';
+import { ScoreVisualizer } from '@/components/exam/ScoreVisualizer';
 
 export default async function ResultsPage({ searchParams }: { searchParams: Promise<{ session_id?: string }> }) {
   const supabase = await createClient();
@@ -111,8 +123,15 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
     });
   }
 
+  const isPassing = (percentage || 0) >= 50;
+
   return (
-    <main id="main-content" className="flex flex-col flex-1 p-6 items-center justify-center">
+    <main id="main-content" className="flex flex-col flex-1 p-6 md:p-12 items-center justify-center min-h-screen relative overflow-hidden bg-background">
+      
+      {/* Decorative Blur Backgrounds */}
+      <div className={`absolute top-0 right-0 w-[50%] h-[50%] rounded-full opacity-20 blur-[150px] pointer-events-none ${isPassing ? 'bg-primary' : 'bg-amber-500'}`} />
+      <div className="absolute bottom-0 left-0 w-[40%] h-[40%] rounded-full bg-secondary/10 blur-[120px] pointer-events-none" />
+      
       <ResultsAnnouncer 
         score={score || 0}
         total={total_questions || 0}
@@ -123,103 +142,134 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
         subjectStats={subjectStats}
       />
       
-      <div className="w-full max-w-4xl bg-card text-card-foreground shadow border rounded-xl p-8 space-y-8">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold mb-2">Exam Results</h1>
-          <p className="text-xl text-muted-foreground">Your performance summary</p>
-        </div>
+      <div className="w-full max-w-5xl z-10 space-y-12">
         
-        {/* Key Metrics */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-primary/10 border border-primary p-4 rounded-lg text-center">
-            <div className="text-3xl font-bold text-primary">{percentage}%</div>
-            <div className="text-sm uppercase font-semibold">Score</div>
+        {/* Header */}
+        <header className="text-center space-y-4">
+          <div className="inline-flex items-center justify-center p-4 bg-card rounded-2xl border-2 shadow-sm mb-4">
+            <Trophy className={`w-12 h-12 ${isPassing ? 'text-primary' : 'text-amber-500'}`} />
           </div>
-          <div className="bg-muted p-4 rounded-lg text-center border">
-            <div className="text-3xl font-bold text-green-600">{correct_questions}</div>
-            <div className="text-sm uppercase font-semibold">Correct</div>
+          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight">Exam Complete</h1>
+          <p className="text-xl text-muted-foreground font-medium">Your performance summary and analytics</p>
+        </header>
+
+        {/* Primary Score Card */}
+        <div className="bg-card border-2 shadow-xl shadow-black/5 rounded-3xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-12">
+          <div className="flex-1 text-center md:text-left space-y-2">
+            <h2 className="text-3xl font-bold tracking-tight">Overall Score</h2>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              You answered <span className="text-foreground font-bold">{attempted_questions}</span> out of {total_questions} questions. 
+              {isPassing ? ' Great job!' : ' Keep practicing to improve your score.'}
+            </p>
           </div>
-          <div className="bg-muted p-4 rounded-lg text-center border">
-            <div className="text-3xl font-bold text-destructive">{incorrect_questions}</div>
-            <div className="text-sm uppercase font-semibold">Incorrect</div>
-          </div>
-          <div className="bg-muted p-4 rounded-lg text-center border">
-            <div className="text-3xl font-bold text-muted-foreground">{unanswered_questions}</div>
-            <div className="text-sm uppercase font-semibold">Skipped</div>
-          </div>
+          
+          <ScoreVisualizer percentage={percentage || 0} isPassing={isPassing} />
         </div>
 
-        {/* Detailed Stats */}
-        <div className="overflow-x-auto pt-4">
-          <table className="w-full border-collapse text-left" aria-label="Detailed results">
-            <thead>
-              <tr className="border-b bg-muted/50">
-                <th scope="col" className="p-4 font-semibold">Total Questions</th>
-                <th scope="col" className="p-4 font-semibold">Attempted</th>
-                <th scope="col" className="p-4 font-semibold">Unanswered</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b">
-                <td className="p-4 text-lg">{total_questions}</td>
-                <td className="p-4 text-lg">{attempted_questions}</td>
-                <td className="p-4 text-lg">{unanswered_questions}</td>
-              </tr>
-            </tbody>
-          </table>
+        {/* Key Metrics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-card border-2 p-6 rounded-2xl flex items-center space-x-6 group hover:border-primary/50 transition-colors">
+            <div className="p-4 bg-green-500/10 rounded-xl text-green-600">
+              <Target className="w-8 h-8" />
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-foreground">{correct_questions}</div>
+              <div className="text-sm font-semibold uppercase text-muted-foreground tracking-wider mt-1">Correct</div>
+            </div>
+          </div>
+
+          <div className="bg-card border-2 p-6 rounded-2xl flex items-center space-x-6 group hover:border-destructive/50 transition-colors">
+            <div className="p-4 bg-destructive/10 rounded-xl text-destructive">
+              <AlertCircle className="w-8 h-8" />
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-foreground">{incorrect_questions}</div>
+              <div className="text-sm font-semibold uppercase text-muted-foreground tracking-wider mt-1">Incorrect</div>
+            </div>
+          </div>
+
+          <div className="bg-card border-2 p-6 rounded-2xl flex items-center space-x-6 group hover:border-muted-foreground/50 transition-colors">
+            <div className="p-4 bg-muted rounded-xl text-muted-foreground">
+              <HelpCircle className="w-8 h-8" />
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-foreground">{unanswered_questions}</div>
+              <div className="text-sm font-semibold uppercase text-muted-foreground tracking-wider mt-1">Skipped</div>
+            </div>
+          </div>
         </div>
 
         {/* Subject Breakdown */}
         {Object.keys(subjectStats).length > 0 && (
-          <div className="pt-8">
-            <h2 className="text-2xl font-bold mb-4">Subject Analysis</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-left" aria-label="Subject performance">
-                <thead>
-                  <tr className="border-b bg-muted/50">
-                    <th scope="col" className="p-4 font-semibold">Subject</th>
-                    <th scope="col" className="p-4 font-semibold text-center">Total</th>
-                    <th scope="col" className="p-4 font-semibold text-center text-green-600">Correct</th>
-                    <th scope="col" className="p-4 font-semibold text-center text-destructive">Incorrect</th>
-                    <th scope="col" className="p-4 font-semibold text-center text-muted-foreground">Unanswered</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.entries(subjectStats).map(([subj, stats]) => (
-                    <tr key={subj} className="border-b hover:bg-muted/50 transition-colors">
-                      <td className="p-4 font-medium">{subj}</td>
-                      <td className="p-4 text-center">{stats.total}</td>
-                      <td className="p-4 text-center text-green-600 font-medium">{stats.correct}</td>
-                      <td className="p-4 text-center text-destructive font-medium">{stats.incorrect}</td>
-                      <td className="p-4 text-center text-muted-foreground">{stats.unanswered}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="bg-card border-2 rounded-3xl p-8 md:p-10 space-y-8">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-secondary/20 rounded-xl">
+                <BarChart3 className="w-6 h-6 text-foreground" />
+              </div>
+              <h2 className="text-2xl font-bold">Subject Analysis</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {Object.entries(subjectStats).map(([subj, stats]) => {
+                const subjPerc = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+                return (
+                  <div key={subj} className="p-6 rounded-2xl border bg-card/50 hover:bg-card transition-colors">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-xl font-bold">{subj}</h3>
+                      <span className="text-2xl font-extrabold text-primary">{subjPerc}%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-3 mb-6 overflow-hidden">
+                      <div 
+                        className="bg-primary h-3 rounded-full transition-all duration-1000"
+                        style={{ width: `${subjPerc}%` }}
+                      />
+                    </div>
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div>
+                        <div className="text-xl font-bold text-green-600">{stats.correct}</div>
+                        <div className="text-xs font-semibold text-muted-foreground uppercase mt-1">Correct</div>
+                      </div>
+                      <div>
+                        <div className="text-xl font-bold text-destructive">{stats.incorrect}</div>
+                        <div className="text-xs font-semibold text-muted-foreground uppercase mt-1">Incorrect</div>
+                      </div>
+                      <div>
+                        <div className="text-xl font-bold text-muted-foreground">{stats.unanswered}</div>
+                        <div className="text-xs font-semibold text-muted-foreground uppercase mt-1">Skipped</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
 
-        <div className="flex flex-wrap justify-center pt-8 gap-4">
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row justify-center items-stretch gap-4 pt-4">
           {weakestSubject && (
             <Link
               href={`/practice?subject=${encodeURIComponent(weakestSubject)}`}
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring bg-secondary text-secondary-foreground shadow hover:bg-secondary/90 h-14 px-8 w-full md:w-auto"
+              className="group inline-flex items-center justify-center px-8 py-5 rounded-2xl text-lg font-bold bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring"
             >
+              <BookOpen className="mr-3 w-5 h-5" />
               Practice {weakestSubject}
+              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
           )}
           <Link
             href="/history"
-            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring border border-input bg-background hover:bg-accent h-14 px-8 w-full md:w-auto"
+            className="inline-flex items-center justify-center px-8 py-5 rounded-2xl text-lg font-bold border-2 border-input bg-card hover:bg-accent transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring"
           >
+            <History className="mr-3 w-5 h-5" />
             View History
           </Link>
           <Link
             href="/dashboard"
-            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring bg-primary text-primary-foreground shadow hover:bg-primary/90 h-14 px-8 w-full md:w-auto"
+            className="inline-flex items-center justify-center px-8 py-5 rounded-2xl text-lg font-bold border-2 border-input bg-card hover:bg-accent transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring"
           >
-            Return to Dashboard
+            <Home className="mr-3 w-5 h-5" />
+            Dashboard
           </Link>
         </div>
       </div>

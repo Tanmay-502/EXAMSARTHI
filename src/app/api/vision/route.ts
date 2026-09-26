@@ -1,0 +1,39 @@
+import { google } from '@ai-sdk/google';
+import { generateText } from 'ai';
+import { NextResponse } from 'next/server';
+
+export async function POST(req: Request) {
+  try {
+    const { imageUrl } = await req.json();
+
+    if (!imageUrl) {
+      return NextResponse.json({ error: 'Missing image URL' }, { status: 400 });
+    }
+
+    if (!process.env.GEMINI_API_KEY) {
+      return NextResponse.json({ 
+        description: "This question contains an image or diagram, but the vision accessibility service is not currently configured. I cannot describe it for you at this time." 
+      });
+    }
+
+    const { text } = await generateText({
+      model: google('gemini-1.5-flash-latest'),
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Describe this diagram or image clearly and concisely for a visually impaired student taking an exam. Do not solve the question. Just describe the visual contents (e.g. shapes, text, structure, relationships). Start your response immediately with the description, do not say "Here is a description" or similar.' },
+            { type: 'image', image: imageUrl },
+          ],
+        },
+      ],
+    });
+
+    return NextResponse.json({ description: text });
+  } catch (error) {
+    console.error('Vision API error:', error);
+    return NextResponse.json({ 
+      description: "This question contains a diagram, but I encountered an error while trying to analyze it." 
+    });
+  }
+}

@@ -114,12 +114,16 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
   // 1. Fetch the exam session to get exam_id
   const { data: session, error: sessionErr } = await supabase
     .from('exam_sessions')
-    .select('exam_id')
+    .select('exam_id, status')
     .eq('id', sessionId)
     .single()
     
   if (sessionErr || !session) {
     throw new Error('Exam session not found')
+  }
+
+  if (session.status === 'submitted') {
+    throw new Error('Exam session already submitted')
   }
 
   // 2. Fetch correct answers via admin client (bypasses RLS)

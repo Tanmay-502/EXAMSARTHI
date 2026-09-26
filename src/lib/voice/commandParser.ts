@@ -26,6 +26,8 @@ export type VoiceCommand =
   | { type: 'SET_LANGUAGE_ENGLISH' }
   | { type: 'SET_LANGUAGE_HINDI' }
   | { type: 'SET_LANGUAGE_TELUGU' }
+  | { type: 'SIGN_IN' }
+  | { type: 'SIGN_UP' }
   | { type: 'UNKNOWN' };
 
 export function parseCommand(transcript: string, lang: Locale): VoiceCommand {

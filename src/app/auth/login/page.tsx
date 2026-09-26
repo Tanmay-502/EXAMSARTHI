@@ -47,7 +47,7 @@ function LoginForm() {
       </div>
 
       {message && (
-        <div aria-live="polite" className="p-4 bg-primary/10 text-primary border border-primary/20 rounded-md text-center">
+        <div data-testid="auth-message" aria-live="polite" className="p-4 bg-primary/10 text-primary border border-primary/20 rounded-md text-center">
           {message === 'unauthenticated' ? (lang === 'hi-IN' ? 'परीक्षा देने के लिए आपको पहले लॉगिन करना होगा।' : lang === 'te-IN' ? 'పరీక్ష రాయడానికి మీరు ముందుగా లాగిన్ అవ్వాలి.' : 'You need to login first to take an exam.') : message}
         </div>
       )}
@@ -63,7 +63,7 @@ function LoginForm() {
             name="email"
             type="email" 
             required
-            className="flex h-12 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" 
+            className="flex h-12 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={t('email')}
           />
         </div>

@@ -4,10 +4,13 @@ import { useI18n } from '@/lib/i18n/I18nProvider';
 import { useAccessibility } from '@/lib/accessibility/AccessibilityProvider';
 import { useVoice } from '@/lib/voice/VoiceProvider';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
+import { SafeAction } from '@/lib/voice/safeActionRegistry';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useExamStore } from '@/lib/store/examStore';
 import { Mic, MicOff, CheckCircle, AlertTriangle } from 'lucide-react';
+import { VoiceCore } from '@/components/voice/VoiceCore';
+import { motion } from 'framer-motion';
 
 type ExamEngineProps = {
   mode: 'practice' | 'exam';
@@ -15,10 +18,11 @@ type ExamEngineProps = {
 
 type EngineState = 'MIC_TEST' | 'READY' | 'EXAM' | 'CONFIRM_ANSWER' | 'CONFIRM_SUBMIT' | 'PROCESSING';
 
+
 export function ExamEngine({ mode }: ExamEngineProps) {
   const { t, tParams, lang } = useI18n();
   const { announce } = useAccessibility();
-  const { speak, stopSpeaking, startContinuousListening, pauseListening, isListening, isContinuous, micError } = useVoice();
+  const { speak, stopSpeaking, startContinuousListening, pauseListening, isContinuous, micError } = useVoice();
   const { useVoiceAction } = useGlobalVoice();
   const router = useRouter();
 
@@ -68,11 +72,13 @@ export function ExamEngine({ mode }: ExamEngineProps) {
     spokenStateKey.current = currentKey;
 
     if (engineState === 'MIC_TEST') {
+      stopSpeaking(); // Cancel any stale speech
       const prompt = t('mic_check_prompt') || "Let's test your microphone. Please say: Next.";
       announce(prompt, 'assertive');
-      if (isContinuous) speak(prompt);
-      // Ensure continuous listening is on for mic test
-      if (!isContinuous) startContinuousListening();
+      if (!isContinuous) {
+        startContinuousListening();
+      }
+      speak(prompt);
     } else if (engineState === 'READY') {
       const announcement = tParams('exam_orientation', { 
         examName: mode === 'exam' ? 'Mock Exam' : 'Practice', 
@@ -88,16 +94,63 @@ export function ExamEngine({ mode }: ExamEngineProps) {
       
       // Automatically announce the question
       if (currentQuestion) {
-        let announcement = `${tParams('question_x_of_y', { x: currentQuestionIndex + 1, y: questions.length })}. ${currentQuestion.question_text}.`;
-        if (currentQuestion.options && currentQuestion.options.length > 0) {
-          const optionsText = currentQuestion.options.map((opt, idx) => `${t('option')} ${idx + 1}: ${opt}.`).join(' ');
-          announcement += ' ' + optionsText + ' ' + t('question_instruction');
+        const match = currentQuestion.question_text.match(/\[IMAGE:(.*?)\]/);
+        let cleanQuestion = currentQuestion.question_text;
+        let imageUrl: string | null = null;
+        if (match) {
+          imageUrl = match[1];
+          cleanQuestion = currentQuestion.question_text.replace(match[0], '').trim();
         }
-        announce(announcement, 'assertive');
-        if (isContinuous) speak(announcement);
+
+        let announcement = `${tParams('question_x_of_y', { x: currentQuestionIndex + 1, y: questions.length })}. ${cleanQuestion}.`;
+        
+        const buildOptionsText = () => {
+          let text = '';
+          if (currentQuestion.options && currentQuestion.options.length > 0) {
+            const optionsText = currentQuestion.options.map((opt, idx) => `${t('option')} ${idx + 1}: ${opt}.`).join(' ');
+            text += ' ' + optionsText + ' ' + t('question_instruction');
+          }
+          return text;
+        };
+
+        if (imageUrl) {
+          const fetchVision = async () => {
+            const analysisMsg = "This question contains a diagram. Analyzing...";
+            announce(analysisMsg, 'assertive');
+            if (isContinuous) speak(analysisMsg);
+
+            try {
+              const res = await fetch('/api/vision', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ imageUrl })
+              });
+              const data = await res.json();
+              
+              const fullAnnouncement = announcement + ' Diagram description: ' + data.description + buildOptionsText();
+              
+              // Only speak if we are still on this question
+              const currentKey = engineState === 'EXAM' ? `${engineState}-${currentQuestionIndex}` : engineState;
+              if (spokenStateKey.current === currentKey) {
+                announce(fullAnnouncement, 'assertive');
+                if (isContinuous) speak(fullAnnouncement);
+              }
+            } catch (err) {
+              console.error('Vision fetch failed', err);
+              const fallback = announcement + ' The diagram could not be analyzed. ' + buildOptionsText();
+              announce(fallback, 'assertive');
+              if (isContinuous) speak(fallback);
+            }
+          };
+          fetchVision();
+        } else {
+          announcement += buildOptionsText();
+          announce(announcement, 'assertive');
+          if (isContinuous) speak(announcement);
+        }
       }
     }
-  }, [engineState, currentQuestionIndex, currentQuestion, mode, questions.length, lang, t, tParams, announce, speak, isContinuous, startContinuousListening]);
+  }, [engineState, currentQuestionIndex, currentQuestion, mode, questions.length, lang, t, tParams, announce, speak, stopSpeaking, isContinuous, startContinuousListening]);
 
   useEffect(() => {
     return () => stopSpeaking();
@@ -206,9 +259,12 @@ export function ExamEngine({ mode }: ExamEngineProps) {
     router.push('/results');
   };
 
-  useVoiceAction((action, payload) => {
+  const voiceHandler = (action: SafeAction, payload?: Record<string, unknown> | null) => {
     switch (action) {
       case 'START_EXAM':
+      case 'OPEN_EXAM':
+      case 'START_PRACTICE':
+      case 'OPEN_PRACTICE':
         if (engineState === 'READY') {
           setEngineState('EXAM');
         }
@@ -245,6 +301,31 @@ export function ExamEngine({ mode }: ExamEngineProps) {
             }
           }
           speak(announcement);
+        }
+        break;
+
+      case 'UNKNOWN_COMMAND':
+        if (engineState === 'MIC_TEST' && payload?.transcript) {
+          const t_input = String(payload.transcript).toLowerCase();
+          if (t_input.includes('test') || t_input.includes('1') || t_input.includes('hello') || t_input.includes('skip')) {
+            const success = t('mic_check_success') || "Voice control is ready.";
+            setEngineState('READY');
+            spokenStateKey.current = 'READY';
+            
+            const announcement = tParams('exam_orientation', { 
+              examName: mode === 'exam' ? 'Mock Exam' : 'Practice', 
+              total: questions.length, 
+              duration: 60,
+              language: lang === 'en-IN' ? 'English' : lang === 'hi-IN' ? 'Hindi' : 'Telugu'
+            }) + ' ' + t('say_start_exam');
+            
+            const msg = success + ' ' + announcement;
+            speak(msg);
+            announce(msg);
+          } else {
+            const retryMsg = lang === 'hi-IN' ? 'मुझे समझ नहीं आया। कृपया कहें अगला या परीक्षण छोड़ें।' : lang === 'te-IN' ? 'నాకు అర్థం కాలేదు. దయచేసి చెప్పండి తదుపరి లేదా పరీక్ష వదిలేయండి.' : "I didn't catch that. Please say next or skip test.";
+            speak(retryMsg);
+          }
         }
         break;
 
@@ -287,7 +368,12 @@ export function ExamEngine({ mode }: ExamEngineProps) {
         } else if (engineState === 'EXAM' && currentQuestion) {
           let announcement = '';
           if (action === 'REPEAT' || action === 'READ_QUESTION') {
-            announcement += `${tParams('question_x_of_y', { x: currentQuestionIndex + 1, y: questions.length })}. ${currentQuestion.question_text}. `;
+            let cleanText = currentQuestion.question_text;
+            const match = currentQuestion.question_text.match(/\[IMAGE:(.*?)\]/);
+            if (match) {
+              cleanText = currentQuestion.question_text.replace(match[0], '').trim() + '. (This question contains a diagram)';
+            }
+            announcement += `${tParams('question_x_of_y', { x: currentQuestionIndex + 1, y: questions.length })}. ${cleanText}. `;
           }
           if (action === 'REPEAT' || action === 'READ_OPTIONS') {
             if (currentQuestion.options && currentQuestion.options.length > 0) {
@@ -355,7 +441,9 @@ export function ExamEngine({ mode }: ExamEngineProps) {
         speak(t('help_message'));
         break;
     }
-  });
+  };
+
+  useVoiceAction(voiceHandler);
 
   // Removed duplicated setup logic for MIC_TEST in useEffect
 
@@ -375,39 +463,55 @@ export function ExamEngine({ mode }: ExamEngineProps) {
 
   if (engineState === 'MIC_TEST') {
     return (
-      <div className="flex flex-col items-center justify-center flex-1 w-full max-w-2xl mx-auto space-y-8 p-8 text-center">
-        <Mic className={`w-16 h-16 ${isListening ? 'text-primary animate-pulse' : 'text-muted-foreground'}`} />
-        <h1 className="text-3xl font-bold" aria-live="assertive">Microphone Test</h1>
-        <p className="text-xl" aria-live="polite">
-          {t('mic_check_prompt') || "Let's test your microphone. Please say: Next."}
-        </p>
-        {micError && (
-          <div className="text-destructive font-medium p-4 bg-destructive/10 rounded-lg">
-            {t('mic_check_fail')}
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] bg-black text-white p-6 relative overflow-hidden w-full">
+        <motion.div 
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.8 }}
+          className="mb-12"
+        >
+          <VoiceCore size="lg" />
+        </motion.div>
+
+        <div className="w-full max-w-2xl text-center space-y-6 relative z-10">
+          <h1 className="text-3xl md:text-5xl font-bold tracking-tight" aria-live="assertive">Microphone Test</h1>
+          <p className="text-xl text-white/60" aria-live="polite">
+            {t('mic_check_prompt') || "Let's test your microphone. Please say: Next."}
+          </p>
+          
+          {micError && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-destructive font-medium p-4 bg-destructive/10 rounded-lg border border-destructive/20 inline-block mt-4"
+            >
+              {t('mic_check_fail')}
+            </motion.div>
+          )}
+
+          <div className="pt-8">
+            <button
+              onClick={() => {
+                const success = t('mic_check_success') || "You skipped the microphone test.";
+                setEngineState('READY');
+                spokenStateKey.current = 'READY';
+                
+                const announcement = tParams('exam_orientation', { 
+                  examName: mode === 'exam' ? 'Mock Exam' : 'Practice', 
+                  total: questions.length, 
+                  duration: 60,
+                  language: lang === 'en-IN' ? 'English' : lang === 'hi-IN' ? 'Hindi' : 'Telugu'
+                }) + ' ' + t('say_start_exam');
+                
+                const msg = success + ' ' + announcement;
+                speak(msg);
+                announce(msg);
+              }}
+              className="px-8 py-3 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-full border border-white/10 transition-colors focus-visible:ring-4 focus-visible:ring-white/30"
+            >
+              SKIP TEST
+            </button>
           </div>
-        )}
-        <div className="flex gap-4 mt-8">
-          <button
-            onClick={() => {
-              const success = t('mic_check_success') || "You skipped the microphone test.";
-              setEngineState('READY');
-              spokenStateKey.current = 'READY';
-              
-              const announcement = tParams('exam_orientation', { 
-                examName: mode === 'exam' ? 'Mock Exam' : 'Practice', 
-                total: questions.length, 
-                duration: 60,
-                language: lang === 'en-IN' ? 'English' : lang === 'hi-IN' ? 'Hindi' : 'Telugu'
-              }) + ' ' + t('say_start_exam');
-              
-              const msg = success + ' ' + announcement;
-              speak(msg);
-              announce(msg);
-            }}
-            className="px-8 py-4 bg-secondary text-secondary-foreground text-xl font-bold rounded-xl hover:bg-secondary/90 focus-visible:ring-4 focus-visible:ring-ring"
-          >
-            SKIP TEST
-          </button>
         </div>
       </div>
     );
@@ -416,48 +520,75 @@ export function ExamEngine({ mode }: ExamEngineProps) {
   // Renders for different engine states
   if (engineState === 'READY') {
     return (
-      <div className="flex flex-col items-center justify-center flex-1 w-full max-w-2xl mx-auto space-y-8 p-8 text-center">
-        <h1 className="text-3xl font-bold">{t('exam')} Orientation</h1>
-        <p className="text-xl" aria-live="polite">
-          {tParams('exam_orientation', { examName: mode === 'exam' ? 'Mock Exam' : 'Practice', total: questions.length, duration: 60, language: lang === 'en-IN' ? 'English' : lang === 'hi-IN' ? 'Hindi' : 'Telugu' })}
-        </p>
-        <p className="text-lg text-muted-foreground">
-          {t('say_start_exam')}
-        </p>
-        <button
-          onClick={() => {
-            stopSpeaking();
-            setEngineState('EXAM');
-          }}
-          className="mt-8 px-8 py-4 bg-primary text-primary-foreground text-2xl font-bold rounded-xl hover:bg-primary/90 focus-visible:ring-4 focus-visible:ring-ring"
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] bg-black text-white p-6 relative overflow-hidden w-full">
+        <motion.div 
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.8 }}
+          className="mb-12"
         >
-          START EXAM
-        </button>
+          <VoiceCore size="lg" />
+        </motion.div>
+
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="w-full max-w-2xl text-center space-y-6 relative z-10"
+        >
+          <h1 className="text-3xl md:text-5xl font-bold tracking-tight">{t('exam')} Orientation</h1>
+          <p className="text-xl text-white/80 leading-relaxed" aria-live="polite">
+            {tParams('exam_orientation', { examName: mode === 'exam' ? 'Mock Exam' : 'Practice', total: questions.length, duration: 60, language: lang === 'en-IN' ? 'English' : lang === 'hi-IN' ? 'Hindi' : 'Telugu' })}
+          </p>
+          <p className="text-lg text-emerald-400 font-medium">
+            {t('say_start_exam')}
+          </p>
+          <div className="pt-8">
+            <button
+              onClick={() => {
+                stopSpeaking();
+                setEngineState('EXAM');
+              }}
+              className="px-10 py-4 bg-white text-black text-xl font-bold rounded-full hover:bg-white/90 transition-transform hover:scale-105 focus-visible:ring-4 focus-visible:ring-white/30"
+            >
+              START EXAM
+            </button>
+          </div>
+        </motion.div>
       </div>
     );
   }
 
   if (engineState === 'CONFIRM_SUBMIT') {
     return (
-      <div className="flex flex-col items-center justify-center flex-1 w-full max-w-2xl mx-auto space-y-8 p-8 text-center">
-        <AlertTriangle className="w-16 h-16 text-destructive" />
-        <h1 className="text-3xl font-bold">{t('submit')}</h1>
-        <p className="text-xl" aria-live="polite">
-          {t('submit_confirm_msg')}
-        </p>
-        <div className="flex gap-4 mt-8">
-          <button
-            onClick={() => setEngineState('EXAM')}
-            className="px-8 py-4 bg-secondary text-secondary-foreground text-xl font-bold rounded-xl hover:bg-secondary/90 focus-visible:ring-4 focus-visible:ring-ring"
-          >
-            NO, GO BACK
-          </button>
-          <button
-            onClick={executeSubmit}
-            className="px-8 py-4 bg-destructive text-destructive-foreground text-xl font-bold rounded-xl hover:bg-destructive/90 focus-visible:ring-4 focus-visible:ring-ring"
-          >
-            YES, SUBMIT
-          </button>
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] bg-black text-white p-6 w-full">
+        <motion.div 
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="mb-8 p-6 bg-red-500/20 rounded-full border border-red-500/30"
+        >
+          <AlertTriangle className="w-16 h-16 text-red-500" />
+        </motion.div>
+        
+        <div className="w-full max-w-2xl text-center space-y-6">
+          <h1 className="text-3xl md:text-5xl font-bold tracking-tight">{t('submit')}</h1>
+          <p className="text-xl text-white/80 leading-relaxed" aria-live="polite">
+            {t('submit_confirm_msg')}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
+            <button
+              onClick={() => setEngineState('EXAM')}
+              className="px-8 py-4 bg-white/10 text-white text-lg font-bold rounded-full hover:bg-white/20 transition-colors focus-visible:ring-4 focus-visible:ring-white/30"
+            >
+              NO, GO BACK
+            </button>
+            <button
+              onClick={executeSubmit}
+              className="px-8 py-4 bg-red-600 text-white text-lg font-bold rounded-full hover:bg-red-500 transition-colors shadow-[0_0_20px_rgba(220,38,38,0.4)] focus-visible:ring-4 focus-visible:ring-red-500/50"
+            >
+              YES, SUBMIT
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -465,11 +596,17 @@ export function ExamEngine({ mode }: ExamEngineProps) {
 
   if (engineState === 'PROCESSING') {
     return (
-      <div className="flex flex-col items-center justify-center flex-1 w-full max-w-2xl mx-auto space-y-8 p-8 text-center">
-        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-        <h1 className="text-3xl font-bold" aria-live="assertive">
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] bg-black text-white p-6 w-full">
+        <VoiceCore size="lg" />
+        <motion.h1 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-2xl md:text-3xl font-bold mt-12 text-white/80" 
+          aria-live="assertive"
+        >
           {lang === 'hi-IN' ? 'जमा किया जा रहा है...' : lang === 'te-IN' ? 'సమర్పిస్తున్నాము...' : 'Processing submission...'}
-        </h1>
+        </motion.h1>
       </div>
     );
   }
@@ -478,30 +615,45 @@ export function ExamEngine({ mode }: ExamEngineProps) {
   return (
     <div className="flex flex-col flex-1 w-full max-w-4xl mx-auto space-y-8">
       {/* Header Info */}
-      <div className="flex justify-between items-center bg-muted/50 p-4 rounded-lg">
-        <span className="text-lg font-medium" aria-live="polite">
-          {tParams('question_x_of_y', { x: currentQuestionIndex + 1, y: questions.length })}
-        </span>
-        <div className="flex items-center gap-4">
+      {/* Header Info */}
+      <div className="flex justify-between items-center bg-muted/50 p-4 rounded-xl border border-border/50 shadow-sm relative overflow-hidden">
+        <div className="flex items-center gap-6 z-10">
+          <VoiceCore size="sm" />
+          <div className="flex flex-col">
+            <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold">{mode === 'exam' ? 'Real Exam' : 'Practice Mode'}</span>
+            <span className="text-xl font-bold" aria-live="polite">
+              Question {currentQuestionIndex + 1} of {questions.length}
+            </span>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-4 z-10">
           <button 
             onClick={toggleListening}
-            className={`p-2 rounded-full border ${isContinuous ? 'bg-red-500 text-white animate-pulse' : micError ? 'bg-destructive/10 text-destructive border-destructive' : 'bg-background hover:bg-accent text-foreground'}`}
+            className={`p-3 rounded-full border-2 transition-all ${isContinuous ? 'bg-primary/20 text-primary border-primary shadow-[0_0_15px_rgba(var(--primary),0.3)]' : micError ? 'bg-destructive/10 text-destructive border-destructive' : 'bg-background hover:bg-accent text-foreground border-border'}`}
             aria-label={micError === 'denied' ? 'Microphone denied' : isContinuous ? 'Pause voice control' : 'Enable voice control'}
             title={micError === 'denied' ? 'Microphone access denied' : ''}
           >
-            {micError ? <MicOff className="w-5 h-5 text-destructive" /> : isContinuous ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+            {micError ? <MicOff className="w-6 h-6 text-destructive" /> : isContinuous ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
           </button>
           {mode === 'exam' && (
-            <span className="text-lg font-medium text-destructive" aria-live="polite">
-              {t('time_left')}: {timeRemainingStr}
-            </span>
+            <div className="flex flex-col items-end">
+              <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold">{t('time_left')}</span>
+              <span className="text-2xl font-mono font-bold text-primary tracking-tight" aria-live="polite">
+                {timeRemainingStr}
+              </span>
+            </div>
           )}
         </div>
       </div>
 
       {engineState === 'CONFIRM_ANSWER' ? (
-        <div className="bg-primary/10 text-primary shadow-sm rounded-xl border-2 border-primary p-6 md:p-8 flex flex-col items-center space-y-4">
-          <CheckCircle className="w-12 h-12" />
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }} 
+          animate={{ opacity: 1, scale: 1 }} 
+          className="bg-primary/5 text-primary shadow-lg shadow-primary/10 rounded-2xl border-2 border-primary/50 p-8 md:p-12 flex flex-col items-center space-y-8"
+        >
+          <CheckCircle className="w-16 h-16 text-primary animate-bounce" />
           <h2 className="text-2xl md:text-3xl font-bold text-center" aria-live="assertive">
             {currentQuestion.options && pendingAnswer !== null 
               ? tParams('answer_confirm_prompt', { index: pendingAnswer + 1, option: currentQuestion.options[pendingAnswer] })
@@ -530,48 +682,71 @@ export function ExamEngine({ mode }: ExamEngineProps) {
               CONFIRM
             </button>
           </div>
-        </div>
+        </motion.div>
       ) : (
         /* Question */
         <div className="bg-card text-card-foreground shadow-sm rounded-xl border p-6 md:p-8">
-          <h2 
-            tabIndex={-1} 
-            ref={headingRef} 
-            className="text-2xl md:text-3xl font-bold mb-8 focus:outline-none focus-visible:ring-4 focus-visible:ring-ring rounded"
-          >
-            {currentQuestion.question_text}
-          </h2>
+          {(() => {
+            const match = currentQuestion.question_text.match(/\[IMAGE:(.*?)\]/);
+            let cleanText = currentQuestion.question_text;
+            let imgUrl: string | null = null;
+            if (match) {
+              imgUrl = match[1];
+              cleanText = currentQuestion.question_text.replace(match[0], '').trim();
+            }
+            return (
+              <>
+                <h2 
+                  tabIndex={-1} 
+                  ref={headingRef} 
+                  className="text-3xl md:text-5xl font-extrabold tracking-tight mb-8 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background rounded-md"
+                >
+                  {cleanText}
+                </h2>
+                {imgUrl && (
+                  <div className="mb-8">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={imgUrl} alt="Question diagram" className="max-w-full h-auto rounded-lg border shadow-sm" />
+                  </div>
+                )}
+              </>
+            );
+          })()}
 
           {/* Options */}
           <div 
             role="radiogroup" 
             aria-label="Answer options"
-            className="space-y-4"
+            className="space-y-4 mt-8"
           >
             {Array.isArray(currentQuestion.options) && currentQuestion.options.map((option, idx) => {
               const isSelected = currentAnswer?.answer_data === idx;
               return (
-                <label 
+                <motion.label 
                   key={idx}
-                  className={`flex items-center space-x-4 p-4 rounded-lg border-2 cursor-pointer transition-colors focus-within:ring-4 focus-within:ring-ring ${isSelected ? 'border-primary bg-primary/5' : 'border-input hover:bg-accent'}`}
+                  whileHover={{ y: -4, scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                  className={`group relative flex items-center space-x-6 p-8 rounded-3xl border-2 cursor-pointer transition-colors duration-300 focus-within:ring-4 focus-within:ring-primary/50 focus-within:ring-offset-4 focus-within:ring-offset-background ${isSelected ? 'border-primary bg-primary/10 shadow-[0_10px_30px_-10px_rgba(var(--primary),0.3)]' : 'border-border bg-card hover:bg-accent/40 shadow-sm hover:shadow-lg hover:border-primary/40'}`}
                 >
-                  <input
-                    type="radio"
-                    name={`question-${currentQuestion.id}`}
-                    value={idx}
-                    checked={isSelected}
-                    onChange={() => {
-                      // Using manual click behaves like voice, require confirmation?
-                      // Wait, for manual test, maybe skip confirmation or not? Let's just set it for manual.
-                      // The prompt says "A visually impaired candidate must be able to complete a complete mock exam without needing another person... Keyboard must remain available as a fallback."
-                      // If keyboard/mouse, we probably just select it.
-                      handleOptionSelect(idx);
-                    }}
-                    className="w-6 h-6 text-primary focus:outline-none"
-                    aria-label={`Option ${idx + 1}: ${option}`}
-                  />
-                  <span className="text-xl">{option}</span>
-                </label>
+                  <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors duration-300 ${isSelected ? 'border-primary bg-primary text-primary-foreground shadow-[0_0_15px_rgba(var(--primary),0.5)]' : 'border-muted-foreground group-hover:border-primary/60'}`}>
+                    <input
+                      type="radio"
+                      name={`question-${currentQuestion.id}`}
+                      value={idx}
+                      checked={isSelected}
+                      onChange={() => {
+                        handleOptionSelect(idx);
+                      }}
+                      className="sr-only"
+                      aria-label={`Option ${String.fromCharCode(65 + idx)}: ${option}`}
+                    />
+                    {isSelected && <motion.div layoutId={`selected-${currentQuestion.id}`} className="w-4 h-4 bg-current rounded-full" />}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-1 group-hover:text-primary/70 transition-colors">Option {String.fromCharCode(65 + idx)}</span>
+                    <span className={`text-2xl font-medium tracking-wide leading-relaxed ${isSelected ? 'text-primary' : 'text-foreground'}`}>{option}</span>
+                  </div>
+                </motion.label>
               );
             })}
           </div>
@@ -584,7 +759,7 @@ export function ExamEngine({ mode }: ExamEngineProps) {
           <button
             onClick={handlePrev}
             disabled={currentQuestionIndex === 0}
-            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-12 px-6"
+            className="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-lg font-bold transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border-2 border-input bg-background hover:bg-accent hover:text-accent-foreground h-14 px-8"
             aria-label={t('back')}
           >
             {t('back')}
@@ -592,7 +767,7 @@ export function ExamEngine({ mode }: ExamEngineProps) {
           <button
             onClick={handleNext}
             disabled={currentQuestionIndex === questions.length - 1}
-            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-12 px-6"
+            className="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-lg font-bold transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-14 px-8"
             aria-label={t('next')}
           >
             {t('next')}
@@ -603,13 +778,13 @@ export function ExamEngine({ mode }: ExamEngineProps) {
           <button
             onClick={handleToggleMarkForReview}
             aria-pressed={isMarkedForReview}
-            className={`inline-flex items-center justify-center whitespace-nowrap rounded-md text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring border h-12 px-6 ${isMarkedForReview ? 'bg-secondary text-secondary-foreground border-secondary' : 'bg-background border-input hover:bg-accent'}`}
+            className={`inline-flex items-center justify-center whitespace-nowrap rounded-xl text-lg font-bold transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring border-2 h-14 px-8 ${isMarkedForReview ? 'bg-amber-500/20 text-amber-500 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'bg-background border-input hover:bg-accent'}`}
           >
             {t('mark_review')}
           </button>
           <button
             onClick={confirmSubmitFlow}
-            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring bg-destructive text-destructive-foreground shadow hover:bg-destructive/90 h-12 px-6"
+            className="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-lg font-bold transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring bg-destructive text-destructive-foreground hover:bg-destructive/90 h-14 px-8 shadow-[0_0_15px_rgba(220,38,38,0.3)] hover:shadow-[0_0_25px_rgba(220,38,38,0.5)]"
           >
             {t('submit')}
           </button>

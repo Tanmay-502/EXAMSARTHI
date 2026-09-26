@@ -7,6 +7,7 @@ export interface VoiceCommandMap {
   TIME_LEFT: string[];
   READ_QUESTION: string[];
   READ_OPTIONS: string[];
+  READ_RESULTS: string[];
   MARK_REVIEW: string[];
   REMOVE_REVIEW: string[];
   SUBMIT: string[];
@@ -25,6 +26,8 @@ export interface VoiceCommandMap {
   SET_LANGUAGE_ENGLISH: string[];
   SET_LANGUAGE_HINDI: string[];
   SET_LANGUAGE_TELUGU: string[];
+  SIGN_IN: string[];
+  SIGN_UP: string[];
 }
 
 export interface LanguageDefinition {
@@ -60,6 +63,7 @@ export const LANGUAGE_REGISTRY: Record<Locale, LanguageDefinition> = {
       TIME_LEFT: ['time left', 'time remaining'],
       READ_QUESTION: ['read question'],
       READ_OPTIONS: ['read options'],
+      READ_RESULTS: ['read results', 'results'],
       MARK_REVIEW: ['mark for review', 'mark'],
       REMOVE_REVIEW: ['remove review', 'unmark'],
       SUBMIT: ['submit', 'finish'],
@@ -78,6 +82,8 @@ export const LANGUAGE_REGISTRY: Record<Locale, LanguageDefinition> = {
       SET_LANGUAGE_ENGLISH: ['english'],
       SET_LANGUAGE_HINDI: ['hindi'],
       SET_LANGUAGE_TELUGU: ['telugu'],
+      SIGN_IN: ['sign in', 'log me in', 'login', 'log in'],
+      SIGN_UP: ['sign up', 'create an account', 'register', 'create account'],
     },
     optionKeywords: ['option', 'answer'],
     optionValues: {
@@ -87,7 +93,7 @@ export const LANGUAGE_REGISTRY: Record<Locale, LanguageDefinition> = {
       d: ['d', '4', 'four', 'fourth'],
     },
     dictionary: {
-      welcome: 'Welcome to Exam Saarthi. Please select your language.',
+      welcome: 'Welcome to ExamSaarthi. I am your voice companion. Would you like to sign in or create an account?',
       login: 'Login / Sign Up',
       signup: 'Sign Up',
       dashboard: 'Dashboard',
@@ -142,7 +148,7 @@ export const LANGUAGE_REGISTRY: Record<Locale, LanguageDefinition> = {
       submit_warning_msg: 'You answered {answered} of {total} questions. {unanswered} questions are unanswered. {marked} question is marked for review. Would you like to review or submit?',
       submit_confirm_msg: 'Are you sure you want to permanently submit your exam? Say yes to submit or no to cancel.',
       help_message: 'Commands. Navigation: next, back, jump to question number. Answers: option A, confirm. Review: mark for review, review unanswered, review marked. Time: time left. Submission: submit.',
-      mic_check_prompt: 'Let\'s check your microphone. Please say: next',
+      mic_check_prompt: 'Let\'s check your microphone. Please say next. You can also say skip test.',
       mic_check_success: 'Voice control is ready.',
       mic_check_fail: 'Voice control is unavailable. You can still complete the exam using the keyboard.',
       exam_orientation: '{examName}. {total} questions. Time limit: {duration} minutes. Selected language: {language}. You can use voice commands like next, back, and option A. Or use your keyboard.',
@@ -174,6 +180,7 @@ export const LANGUAGE_REGISTRY: Record<Locale, LanguageDefinition> = {
       TIME_LEFT: ['समय कितना बचा है', 'कितना समय है'],
       READ_QUESTION: ['प्रश्न पढ़ो', 'सवाल पढ़ो'],
       READ_OPTIONS: ['विकल्प पढ़ो', 'ऑप्शन पढ़ो'],
+      READ_RESULTS: ['परिणाम पढ़ो', 'रिजल्ट पढ़ो'],
       MARK_REVIEW: ['समीक्षा के लिए चिन्हित करो', 'मार्क', 'समीक्षा'],
       REMOVE_REVIEW: ['समीक्षा हटाओ', 'अनमार्क'],
       SUBMIT: ['जमा करो', 'सबमिट', 'जमा'],
@@ -192,6 +199,8 @@ export const LANGUAGE_REGISTRY: Record<Locale, LanguageDefinition> = {
       SET_LANGUAGE_ENGLISH: ['इंग्लिश', 'english', 'अंग्रेजी'],
       SET_LANGUAGE_HINDI: ['हिंदी', 'hindi', 'हिन्दी'],
       SET_LANGUAGE_TELUGU: ['तेलुगु', 'telugu'],
+      SIGN_IN: ['साइन इन', 'लॉग इन'],
+      SIGN_UP: ['साइन अप', 'अकाउंट बनाएं'],
     },
     optionKeywords: ['विकल्प', 'ऑप्शन', 'उत्तर'],
     optionValues: {
@@ -201,7 +210,7 @@ export const LANGUAGE_REGISTRY: Record<Locale, LanguageDefinition> = {
       d: ['डी', 'd', '4', 'चार', 'चौथा'],
     },
     dictionary: {
-      welcome: 'परीक्षा सारथी में आपका स्वागत है। कृपया अपनी भाषा चुनें।',
+      welcome: 'परीक्षा सारथी में आपका स्वागत है। मैं आपका वॉइस असिस्टेंट हूँ। क्या आप साइन इन करना चाहेंगे या नया अकाउंट बनाना चाहेंगे?',
       login: 'लॉग इन / साइन अप करें',
       signup: 'साइन अप करें',
       dashboard: 'डैशबोर्ड',
@@ -288,6 +297,7 @@ export const LANGUAGE_REGISTRY: Record<Locale, LanguageDefinition> = {
       TIME_LEFT: ['ఎంత సమయం ఉంది', 'సమయం'],
       READ_QUESTION: ['ప్రశ్న చదువు'],
       READ_OPTIONS: ['ఎంపికలు చదువు', 'ఆప్షన్స్ చదువు'],
+      READ_RESULTS: ['ఫలితాలు చదువు', 'రిజల్ట్స్ చదువు'],
       MARK_REVIEW: ['సమీక్షకు గుర్తించు', 'మార్క్'],
       REMOVE_REVIEW: ['సమీక్షను తొలగించు', 'అన్మార్క్'],
       SUBMIT: ['సమర్పించు', 'సబ్మిట్'],
@@ -306,6 +316,8 @@ export const LANGUAGE_REGISTRY: Record<Locale, LanguageDefinition> = {
       SET_LANGUAGE_ENGLISH: ['ఇంగ్లీష్', 'english'],
       SET_LANGUAGE_HINDI: ['హిందీ', 'hindi'],
       SET_LANGUAGE_TELUGU: ['తెలుగు', 'telugu'],
+      SIGN_IN: ['సైన్ ఇన్', 'లాగిన్'],
+      SIGN_UP: ['సైన్ అప్', 'ఖాతా సృష్టించు'],
     },
     optionKeywords: ['ఎంపిక', 'జవాబు', 'ఆప్షన్'],
     optionValues: {
@@ -315,7 +327,7 @@ export const LANGUAGE_REGISTRY: Record<Locale, LanguageDefinition> = {
       d: ['డీ', 'డి', 'd', '4', 'నాలుగు', 'నాల్గవ'],
     },
     dictionary: {
-      welcome: 'పరీక్ష సారథికి స్వాగతం. దయచేసి మీ భాషను ఎంచుకోండి.',
+      welcome: 'పరీక్ష సారథికి స్వాగతం. నేను మీ వాయిస్ అసిస్టెంట్‌ని. మీరు సైన్ ఇన్ చేయాలనుకుంటున్నారా లేదా ఖాతా సృష్టించాలనుకుంటున్నారా?',
       login: 'లాగిన్ / సైన్ అప్',
       signup: 'సైన్ అప్',
       dashboard: 'డాష్బోర్డ్',
