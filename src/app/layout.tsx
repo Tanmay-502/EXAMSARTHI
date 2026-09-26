@@ -1,0 +1,37 @@
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { I18nProvider } from "@/lib/i18n/I18nProvider";
+import { AccessibilityProvider } from "@/lib/accessibility/AccessibilityProvider";
+import { VoiceProvider } from "@/lib/voice/VoiceProvider";
+import { GlobalVoiceAssistant } from "@/components/voice/GlobalVoiceAssistant";
+
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "EXAMSAARTHI V2",
+  description: "Accessible examination platform",
+  manifest: "/manifest.json",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body className={`${inter.className} antialiased`}>
+        <I18nProvider>
+          <AccessibilityProvider>
+            <VoiceProvider>
+              <GlobalVoiceAssistant>
+                {children}
+              </GlobalVoiceAssistant>
+            </VoiceProvider>
+          </AccessibilityProvider>
+        </I18nProvider>
+      </body>
+    </html>
+  );
+}

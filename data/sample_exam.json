@@ -1,0 +1,23 @@
+{
+  "title": "Official SSC CGL 2023 Tier 1",
+  "description": "Mock official ingestion data for SSC CGL.",
+  "duration_minutes": 60,
+  "questions": [
+    {
+      "order_index": 1,
+      "subject": "Quantitative Aptitude",
+      "content_text": "If a merchant offers a discount of 20% on the marked price of his goods and thus ends up selling at cost price, what was the % mark up?",
+      "options": ["20%", "25%", "30%", "40%"],
+      "correct_answer_index": 1,
+      "translations": {}
+    },
+    {
+      "order_index": 2,
+      "subject": "General Intelligence",
+      "content_text": "In a certain code language, 'ROAR' is written as 'URDU'. How will 'URDU' be written in that language?",
+      "options": ["VXDX", "XUAX", "XUGX", "ROAR"],
+      "correct_answer_index": 2,
+      "translations": {}
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+# EXAMSAARTHI V2 - PRODUCTION DEPLOYMENT CHECKLIST
+
+Ensure the following steps are verified before deploying to Vercel/Production.
+
+## Environment Variables
+
+**Client-Side (Safe for Browser):**
+
+- [ ] `NEXT_PUBLIC_SUPABASE_URL` is set to the production Supabase project URL.
+- [ ] `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` is set to the production Supabase `anon` / publishable key.
+
+**Server-Side (STRICTLY CONFIDENTIAL):**
+
+- [ ] `SUPABASE_SECRET_KEY` is set to the production Supabase `service_role` key.
+- [ ] **Critical:** Verify `SUPABASE_SECRET_KEY` does NOT have the `NEXT_PUBLIC_` prefix.
+
+## Security Validations
+
+- [ ] No secrets are hardcoded in the codebase.
+- [ ] `.env.local` is present in `.gitignore` and has not been committed.
+- [ ] `adminClient` is exclusively used within `'use server'` files (e.g., `actions.ts`).
+
+## Database Configuration (Supabase Dashboard)
+
+- [ ] Production database has `00000_schema`, `00001_multilingual`, `00002_demo_exam_data`, and `00003_secure_answers` successfully applied.
+- [ ] Row Level Security (RLS) is ENFORCED on `profiles`, `exams`, `questions`, `exam_sessions`, `answers`, `audit_logs`, and `question_answers`.
+- [ ] Auth Email Template for "Confirm Signup" and "Magic Link" uses the PKCE configuration `{{ .TokenHash }}` redirecting to `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`.
+
+## Build Verification
+
+- [ ] `npm run typecheck` passes cleanly.
+- [ ] `npm run lint` passes cleanly.
+- [ ] `npm run build` generates static/dynamic routes successfully without build errors.
