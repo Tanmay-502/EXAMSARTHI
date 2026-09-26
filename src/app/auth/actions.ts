@@ -17,13 +17,7 @@ export async function loginWithMagicLink(formData: FormData) {
   }
 
   console.error('--- SERVER ACTION CALLED ---', email);
-  console.error('PLAYWRIGHT_TEST_MODE:', process.env.PLAYWRIGHT_TEST_MODE);
 
-  // For Playwright only, mock/stub the email-delivery boundary so we don't attempt to send real emails
-  // and deterministically return a successful response to allow the test to proceed.
-  if (process.env.PLAYWRIGHT_TEST_MODE === 'true') {
-    return redirect(`/auth/login?message=${encodeURIComponent('Check email to continue sign in process')}&_t=${Date.now()}`)
-  }
 
   const { error } = await supabase.auth.signInWithOtp({
     email,

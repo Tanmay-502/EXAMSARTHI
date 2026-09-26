@@ -3,7 +3,7 @@
 import { useI18n } from '@/lib/i18n/I18nProvider';
 import { useEffect, useRef, Suspense } from 'react';
 import { loginWithMagicLink } from '../actions';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
 import { useVoice } from '@/lib/voice/VoiceProvider';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
@@ -11,7 +11,6 @@ import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 function LoginForm() {
   const { t, lang } = useI18n();
   const searchParams = useSearchParams();
-  const router = useRouter();
   const message = searchParams.get('message');
   const { speak, isContinuous } = useVoice();
   const { useVoiceAction } = useGlobalVoice();
