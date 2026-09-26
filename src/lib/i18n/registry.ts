@@ -78,7 +78,7 @@ export const LANGUAGE_REGISTRY: Record<Locale, LanguageDefinition> = {
       HISTORY: ['history', 'previous attempts'],
       LOGOUT: ['logout', 'sign out'],
       DASHBOARD_EXAM: ['start exam', 'exam'],
-      DASHBOARD_PRACTICE: ['start practice', 'practice'],
+      DASHBOARD_PRACTICE: ['start practice', 'practice', 'i wanna practice', 'i want to practice', 'open practice', 'practice dbms'],
       SET_LANGUAGE_ENGLISH: ['english'],
       SET_LANGUAGE_HINDI: ['hindi'],
       SET_LANGUAGE_TELUGU: ['telugu'],

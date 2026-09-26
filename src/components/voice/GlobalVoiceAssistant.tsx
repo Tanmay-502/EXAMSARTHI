@@ -91,10 +91,18 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
         }
         
         if (session) {
-          if (action === 'SIGN_IN') {
-            speak(lang === 'hi-IN' ? 'आप पहले से ही साइन इन हैं। मैं आपकी कैसे मदद कर सकता हूँ?' : lang === 'te-IN' ? 'మీరు ఇప్పటికే సైన్ ఇన్ చేసారు. నేను మీకు ఎలా సహాయం చేయగలను?' : "You're already signed in. How can I help you?");
+          if (pathname !== '/dashboard') {
+            speak(lang === 'hi-IN' ? 'मैं आपको डैशबोर्ड पर ले जा रहा हूँ।' : lang === 'te-IN' ? 'నేను మిమ్మల్ని డాష్బోర్డ్కి తీసుకెళ్తున్నాను.' : "Taking you to your dashboard.");
+            isNavigatingRef.current = true;
+            setTimeout(() => {
+              router.push('/dashboard');
+            }, 500);
           } else {
-            speak(lang === 'hi-IN' ? 'आप पहले से ही साइन इन हैं। मैं आपको डैशबोर्ड पर ले जा सकता हूँ या अभ्यास शुरू करने में मदद कर सकता हूँ।' : lang === 'te-IN' ? 'మీరు ఇప్పటికే సైన్ ఇన్ చేసారు. నేను మిమ్మల్ని డాష్బోర్డ్కు తీసుకెళ్లగలను లేదా ప్రాక్టీస్ ప్రారంభించడంలో సహాయపడగలను.' : "You're already signed in. I can take you to your dashboard or help you start a practice session.");
+            if (action === 'SIGN_IN') {
+              speak(lang === 'hi-IN' ? 'आप पहले से ही साइन इन हैं। मैं आपकी कैसे मदद कर सकता हूँ?' : lang === 'te-IN' ? 'మీరు ఇప్పటికే సైన్ ఇన్ చేసారు. నేను మీకు ఎలా సహాయం చేయగలను?' : "You're already signed in. How can I help you?");
+            } else {
+              speak(lang === 'hi-IN' ? 'आप पहले से ही साइन इन हैं। मैं आपको डैशबोर्ड पर ले जा सकता हूँ या अभ्यास शुरू करने में मदद कर सकता हूँ।' : lang === 'te-IN' ? 'మీరు ఇప్పటికే సైన్ ఇన్ చేసారు. నేను మిమ్మల్ని డాష్బోర్డ్కు తీసుకెళ్లగలను లేదా ప్రాక్టీస్ ప్రారంభించడంలో సహాయపడగలను.' : "You're already signed in. I can take you to your dashboard or help you start a practice session.");
+            }
           }
         } else {
           const msg = action === 'SIGN_IN' 
@@ -209,7 +217,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
 
     // 3. Notify page-level handlers (like ExamEngine)
     handlersRef.current.forEach(h => h(action, payload));
-  }, [getContextName, registry, router, setLang, speak, lang]);
+  }, [getContextName, registry, router, setLang, speak, lang, pathname]);
 
   useEffect(() => {
     setOnResult(async (transcript) => {
