@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { fetchAnalyticsData } from './actions';
 import { TrendingUp, TrendingDown, Minus, Clock, AlertCircle, CheckCircle } from 'lucide-react';
 import AnalysisVoiceHandler from './AnalysisVoiceHandler';
+import { VoiceCore } from '@/components/voice/VoiceCore';
+import { motion } from 'framer-motion';
 
 export const metadata = {
   title: 'Analysis - ExamSaarthi',
@@ -24,131 +26,157 @@ export default async function AnalysisPage() {
   };
 
   return (
-    <main id="main-content" className="flex flex-col flex-1 p-6 items-center justify-start max-w-5xl mx-auto w-full space-y-8">
+    <main id="main-content" className="flex flex-col flex-1 min-h-screen w-full max-w-7xl mx-auto px-6 md:px-12 pt-32 pb-24 bg-black text-white">
       <AnalysisVoiceHandler data={data} />
       <div className="w-full">
-        <h1 className="text-4xl font-bold tracking-tight mb-2" tabIndex={-1}>Performance Analysis</h1>
-        <p className="text-xl text-muted-foreground mb-8">Detailed insights across all your practice and exam sessions.</p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="mb-24 flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-zinc-900 pb-12"
+        >
+          <div>
+            <p className="text-zinc-500 tracking-[0.2em] text-xs uppercase mb-6">PERFORMANCE</p>
+            <h1 className="text-[clamp(3rem,6vw,7rem)] leading-[0.9] font-light tracking-tighter mb-6 text-zinc-100" tabIndex={-1}>Analysis.</h1>
+            <p className="text-2xl md:text-3xl font-light text-zinc-500">Detailed insights across all your practice and exam sessions.</p>
+          </div>
+          <VoiceCore size="sm" />
+        </motion.div>
 
         {/* High-Level Stats */}
-        <div className="grid gap-6 md:grid-cols-3 mb-8">
-          <div className="bg-card shadow border rounded-xl flex flex-col justify-center items-center p-6">
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">Overall Accuracy</h3>
-            <div className="text-3xl font-bold">{data.overall.avgPercentage}%</div>
-            <p className="text-xs text-muted-foreground mt-1">Across {data.overall.totalSessions} sessions</p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="grid gap-12 lg:grid-cols-3 mb-24"
+        >
+          <div className="border-t border-zinc-900 pt-8">
+            <h3 className="text-zinc-500 tracking-[0.2em] text-xs uppercase mb-6">Overall Accuracy</h3>
+            <div className="text-6xl md:text-7xl font-light tracking-tighter">{data.overall.avgPercentage}%</div>
+            <p className="text-sm text-zinc-500 mt-3">Across {data.overall.totalSessions} sessions</p>
           </div>
 
-          <div className="bg-card shadow border rounded-xl flex flex-col justify-center items-center p-6">
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">Improvement Trend</h3>
+          <div className="border-t border-zinc-900 pt-8">
+            <h3 className="text-zinc-500 tracking-[0.2em] text-xs uppercase mb-6">Improvement Trend</h3>
             <div className="flex items-center gap-2">
               {data.overall.improvementTrend === 'improving' && <TrendingUp className="text-green-500 w-8 h-8" />}
-              {data.overall.improvementTrend === 'declining' && <TrendingDown className="text-destructive w-8 h-8" />}
-              {data.overall.improvementTrend === 'stable' && <Minus className="text-muted-foreground w-8 h-8" />}
-              {data.overall.improvementTrend === 'insufficient_data' && <Minus className="text-muted-foreground w-8 h-8" />}
-              <div className="text-2xl font-bold capitalize">
+              {data.overall.improvementTrend === 'declining' && <TrendingDown className="text-red-500 w-8 h-8" />}
+              {data.overall.improvementTrend === 'stable' && <Minus className="text-zinc-500 w-8 h-8" />}
+              {data.overall.improvementTrend === 'insufficient_data' && <Minus className="text-zinc-500 w-8 h-8" />}
+              <div className="text-3xl font-light capitalize">
                 {data.overall.improvementTrend.replace('_', ' ')}
               </div>
             </div>
             {data.overall.improvementTrend === 'insufficient_data' && (
-              <p className="text-xs text-muted-foreground mt-1">Take more exams to see trends</p>
+              <p className="text-sm text-zinc-500 mt-3">Take more exams to see trends</p>
             )}
           </div>
 
-          <div className="bg-card shadow border rounded-xl flex flex-col justify-center items-center p-6">
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">Avg Time per Session</h3>
+          <div className="border-t border-zinc-900 pt-8">
+            <h3 className="text-zinc-500 tracking-[0.2em] text-xs uppercase mb-6">Avg Time per Session</h3>
             <div className="flex items-center gap-2">
-              <Clock className="text-muted-foreground w-8 h-8" />
-              <div className="text-3xl font-bold">{formatDuration(data.timeEfficiency.avgDurationSeconds)}</div>
+              <Clock className="text-zinc-500 w-8 h-8" />
+              <div className="text-4xl font-light tracking-tighter">{formatDuration(data.timeEfficiency.avgDurationSeconds)}</div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="grid gap-6 md:grid-cols-2 mb-8">
-          <div className="bg-card shadow border rounded-xl p-6">
-            <h2 className="text-2xl font-semibold mb-2">Strong Areas</h2>
-            <p className="text-muted-foreground mb-6">Subjects where you score above 70%</p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+          className="grid gap-12 lg:grid-cols-2 mb-24"
+        >
+          <div className="border-t border-zinc-900 pt-8">
+            <h2 className="text-4xl md:text-5xl font-light tracking-tighter mb-4">Strong Areas</h2>
+            <p className="text-zinc-500 text-lg font-light mb-8">Subjects where you score above 70%</p>
             {data.strongSubjects.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {data.strongSubjects.map(subject => (
-                  <span key={subject} className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-green-500/20 text-green-500 hover:bg-green-500/30 text-sm">
+                  <span key={subject} className="inline-flex items-center rounded-full border border-green-900/50 px-4 py-2 text-green-400 text-sm uppercase tracking-widest font-bold">
                     <CheckCircle className="w-4 h-4 mr-1.5 inline-block" />
                     {subject}
                   </span>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">No strong subjects identified yet.</p>
+              <p className="text-sm text-zinc-500">No strong subjects identified yet.</p>
             )}
           </div>
 
-          <div className="bg-card shadow border rounded-xl p-6">
-            <h2 className="text-2xl font-semibold mb-2">Areas for Improvement</h2>
-            <p className="text-muted-foreground mb-6">Subjects where you score below 50%</p>
+          <div className="border-t border-zinc-900 pt-8">
+            <h2 className="text-4xl md:text-5xl font-light tracking-tighter mb-4">Areas for Improvement</h2>
+            <p className="text-zinc-500 text-lg font-light mb-8">Subjects where you score below 50%</p>
             {data.weakSubjects.length > 0 ? (
               <div className="space-y-4">
                 <div className="flex flex-wrap gap-2">
                   {data.weakSubjects.map(subject => (
-                    <span key={subject} className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80 text-sm">
+                    <span key={subject} className="inline-flex items-center rounded-full border border-red-900/50 px-4 py-2 text-red-400 text-sm uppercase tracking-widest font-bold">
                       <AlertCircle className="w-4 h-4 mr-1.5 inline-block" />
                       {subject}
                     </span>
                   ))}
                 </div>
-                <div className="text-sm text-muted-foreground pt-2">
+                <div className="text-sm text-zinc-400 pt-2">
                   <strong>Recommendation:</strong> You should practice more questions in these subjects.
                   <div className="mt-3">
-                    <Link href="/practice" className="text-primary hover:underline font-medium">Start Practice Session &rarr;</Link>
+                    <Link href="/practice" className="inline-flex items-center rounded-full bg-white text-black px-6 py-3 uppercase tracking-widest text-xs font-bold hover:bg-zinc-200 transition-colors">Start Practice Session &rarr;</Link>
                   </div>
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">No weak subjects identified yet. Keep it up!</p>
+              <p className="text-sm text-zinc-500">No weak subjects identified yet. Keep it up!</p>
             )}
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-card shadow border rounded-xl p-6">
-          <h2 className="text-2xl font-semibold mb-2">Subject-wise Breakdown</h2>
-          <p className="text-muted-foreground mb-6">Detailed accuracy across all subjects</p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="border-t border-zinc-900 pt-8"
+        >
+          <h2 className="text-4xl md:text-5xl font-light tracking-tighter mb-4">Subject-wise Breakdown</h2>
+          <p className="text-zinc-500 text-lg font-light mb-12">Detailed accuracy across all subjects</p>
           {data.subjectAccuracy.length > 0 ? (
-            <div className="space-y-6">
+            <div className="space-y-10">
               {data.subjectAccuracy.map(stat => (
                 <div key={stat.subject} className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="font-medium text-lg">{stat.subject}</span>
-                    <span className="text-muted-foreground">{stat.accuracy}% ({stat.correct}/{stat.total} correct)</span>
+                    <span className="font-light text-2xl">{stat.subject}</span>
+                    <span className="text-zinc-500">{stat.accuracy}% ({stat.correct}/{stat.total} correct)</span>
                   </div>
-                  <div className="h-3 w-full bg-secondary rounded-full overflow-hidden" role="progressbar" aria-valuenow={stat.accuracy} aria-valuemin={0} aria-valuemax={100} aria-label={`Accuracy for ${stat.subject}`}>
+                  <div className="h-2 w-full bg-zinc-900 rounded-full overflow-hidden" role="progressbar" aria-valuenow={stat.accuracy} aria-valuemin={0} aria-valuemax={100} aria-label={`Accuracy for ${stat.subject}`}>
                     <div 
-                      className="h-full bg-primary transition-all" 
+                      className="h-full bg-white transition-all"
                       style={{ width: `${stat.accuracy}%` }}
                     />
                   </div>
                   <div className="flex gap-4 text-xs font-medium">
                     <span className="text-green-500">{stat.correct} Correct</span>
-                    <span className="text-destructive">{stat.incorrect} Incorrect</span>
-                    <span className="text-muted-foreground">{stat.unanswered} Unanswered</span>
+                    <span className="text-red-500">{stat.incorrect} Incorrect</span>
+                    <span className="text-zinc-500">{stat.unanswered} Unanswered</span>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-8">Not enough data to show subject breakdown.</p>
+            <p className="text-sm text-zinc-500 text-center py-8">Not enough data to show subject breakdown.</p>
           )}
-        </div>
+        </motion.div>
 
       </div>
 
-      <div className="pt-4 w-full flex gap-4">
+      <div className="pt-16 w-full flex flex-wrap gap-4 border-t border-zinc-900 mt-24">
         <Link
           href="/dashboard"
-          className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring border border-input bg-background hover:bg-accent h-12 px-6"
+          className="inline-flex items-center justify-center whitespace-nowrap rounded-full border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors uppercase tracking-widest text-xs font-bold h-12 px-6"
         >
           Return to Dashboard
         </Link>
         <Link
           href="/history"
-          className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-6"
+          className="inline-flex items-center justify-center whitespace-nowrap rounded-full bg-white text-black hover:bg-zinc-200 transition-colors uppercase tracking-widest text-xs font-bold h-12 px-6"
         >
           View Full History
         </Link>
