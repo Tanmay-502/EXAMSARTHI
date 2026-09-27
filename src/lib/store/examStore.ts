@@ -46,6 +46,7 @@ interface ExamState {
   startTime: number | null
   endTime: number | null
   status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'SUBMITTED'
+  hasHydrated: boolean
   
   // Actions
   initializeExam: (sessionId: string, examId: string, questions: Question[]) => void
@@ -54,6 +55,7 @@ interface ExamState {
   setCurrentQuestionIndex: (index: number) => void
   submitExam: () => void
   clearExam: () => void
+  setHasHydrated: (value: boolean) => void
 }
 
 export const useExamStore = create<ExamState>()(
@@ -67,17 +69,27 @@ export const useExamStore = create<ExamState>()(
       startTime: null,
       endTime: null,
       status: 'NOT_STARTED',
+      hasHydrated: false,
 
       initializeExam: (sessionId, examId, questions) => {
-        set({
-          sessionId,
-          examId,
-          questions,
-          answers: {},
-          currentQuestionIndex: 0,
-          startTime: Date.now(),
-          endTime: null,
-          status: 'IN_PROGRESS',
+        set((state) => {
+          const isResuming =
+            state.sessionId === sessionId &&
+            state.examId === examId &&
+            state.status === 'IN_PROGRESS';
+
+          return {
+            sessionId,
+            examId,
+            questions,
+            answers: isResuming ? state.answers : {},
+            currentQuestionIndex: isResuming
+              ? Math.min(state.currentQuestionIndex, Math.max(0, questions.length - 1))
+              : 0,
+            startTime: isResuming ? state.startTime : Date.now(),
+            endTime: null,
+            status: 'IN_PROGRESS',
+          };
         })
       },
 
@@ -123,6 +135,8 @@ export const useExamStore = create<ExamState>()(
         set({ status: 'SUBMITTED', endTime: Date.now() })
       },
 
+      setHasHydrated: (value) => set({ hasHydrated: value }),
+
       clearExam: () => {
         set({
           sessionId: null,
@@ -139,6 +153,9 @@ export const useExamStore = create<ExamState>()(
     {
       name: 'exam-storage', // name of the item in the storage (must be unique)
       storage: createJSONStorage(() => storage),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated?.(true);
+      },
     }
   )
 )
