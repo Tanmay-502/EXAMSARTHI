@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useVoice } from '@/lib/voice/VoiceProvider';
+import { usePreferredMode } from '@/lib/hooks/usePreferredMode';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 
 type LanguageCode = 'en-IN' | 'hi-IN' | 'te-IN';
@@ -13,18 +14,25 @@ export default function LanguageSelectionPage() {
   const firstButtonRef = useRef<HTMLButtonElement>(null);
   const [isSaving, setIsSaving] = useState(false);
   
-  const { speak, startContinuousListening } = useVoice();
+  const { speak, startContinuousListening, pauseListening } = useVoice();
+  const { mode: preferredMode, isLoaded: modeLoaded } = usePreferredMode();
   const { useVoiceAction } = useGlobalVoice();
 
   useEffect(() => {
     if (firstButtonRef.current) {
       firstButtonRef.current.focus();
     }
-    
-    // Voice activation
+
+    if (!modeLoaded) return;
+
     speak("Choose your language. Say English, Hindi, or Telugu.");
-    startContinuousListening();
-  }, [speak, startContinuousListening]);
+
+    if (preferredMode === 'voice-first') {
+      startContinuousListening();
+    } else {
+      pauseListening();
+    }
+  }, [speak, startContinuousListening, pauseListening, preferredMode, modeLoaded]);
 
   const handleSelectLanguage = (langCode: LanguageCode) => {
     setIsSaving(true);
