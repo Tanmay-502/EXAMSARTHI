@@ -23,4 +23,4 @@ The manifest and production static-asset service worker are implemented. Browser
 
 
 ### Supabase migration history
-The repository currently contains two migration files with the same version prefix, `00006_*.sql`. Supabase documentation says migration versions/timestamps must be unique and are the identifiers used for migration history. Do not rename either file blindly if it may already be applied remotely; first compare local and remote history with `supabase migration list`, then repair or rename through a controlled migration-history procedure. citeturn860463search0turn860463search1
+The repository currently contains two migration files with the same version prefix, `00006_*.sql`. Supabase documentation says migration versions/timestamps must be unique and are the identifiers used for migration history. Do not rename either file blindly if it may already be applied remotely; first compare local and remote history with `supabase migration list`, then repair or rename through a controlled migration-history procedure.
