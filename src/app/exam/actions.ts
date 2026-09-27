@@ -170,7 +170,7 @@ export async function startExamSession(examId: string) {
   return data.id
 }
 
-export async function startPracticeSession(questionIds: string[] = []) {
+export async function startPracticeSession(questionIds: string[] = [], practiceSubject = '') {
   const supabase = await createClient()
   const adminClient = await createAdminClient()
   
@@ -203,6 +203,7 @@ export async function startPracticeSession(questionIds: string[] = []) {
       status: 'in_progress',
       is_practice: true,
       question_ids: uniqueQuestionIds,
+      practice_subject: practiceSubject.trim() || null,
     })
     .select('id')
     .single()
