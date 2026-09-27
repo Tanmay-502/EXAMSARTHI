@@ -411,7 +411,7 @@ function ExamSelection({
                 <span>{exam.duration_minutes} mins</span>
               </div>
             </button>
-          ))})}
+          ))}
         </div>
         
         {selectedExam && (
