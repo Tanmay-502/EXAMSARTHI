@@ -102,8 +102,8 @@ function LoginForm() {
 
     if (voiceStep === 'confirming_email') {
       const normalized = raw.toLowerCase();
-      const yes = /\\b(yes|yeah|yep|confirm|send|send it|okay|ok|haan|हाँ|అవును)\\b/.test(normalized) || action === 'CONFIRM';
-      const no = /\\b(no|nope|change|wrong|different|नहीं|नही|कాదు|మార్చు)\\b/.test(normalized) || action === 'CHANGE';
+      const yes = /\b(yes|yeah|yep|confirm|send|send it|okay|ok|haan|हाँ|అవును)\b/.test(normalized) || action === 'CONFIRM';
+      const no = /\b(no|nope|change|wrong|different|नहीं|नही|కాదు|మార్చు)\b/.test(normalized) || action === 'CHANGE';
 
       if (yes && lastVoiceEmailRef.current) {
         setVoiceStep('sending');
@@ -156,6 +156,10 @@ function LoginForm() {
 
         <p className="text-2xl md:text-3xl font-light text-zinc-500 max-w-xl">{t('magic_link_desc')}</p>
 
+        <p className="text-base md:text-lg text-zinc-500 max-w-xl" aria-live="polite">
+          {voiceStatus || 'New email addresses can create an account automatically through the same Magic Link flow.'}
+        </p>
+
         {message && (
           <div data-testid="auth-message" aria-live="polite" className="border-t border-zinc-900 py-6 text-zinc-300">
             {message === 'unauthenticated' ? (lang === 'hi-IN' ? 'परीक्षा देने के लिए आपको पहले लॉगిన్ करना होगा।' : lang === 'te-IN' ? 'పరీక్ష రాయడానికి మీరు ముందుగా లాగిన్ అవ్వాలి.' : 'You need to login first to take an exam.') : message}
@@ -180,7 +184,13 @@ function LoginForm() {
               id="email"
               name="email"
               type="email"
+              value={voiceEmail}
+              onChange={(event) => {
+                setVoiceEmail(event.target.value);
+                lastVoiceEmailRef.current = event.target.value;
+              }}
               required
+              autoComplete="email"
               className="flex h-14 w-full rounded-none border-0 border-b border-zinc-800 bg-transparent px-0 py-1 text-xl font-light text-white shadow-none transition-colors placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-zinc-400 disabled:cursor-not-allowed disabled:opacity-50"
               aria-label={t('email')}
             />
