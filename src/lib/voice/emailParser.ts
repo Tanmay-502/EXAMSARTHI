@@ -4,17 +4,17 @@ const NUMBER_WORDS: Record<string, string> = {
 };
 
 const SYMBOL_WORDS: Array<[RegExp, string]> = [
-  [/at the rate/gi, '@'],
-  [/at rate/gi, '@'],
-  [/at/gi, '@'],
-  [/dot/gi, '.'],
-  [/point/gi, '.'],
-  [/period/gi, '.'],
-  [/underscore/gi, '_'],
-  [/under score/gi, '_'],
-  [/dash/gi, '-'],
-  [/hyphen/gi, '-'],
-  [/plus/gi, '+'],
+  [/\bat the rate\b/gi, '@'],
+  [/\bat rate\b/gi, '@'],
+  [/\bat\b/gi, '@'],
+  [/\bdot\b/gi, '.'],
+  [/\bpoint\b/gi, '.'],
+  [/\bperiod\b/gi, '.'],
+  [/\bunderscore\b/gi, '_'],
+  [/\bunder score\b/gi, '_'],
+  [/\bdash\b/gi, '-'],
+  [/\bhyphen\b/gi, '-'],
+  [/\bplus\b/gi, '+'],
 ];
 
 const DOMAIN_ALIASES: Array<[RegExp, string]> = [
