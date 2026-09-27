@@ -26,11 +26,17 @@ export class OptionalLLMIntentProvider implements IntentProvider {
     // 2. Fallback to LLM if it's natural language and configured
     // Since we don't want to break if LLM is unavailable, wrap in try-catch
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+
       const response = await fetch('/api/intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript, lang, context })
+        body: JSON.stringify({ transcript, lang, context }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeout);
       if (response.ok) {
         const data = await response.json();
         if (data.intent) {
