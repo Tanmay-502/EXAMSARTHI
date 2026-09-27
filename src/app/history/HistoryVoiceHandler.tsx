@@ -14,7 +14,7 @@ export default function HistoryVoiceHandler({ totalSessions }: { totalSessions: 
   const { useVoiceAction } = useGlobalVoice();
 
   useVoiceAction((action, _payload, transcript) => {
-    if (action !== 'RAW_TRANSCRIPT' || !transcript) return false;
+    if (action !== 'READ_HISTORY' || !transcript) return false;
 
     const text = transcript.toLowerCase();
     const wantsHistory = /(history|attempt|attempts|sessions)/.test(text);
