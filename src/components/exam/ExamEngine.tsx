@@ -78,8 +78,16 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
                   router.push(`/results?session_id=${latestState.sessionId}`);
                 }).catch(err => {
                   console.error('Failed to auto-submit exam:', err);
-                  latestState.submitExam();
-                  router.push('/results');
+                  hasTriggeredExpiry.current = false;
+                  setEngineState('CONFIRM_SUBMIT');
+                  spokenStateKey.current = null;
+                  speak(
+                    lang === 'hi-IN'
+                      ? 'परीक्षा स्वतः जमा नहीं हो सकी। आपके उत्तर सुरक्षित हैं। जमा करने के लिए फिर से पुष्टि करें।'
+                      : lang === 'te-IN'
+                        ? 'పరీక్ష ఆటోమేటిక్‌గా సమర్పించబడలేదు. మీ సమాధానాలు భద్రంగా ఉన్నాయి. మళ్లీ నిర్ధారించండి.'
+                        : 'Automatic submission failed. Your answers are preserved. Please confirm submission again.'
+                  );
                 });
               }
             });
@@ -286,7 +294,10 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   };
 
   const jumpToUnanswered = () => {
-    const index = questions.findIndex(q => answers[q.id]?.answer_data === undefined);
+    const index = questions.findIndex(q => {
+      const answer = answers[q.id]?.answer_data;
+      return answer === undefined || answer === null;
+    });
     if (index !== -1) {
       setCurrentQuestionIndex(index);
     } else {
@@ -312,7 +323,9 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   };
 
   const confirmSubmitFlow = () => {
-    const answeredCount = Object.values(answers).filter(a => a.answer_data !== undefined).length;
+    const answeredCount = Object.values(answers).filter(
+      a => typeof a.answer_data === 'number' && Number.isInteger(a.answer_data) && a.answer_data >= 0
+    ).length;
     const markedCount = Object.values(answers).filter(a => a.is_marked_for_review).length;
     const unansweredCount = questions.length - answeredCount;
 
@@ -338,18 +351,27 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     try {
       const { submitExamAnswers } = await import('@/app/exam/actions');
       const state = useExamStore.getState();
-      if (state.sessionId) {
-        const questionIds = state.questions.map(q => q.id);
-        await submitExamAnswers(state.sessionId, state.answers, questionIds);
-        state.submitExam();
-        router.push(`/results?session_id=${state.sessionId}`);
-        return;
+
+      if (!state.sessionId) {
+        throw new Error('No active exam session');
       }
+
+      const questionIds = state.questions.map(q => q.id);
+      await submitExamAnswers(state.sessionId, state.answers, questionIds);
+      state.submitExam();
+      router.push(`/results?session_id=${state.sessionId}`);
     } catch (err) {
       console.error('Failed to submit exam:', err);
+      setEngineState('CONFIRM_SUBMIT');
+      spokenStateKey.current = null;
+      speak(
+        lang === 'hi-IN'
+          ? 'परीक्षा जमा नहीं हो सकी। आपके उत्तर सुरक्षित हैं। फिर से जमा करने के लिए हाँ कहें।'
+          : lang === 'te-IN'
+            ? 'పరీక్ష సమర్పించబడలేదు. మీ సమాధానాలు భద్రంగా ఉన్నాయి. మళ్లీ సమర్పించడానికి అవును అని చెప్పండి.'
+            : 'The exam could not be submitted. Your answers are preserved. Say yes to try again.'
+      );
     }
-    useExamStore.getState().submitExam();
-    router.push('/results');
   };
 
   const voiceHandler = (action: SafeAction, payload?: Record<string, unknown> | null) => {
