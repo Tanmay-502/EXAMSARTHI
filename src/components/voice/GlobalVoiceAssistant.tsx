@@ -196,14 +196,14 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
       router.push('/dashboard');
     }
     if (action === 'OPEN_EXAM' || action === 'START_EXAM') {
-      if (getContextName() !== 'exam' && getContextName() !== 'practice') {
+      if (getContextName() === 'exam') {
+        speak(lang === 'hi-IN' ? 'आप पहले से ही परीक्षा मोड में हैं।' : lang === 'te-IN' ? 'మీరు ఇప్పటికే పరీక్ష మోడ్‌లో ఉన్నారు.' : 'You are already in exam mode.');
+      } else {
         speak(lang === 'hi-IN' ? 'परीक्षा खोल रहा हूँ।' : lang === 'te-IN' ? 'పరీక్షను తెరుస్తున్నాను.' : 'Opening exam mode.');
         isNavigatingRef.current = true;
         const query = new URLSearchParams();
         if (payload?.exam_id) query.set('exam_id', payload.exam_id as string);
-        router.push(`/exam?${query.toString()}`);
-      } else {
-        speak(lang === 'hi-IN' ? 'आप पहले से ही परीक्षा मोड में हैं।' : lang === 'te-IN' ? 'మీరు ఇప్పటికే పరీక్ష మోడ్‌లో ఉన్నారు.' : 'You are already in exam mode.');
+        router.push(query.toString() ? `/exam?${query.toString()}` : '/exam');
       }
     }
     if (action === 'OPEN_PRACTICE' || action === 'START_PRACTICE') {
