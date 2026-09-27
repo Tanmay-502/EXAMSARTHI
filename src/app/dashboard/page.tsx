@@ -71,6 +71,18 @@ function DashboardContent() {
     };
     const fetchInsight = async () => {
       try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('learning_profile_consent')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (!profile?.learning_profile_consent) return;
+
         const res = await fetch('/api/insights', { method: 'POST' });
         if (res.ok) {
           const data = await res.json();
@@ -140,22 +152,33 @@ function DashboardContent() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="lg:col-span-8 flex flex-col space-y-12"
         >
-          <div className="group border-t border-zinc-900 pt-12 pb-12 cursor-pointer transition-colors hover:border-zinc-700" onClick={() => router.push('/practice')}>
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
-              <div>
-                <p className="text-zinc-500 tracking-[0.2em] text-sm uppercase mb-4">CURRENT FOCUS</p>
-                <h3 className="text-6xl md:text-8xl font-light tracking-tighter">DBMS</h3>
+          {(() => {
+            const focusSubject = stats?.weakSubjects[0] || stats?.strongSubjects[0] || 'Practice';
+            const focusPercentage = stats?.avgPercentage ?? 0;
+            const hasHistory = Boolean(stats && (stats.totalExams + stats.totalPractice) > 0);
+
+            return (
+              <div className="group border-t border-zinc-900 pt-12 pb-12 cursor-pointer transition-colors hover:border-zinc-700" onClick={() => router.push('/practice')}>
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+                  <div>
+                    <p className="text-zinc-500 tracking-[0.2em] text-sm uppercase mb-4">
+                      {hasHistory ? 'CURRENT FOCUS' : 'GET STARTED'}
+                    </p>
+                    <h3 className="text-6xl md:text-8xl font-light tracking-tighter">{focusSubject}</h3>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-5xl md:text-7xl font-light">{hasHistory ? `${focusPercentage}%` : '—'}</span>
+                    <p className="text-zinc-500 tracking-[0.2em] text-sm uppercase mt-2">
+                      {hasHistory ? 'AVERAGE' : 'NO DATA YET'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center text-sm tracking-wide font-medium text-white transition-transform group-hover:translate-x-2">
+                  {hasHistory ? `Practice ${focusSubject} ↗` : 'Start your first practice session ↗'}
+                </div>
               </div>
-              <div className="text-right">
-                <span className="text-5xl md:text-7xl font-light">72%</span>
-                <p className="text-zinc-500 tracking-[0.2em] text-sm uppercase mt-2">PREPARED</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center text-sm tracking-wide font-medium text-white transition-transform group-hover:translate-x-2">
-              Continue preparation ↗
-            </div>
-          </div>
+            );
+          })()}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 border-t border-zinc-900 pt-12">
             <div>
