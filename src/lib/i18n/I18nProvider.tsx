@@ -33,10 +33,15 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const setLang = (newLang: Lang) => {
     setLangState(newLang);
-    localStorage.setItem('examsarthi_lang', newLang);
+    try {
+      localStorage.setItem('examsarthi_lang', newLang);
+    } catch {
+      // Continue using in-memory language when storage is unavailable.
+    }
   };
 
-  const t = (key: keyof typeof dictionaries['en-IN']) => dictionaries[lang][key] || key;
+  const t = (key: keyof typeof dictionaries['en-IN']) =>
+    dictionaries[lang][key] || dictionaries['en-IN'][key] || key;
   
   const tParams = (key: keyof typeof dictionaries['en-IN'], params: Record<string, string | number>) => {
     let text = t(key);
