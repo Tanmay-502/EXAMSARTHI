@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useVoice } from '@/lib/voice/VoiceProvider';
+import { useI18n } from '@/lib/i18n/I18nProvider';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 
 type LanguageCode = 'en-IN' | 'hi-IN' | 'te-IN';
@@ -11,9 +12,11 @@ type LanguageCode = 'en-IN' | 'hi-IN' | 'te-IN';
 export default function LanguageSelectionPage() {
   const router = useRouter();
   const firstButtonRef = useRef<HTMLButtonElement>(null);
+  const spokenRef = useRef(false);
   const [isSaving, setIsSaving] = useState(false);
   
   const { speak, startContinuousListening } = useVoice();
+  const { setLang } = useI18n();
   const { useVoiceAction } = useGlobalVoice();
 
   useEffect(() => {
@@ -21,16 +24,16 @@ export default function LanguageSelectionPage() {
       firstButtonRef.current.focus();
     }
     
-    // Voice activation
-    speak("Choose your language. Say English, Hindi, or Telugu.");
-    startContinuousListening();
+    if (!spokenRef.current) {
+      spokenRef.current = true;
+      speak("Choose your language. Say English, Hindi, or Telugu.");
+      startContinuousListening();
+    }
   }, [speak, startContinuousListening]);
 
   const handleSelectLanguage = (langCode: LanguageCode) => {
     setIsSaving(true);
-    // In a full implementation, we'd persist this language preference to a store/context or DB.
-    // For now we store it in localStorage so the Auth page can pick it up if needed.
-    localStorage.setItem('examsarthi_lang', langCode);
+    setLang(langCode);
     router.push('/auth/login');
   };
 
