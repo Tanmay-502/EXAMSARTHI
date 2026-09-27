@@ -111,28 +111,35 @@ export async function resolveSubject(spokenText: string): Promise<SupportedSubje
 }
 
 export async function resolveExam(spokenText: string): Promise<ExamRecord | null> {
-  const normalized = spokenText.toLowerCase().trim();
-  
-  if (
-    matchesPhrase(normalized, 'general knowledge & reasoning demo') ||
-    matchesPhrase(normalized, 'general knowledge reasoning demo') ||
-    matchesPhrase(normalized, 'reasoning demo')
-  ) {
-    // Prefer the real database title below, including the currently
-    // available SSC/other exam records. Do not invent an exam id here.
-  }
+  const requested = normalizeSpokenText(spokenText)
+    .replace(/^(please )?((i )?(want|would like) to )?(take|give|start|attempt) (an )?(exam|the exam) /, '')
+    .trim();
+
+  if (!requested) return null;
 
   try {
     const supabase = createClient();
-    const { data: exams } = await supabase.from('exams').select('id, title');
-    
-    if (exams) {
-      const sortedExams = [...exams].sort((a, b) => b.title.length - a.title.length);
-      for (const exam of sortedExams) {
-        if (matchesPhrase(normalized, exam.title.toLowerCase())) {
-          return { id: exam.id, title: exam.title };
-        }
+    const { data: exams, error } = await supabase.from('exams').select('id, title');
+    if (error) throw error;
+
+    const sortedExams = [...(exams || [])].sort((a, b) => b.title.length - a.title.length);
+    for (const exam of sortedExams) {
+      if (matchesPhrase(requested, exam.title)) {
+        return { id: exam.id, title: exam.title };
       }
+    }
+
+    const requestTokens = requested.split(' ').filter(Boolean);
+    if (requestTokens.length >= 2) {
+      const scored = sortedExams
+        .map(exam => {
+          const titleTokens = normalizeSpokenText(exam.title).split(' ').filter(Boolean);
+          const matched = requestTokens.filter(token => titleTokens.includes(token)).length;
+          return { exam, score: matched / requestTokens.length, matched };
+        })
+        .filter(item => item.matched >= 2 && item.score >= 0.7)
+        .sort((a, b) => b.score - a.score || b.matched - a.matched);
+      if (scored[0]) return { id: scored[0].exam.id, title: scored[0].exam.title };
     }
   } catch (e) {
     console.error('Failed to resolve exam dynamically', e);
