@@ -315,7 +315,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   };
 
   const jumpToQuestion = (index: number) => {
-    if (index >= 0 && index < questions.length) {
+    if (Number.isInteger(index) && index >= 0 && index < questions.length) {
       setCurrentQuestionIndex(index);
     } else {
       speak('Invalid question number.');
@@ -528,7 +528,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         return true;
         
       case 'JUMP_TO_QUESTION':
-        if (engineState === 'EXAM' && typeof payload?.index === 'number') {
+        if (engineState === 'EXAM' && typeof payload?.index === 'number' && Number.isInteger(payload.index)) {
           jumpToQuestion(payload.index);
         } else {
           speak(lang === 'hi-IN' ? 'कृपया पहले शुरू करें और फिर प्रश्न संख्या बताएं।' : lang === 'te-IN' ? 'దయచేసి ముందుగా ప్రారంభించి, తరువాత ప్రశ్న సంఖ్య చెప్పండి.' : 'Please start the session first, then say the question number.');
