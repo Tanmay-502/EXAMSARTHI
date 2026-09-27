@@ -8,9 +8,9 @@ import { useSearchParams } from 'next/navigation';
 import { useVoice } from '@/lib/voice/VoiceProvider';
 import { VoiceCore } from '@/components/voice/VoiceCore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { fetchPracticeQuestions, startPracticeSession } from '@/app/exam/actions';
+import { fetchPracticeQuestions, startPracticeSession, fetchAvailablePracticeSubjects } from '@/app/exam/actions';
 import { usePreferredMode } from '@/lib/hooks/usePreferredMode';
-import { SUPPORTED_SUBJECTS, resolveSubject } from '@/lib/catalog/examCatalog';
+import { resolveSubject } from '@/lib/catalog/examCatalog';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 import { SafeAction } from '@/lib/voice/safeActionRegistry';
 
@@ -45,6 +45,7 @@ function PracticeContent() {
   const [confirmedShortfall, setConfirmedShortfall] = useState(false);
   const [fetchedQuestions, setFetchedQuestions] = useState<Question[]>([]);
   const [availableCount, setAvailableCount] = useState<number>(0);
+  const [availableSubjects, setAvailableSubjects] = useState<string[]>([]);
   
   const hasStartedRef = useRef(false);
 
@@ -90,6 +91,22 @@ function PracticeContent() {
       startContinuousListening();
     }
   }, [isContinuous, startContinuousListening]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchAvailablePracticeSubjects()
+      .then((subjects) => {
+        if (!cancelled) setAvailableSubjects(subjects);
+      })
+      .catch((error) => {
+        console.error('Failed to load practice subjects:', error);
+        if (!cancelled) setAvailableSubjects([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!hasHydrated) return;
@@ -294,7 +311,7 @@ function PracticeContent() {
                     <p className="text-2xl text-zinc-500 font-light">&quot;What subject would you like to practice?&quot;</p>
                   </div>
                   <div className="flex flex-wrap gap-4">
-                    {SUPPORTED_SUBJECTS.map(subj => (
+                    {availableSubjects.map(subj => (
                       <button 
                         key={subj}
                         onClick={() => { setSubject(subj); setSetupState('ASK_COUNT'); }}
