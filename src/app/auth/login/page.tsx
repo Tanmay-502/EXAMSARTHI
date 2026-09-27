@@ -9,7 +9,7 @@ import { useVoice } from '@/lib/voice/VoiceProvider';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 import { VoiceCore } from '@/components/voice/VoiceCore';
 import { motion } from 'framer-motion';
-import { normalizeSpokenEmail } from '@/lib/voice/emailParser';
+import { formatEmailForSpeech, normalizeSpokenEmail } from '@/lib/voice/emailParser';
 import { usePreferredMode } from '@/lib/hooks/usePreferredMode';
 
 function LoginForm() {
@@ -92,10 +92,10 @@ function LoginForm() {
       emailRef.current?.focus();
       speak(
         lang === 'hi-IN'
-          ? `मैंने ${parsedEmail} सुना। सही है तो हाँ कहें, बदलना है तो नहीं कहें।`
+          ? `मैंने ${formatEmailForSpeech(parsedEmail)} सुना। सही है तो हाँ कहें, बदलना है तो नहीं कहें।`
           : lang === 'te-IN'
-            ? `${parsedEmail} అని విన్నాను. సరైతే అవును అని, మార్చాలంటే కాదు అని చెప్పండి.`
-            : `I heard ${parsedEmail}. Say yes to confirm, or say no to change it.`
+            ? `${formatEmailForSpeech(parsedEmail)} అని విన్నాను. సరైతే అవును అని, మార్చాలంటే కాదు అని చెప్పండి.`
+            : `I heard ${formatEmailForSpeech(parsedEmail)}. Say yes to confirm, or say no to change it.`
       );
       return true;
     }
