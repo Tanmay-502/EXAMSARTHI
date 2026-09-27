@@ -66,6 +66,52 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   const dispatchAction = React.useCallback(async (action: SafeAction, payload?: Record<string, unknown> | null, transcript?: string) => {
+    const context = getContextName();
+
+    if (action === 'QUESTION_SOLVING' as SafeAction) {
+      if (context === 'exam' || context === 'practice') {
+        const msg = lang === 'hi-IN'
+          ? 'मैं परीक्षा संचालित करने में आपकी मदद कर सकता हूँ, लेकिन मैं किसी सक्रिय प्रश्न का उत्तर नहीं दे सकता या उसे हल नहीं कर सकता।'
+          : lang === 'te-IN'
+            ? 'పరీక్షను నిర్వహించడంలో నేను మీకు సహాయం చేయగలను, కానీ నేను యాక్టివ్ ప్రశ్నకు సమాధానం ఇవ్వలేను లేదా పరిష్కరించలేను.'
+            : 'I can help you operate the exam, but I cannot answer or solve an active exam question.';
+        speak(msg);
+      }
+      return;
+    }
+
+    if (!registry.isActionAllowed(action, context)) {
+      console.warn(`Action ${action} is not allowed in context ${context}`);
+      if (context === 'exam' && [
+        'OPEN_DASHBOARD', 'OPEN_HISTORY', 'OPEN_SETTINGS', 'OPEN_PRACTICE',
+        'START_PRACTICE', 'OPEN_ANALYSIS', 'LOGOUT'
+      ].includes(action)) {
+        speak(
+          lang === 'hi-IN'
+            ? 'मैं सक्रिय परीक्षा के दौरान बाहर नहीं जा सकता। पहले परीक्षा जमा करें।'
+            : lang === 'te-IN'
+              ? 'యాక్టివ్ పరీక్ష సమయంలో నేను బయటకు తీసుకెళ్లలేను. ముందుగా పరీక్షను సమర్పించండి.'
+              : 'I cannot leave or restart an active exam. Please submit the exam before navigating away.'
+        );
+      } else if (action === 'UNKNOWN_COMMAND') {
+        speak(
+          lang === 'hi-IN'
+            ? 'क्षमा करें, मुझे समझ नहीं आया। कृपया फिर से कोशिश करें।'
+            : lang === 'te-IN'
+              ? 'క్షమించండి, నాకు అర్థం కాలేదు. దయచేసి మళ్లీ ప్రయత్నించండి.'
+              : 'I could not understand that. Please try again.'
+        );
+      } else {
+        speak(
+          lang === 'hi-IN'
+            ? 'यह कार्रवाई यहाँ उपलब्ध नहीं है।'
+            : lang === 'te-IN'
+              ? 'ఈ చర్య ఇక్కడ అందుబాటులో లేదు.'
+              : "That action isn't available here."
+        );
+      }
+      return;
+    }
     // 1. Notify page-level handlers first so they can intercept and override global behavior
     let handledLocally = false;
     for (let i = handlersRef.current.length - 1; i >= 0; i--) {
@@ -78,55 +124,6 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
 
     if (handledLocally) return;
 
-    // 2. Check if action is allowed in current context
-    const context = getContextName();
-    if (action === 'QUESTION_SOLVING' as SafeAction) {
-      if (context === 'exam' || context === 'practice') {
-        const msg = lang === 'hi-IN' ? 'मैं परीक्षा संचालित करने में आपकी मदद कर सकता हूँ, लेकिन मैं किसी सक्रिय प्रश्न का उत्तर नहीं दे सकता या उसे हल नहीं कर सकता।' : lang === 'te-IN' ? 'పరీక్షను నిర్వహించడంలో నేను మీకు సహాయం చేయగలను, కానీ నేను యాక్టివ్ ప్రశ్నకు సమాధానం ఇవ్వలేను లేదా పరిష్కరించలేను.' : 'I can help you operate the exam, but I cannot answer or solve an active exam question.';
-        speak(msg);
-      }
-      return;
-    }
-
-    if (!registry.isActionAllowed(action, context)) {
-      console.warn(`Action ${action} is not allowed in context ${context}`);
-      // During an active exam, navigation/logout/restart requests must never
-      // be swallowed silently. Give the candidate an explicit spoken boundary.
-      if (context === 'exam' && [
-        'OPEN_DASHBOARD',
-        'OPEN_HISTORY',
-        'OPEN_SETTINGS',
-        'OPEN_PRACTICE',
-        'START_PRACTICE',
-        'OPEN_ANALYSIS',
-        'LOGOUT'
-      ].includes(action)) {
-        speak(
-          lang === 'hi-IN'
-            ? 'मैं सक्रिय परीक्षा के दौरान बाहर नहीं जा सकता। पहले परीक्षा जमा करें।'
-            : lang === 'te-IN'
-            ? 'యాక్టివ్ పరీక్ష సమయంలో నేను బయటకు తీసుకెళ్లలేను. ముందుగా పరీక్షను సమర్పించండి.'
-            : 'I cannot leave or restart an active exam. Please submit the exam before navigating away.'
-        );
-      } else if (action !== 'UNKNOWN_COMMAND') {
-         // Speak for other valid commands that are not allowed here
-         speak(lang === 'hi-IN' ? 'यह कार्रवाई यहाँ उपलब्ध नहीं है।' : lang === 'te-IN' ? 'ఈ చర్య ఇక్కడ అందుబాటులో లేదు.' : "That action isn't available here.");
-      }
-      
-      // Fallback for unknown
-      if (action === 'UNKNOWN_COMMAND') {
-         if (context === 'dashboard') {
-           speak(lang === 'hi-IN' ? 'मुझे समझ नहीं आया। आप अभ्यास, विश्लेषण, परिणाम या इतिहास कह सकते हैं।' : lang === 'te-IN' ? 'నాకు అర్థం కాలేదు. మీరు ప్రాక్టీస్, విశ్లేషణ, ఫలితాలు లేదా చరిత్ర అని చెప్పవచ్చు.' : "I didn't understand that. You can say practice, analysis, results, or history.");
-         } else if (context === 'language_selection') {
-           speak(lang === 'hi-IN' ? 'कृपया अंग्रेजी, हिंदी या तेलुगु कहें।' : lang === 'te-IN' ? 'దయచేసి ఇంగ్లీష్, హిందీ లేదా తెలుగు అని చెప్పండి.' : "Please say English, Hindi, or Telugu.");
-         } else if (context === 'mode_selection') {
-           speak(lang === 'hi-IN' ? 'कृपया वॉयस मोड या सामान्य मोड कहें।' : lang === 'te-IN' ? 'దయచేసి వాయిస్ మోడ్ లేదా సాధారణ మోడ్ అని చెప్పండి.' : "Please say voice mode or standard mode.");
-         } else {
-           speak(lang === 'hi-IN' ? 'क्षमा करें, मुझे समझ नहीं आया। कृपया फिर से कोशिश करें।' : lang === 'te-IN' ? 'క్షమించండి, నాకు అర్థం కాలేదు. దయచేసి మళ్లీ ప్రయత్నించండి.' : "I couldn't hear that clearly. Please try again.");
-         }
-      }
-      return;
-    }
 
     // Fallback for unknown
     if (action === 'UNKNOWN_COMMAND') {
