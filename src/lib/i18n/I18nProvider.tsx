@@ -17,12 +17,17 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const savedLang = localStorage.getItem('examsarthi_lang') as Lang;
-    if (savedLang && (savedLang === 'en-IN' || savedLang === 'hi-IN' || savedLang === 'te-IN')) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLangState(savedLang);
+    try {
+      const savedLang = localStorage.getItem('examsarthi_lang') as Lang;
+      if (savedLang && (savedLang === 'en-IN' || savedLang === 'hi-IN' || savedLang === 'te-IN')) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setLangState(savedLang);
+      }
+    } catch {
+      // Continue with English when browser storage is unavailable.
+    } finally {
+      setMounted(true);
     }
-    setMounted(true);
   }, []);
 
   useEffect(() => {
@@ -33,10 +38,15 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const setLang = (newLang: Lang) => {
     setLangState(newLang);
-    localStorage.setItem('examsarthi_lang', newLang);
+    try {
+      localStorage.setItem('examsarthi_lang', newLang);
+    } catch {
+      // Continue using in-memory language when storage is unavailable.
+    }
   };
 
-  const t = (key: keyof typeof dictionaries['en-IN']) => dictionaries[lang][key] || key;
+  const t = (key: keyof typeof dictionaries['en-IN']) =>
+    dictionaries[lang][key] || dictionaries['en-IN'][key] || key;
   
   const tParams = (key: keyof typeof dictionaries['en-IN'], params: Record<string, string | number>) => {
     let text = t(key);

@@ -25,16 +25,20 @@ function DashboardContent() {
   
   const headingRef = useRef<HTMLHeadingElement>(null);
   const hasSpokenRef = useRef(false);
+  const [timeOfDay, setTimeOfDay] = useState<'morning' | 'afternoon' | 'evening'>('morning');
   const [userName, setUserName] = useState<string | null>(null);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [insight, setInsight] = useState<string | null>(null);
-  const { mode: interactionMode } = usePreferredMode();
+  const { mode: interactionMode, isLoaded: preferenceLoaded } = usePreferredMode();
   // Auto-scroll transcript
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [transcript]);
 
   useEffect(() => {
+    const hour = new Date().getHours();
+    setTimeOfDay(hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening');
+
     const fetchUser = async () => {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
@@ -45,7 +49,11 @@ function DashboardContent() {
       
       let name = user.user_metadata?.full_name || user.user_metadata?.name;
       if (!name) {
-        const { data } = await supabase.from('profiles').select('full_name').eq('id', user.id).single();
+        const { data } = await supabase
+          .from('profiles')
+          .select('full_name, learning_profile_consent')
+          .eq('id', user.id)
+          .single();
         if (data?.full_name) {
           name = data.full_name;
         }
@@ -71,6 +79,19 @@ function DashboardContent() {
     };
     const fetchInsight = async () => {
       try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('learning_profile_consent')
+          .eq('id', user.id)
+          .single();
+
+        if (!profile?.learning_profile_consent) return;
+
+
         const res = await fetch('/api/insights', { method: 'POST' });
         if (res.ok) {
           const data = await res.json();
@@ -86,7 +107,7 @@ function DashboardContent() {
   }, []);
 
   useEffect(() => {
-    if (hasSpokenRef.current || userName === null) return;
+    if (!preferenceLoaded || hasSpokenRef.current || userName === null) return;
     hasSpokenRef.current = true;
     headingRef.current?.focus();
     
@@ -103,13 +124,30 @@ function DashboardContent() {
         speak("Hey, welcome back. How can I help you today?");
       }
     }
-  }, [announce, t, speak, isContinuous, startContinuousListening, redirected, userName, interactionMode]);
+  }, [announce, t, speak, isContinuous, startContinuousListening, redirected, userName, interactionMode, preferenceLoaded]);
 
   useVoiceAction((action) => {
     if (action === 'HELP') {
-      speak("You are on the dashboard. You can ask me to start an exam, prepare a practice session, or check your history.");
+      speak("You are on the dashboard. You can ask me to start an exam, prepare a practice session, check your progress, view history, open analysis, or open settings.");
       return true;
     }
+
+    if (action === 'READ_PROGRESS') {
+      if (!stats) {
+        speak("Your progress is still loading. Please try again in a moment.");
+        return true;
+      }
+
+      const focusText = stats.focusSubject && stats.focusPercentage !== null
+        ? ` Your current focus is ${stats.focusSubject} at ${stats.focusPercentage} percent accuracy.`
+        : '';
+      speak(
+        `You have completed ${stats.totalExams + stats.totalPractice} sessions with an average score of ${stats.avgPercentage} percent.` +
+        focusText
+      );
+      return true;
+    }
+
     return false;
   });
 
@@ -126,7 +164,7 @@ function DashboardContent() {
         className="mb-32"
       >
         <h2 className="text-[clamp(3rem,6vw,7rem)] leading-[0.9] font-light tracking-tighter mb-4 text-zinc-100">
-          {userName ? `Good evening, ${userName.split(' ')[0]}.` : 'Good evening.'}
+          {userName ? `Good ${timeOfDay}, ${userName.split(' ')[0]}.` : `Good ${timeOfDay}.`}
         </h2>
         <p className="text-2xl md:text-4xl font-light text-zinc-500">Continue your preparation.</p>
       </motion.div>
@@ -140,22 +178,34 @@ function DashboardContent() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="lg:col-span-8 flex flex-col space-y-12"
         >
-          <div className="group border-t border-zinc-900 pt-12 pb-12 cursor-pointer transition-colors hover:border-zinc-700" onClick={() => router.push('/practice')}>
+          <Link
+            href={stats?.focusSubject ? `/practice?subject=${encodeURIComponent(stats.focusSubject)}` : '/practice'}
+            className="group block border-t border-zinc-900 pt-12 pb-12 transition-colors hover:border-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-4 focus-visible:ring-offset-black"
+            aria-label={stats?.focusSubject ? `Continue practicing ${stats.focusSubject}` : 'Choose a subject to practice'}
+          >
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
               <div>
                 <p className="text-zinc-500 tracking-[0.2em] text-sm uppercase mb-4">CURRENT FOCUS</p>
-                <h3 className="text-6xl md:text-8xl font-light tracking-tighter">DBMS</h3>
+                <h3 className="text-5xl md:text-8xl font-light tracking-tighter">
+                  {stats?.focusSubject || 'Choose a subject'}
+                </h3>
               </div>
               <div className="text-right">
-                <span className="text-5xl md:text-7xl font-light">72%</span>
-                <p className="text-zinc-500 tracking-[0.2em] text-sm uppercase mt-2">PREPARED</p>
+                {stats?.focusPercentage !== null && stats?.focusPercentage !== undefined ? (
+                  <>
+                    <span className="text-5xl md:text-7xl font-light">{stats.focusPercentage}%</span>
+                    <p className="text-zinc-500 tracking-[0.2em] text-sm uppercase mt-2">CURRENT ACCURACY</p>
+                  </>
+                ) : (
+                  <p className="text-zinc-500 tracking-[0.2em] text-sm uppercase mt-2">NO DATA YET</p>
+                )}
               </div>
             </div>
             
             <div className="flex items-center text-sm tracking-wide font-medium text-white transition-transform group-hover:translate-x-2">
               Continue preparation ↗
             </div>
-          </div>
+          </Link>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 border-t border-zinc-900 pt-12">
             <div>

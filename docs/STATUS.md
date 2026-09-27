@@ -1,27 +1,32 @@
-# EXAMSAARTHI V2 - STATUS
+# EXAMSAARTHI V2 — Status
 
-## REAL / VERIFIED
+Snapshot: 2026-09-27
 
-- **Next.js App Router**: Application properly routed with middleware protection.
-- **Supabase Authentication**: PKCE Magic Link correctly configured and redirects reliably.
-- **Database Migrations**: 00000_schema, 00001_multilingual, 00002_demo_data, 00003_secure_answers applied.
-- **Profiles**: Automatically and securely provisioned via admin client on exam start, preserving data integrity (Foreign Keys).
-- **Security / RLS**: Fully restricted RLS policies exist on all tables.
-- **Secret Grading**: `correct_answer_index` dropped from public `questions` table and migrated to restricted `question_answers` table. Client cannot cheat.
-- **Multilingual Support**: English, Hindi, and Telugu fully supported across UI, TTS, STT, commands, and content.
-- **Voice System**: Deterministic command parser running independently without fallback errors.
-- **Accessibility**: Semantic HTML and Axe automation validated.
+## Implemented
 
-## PARTIAL
+- Next.js 16.3.6 App Router with protected application routes.
+- Supabase passwordless Magic Link authentication.
+- Server-side exam-session creation, grading, answer persistence, and submission locking.
+- Correct-answer isolation in question_answers.
+- Practice sessions bound to their exact question roster.
+- Zustand + IndexedDB local exam persistence with server replay on reconnect.
+- Global browser voice control using Web Speech API with deterministic parsing and optional Gemini fallback.
+- English, Hindi, and Telugu voice/UI support.
+- Voice-first auth email capture with read-back confirmation.
+- PWA manifest and static-asset service worker.
+- Automated Playwright + axe coverage.
 
-- **Offline Resilience**: Autosave is integrated via IndexedDB, but needs manual validation on harsh network failure conditions.
-- **Testing**: Playwright Auth testing exists, but complex E2E voice testing is strictly manual for now.
+## Not yet a verified PASS
 
-## UNVERIFIED
+These require real target-environment evidence:
 
-- Edge cases of unsupported browser speech engines gracefully falling back.
-- Heavy concurrent load on server actions (grading).
+- Magic Link email delivery/callback.
+- NVDA/VoiceOver screen-reader walkthrough.
+- Network interruption/reconnect during an active session.
+- Supabase migrations through 00009 applied to the target project.
+- PWA installation/update behavior on the target deployment.
+- Full voice-only rehearsal across all major routes.
 
-## DEVELOPMENT-ONLY
+## Evidence rule
 
-- Fake local mock grading removed! 100% real Supabase flow active.
+Build output, automated tests, code inspection, and manual browser tests are separate evidence classes. A code path is not marked PASS until its required test has been observed.

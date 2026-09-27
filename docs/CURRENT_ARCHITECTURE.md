@@ -1,7 +1,7 @@
 # CURRENT_ARCHITECTURE
 
 ## Existing Architecture
-ExamSaarthi V2 is built with Next.js 16.3.6 App Router, utilizing React Server Components and Server Actions. It uses Supabase for authentication (Magic Link) and PostgreSQL for data storage. The application is bilingual (English, Hindi, Telugu) via a custom `I18nProvider`. State is managed via Zustand (`useExamStore`) with `idb-keyval` for persistent client-side storage of active exam sessions.
+ExamSaarthi V2 is built with Next.js 16.3.6 App Router, utilizing React Server Components and Server Actions. It uses Supabase for authentication (Magic Link) and PostgreSQL for data storage. The application supports English, Hindi, and Telugu via a custom `I18nProvider`. State is managed via Zustand (`useExamStore`) with `idb-keyval` for persistent client-side storage of active exam sessions.
 
 ## Current Voice Architecture
 The application currently uses a `VoiceProvider` wrapping the standard Web Speech API (SpeechRecognition and SpeechSynthesis). 

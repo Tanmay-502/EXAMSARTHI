@@ -26,16 +26,25 @@ export class OptionalLLMIntentProvider implements IntentProvider {
     // 2. Fallback to LLM if it's natural language and configured
     // Since we don't want to break if LLM is unavailable, wrap in try-catch
     try {
-      const response = await fetch('/api/intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript, lang, context })
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.intent) {
-          return { type: 'NATURAL_INTENT', intent: data.intent, payload: data.payload };
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+
+      try {
+        const response = await fetch('/api/intent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transcript, lang, context }),
+          signal: controller.signal,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.intent) {
+            return { type: 'NATURAL_INTENT', intent: data.intent, payload: data.payload };
+          }
         }
+      } finally {
+        clearTimeout(timeout);
       }
     } catch {
       console.warn("LLM intent parsing failed, falling back to unknown");

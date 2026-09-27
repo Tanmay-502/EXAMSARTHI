@@ -78,29 +78,38 @@ export async function resolveSubject(spokenText: string): Promise<SupportedSubje
     { key: 'cs', value: 'Computer Science' },
   ];
 
-  for (const mapping of mappings) {
-    if (matchesPhrase(normalized, mapping.key)) {
-      return mapping.value;
-    }
-  }
-
-  // Dynamic lookup
   try {
     const supabase = createClient();
-    const { data } = await supabase.from('questions').select('subject').not('subject', 'is', null);
-    if (data) {
-      const dbSubjects = Array.from(new Set(data.map(d => d.subject))) as string[];
-      dbSubjects.sort((a, b) => b.length - a.length);
-      for (const sub of dbSubjects) {
-        if (sub && matchesPhrase(normalized, sub.toLowerCase())) {
-          return sub;
-        }
+    const { data, error } = await supabase.from('questions').select('subject').not('subject', 'is', null);
+    if (error) throw error;
+
+    const dbSubjects = Array.from(new Set(
+      (data || [])
+        .map(d => d.subject?.trim())
+        .filter((subject): subject is string => Boolean(subject))
+    ));
+
+    dbSubjects.sort((a, b) => b.length - a.length);
+
+    // Aliases may only resolve to a subject that actually exists in the
+    // currently provisioned question bank.
+    for (const mapping of mappings) {
+      if (!matchesPhrase(normalized, mapping.key)) continue;
+      const canonical = dbSubjects.find(
+        subject => subject.toLowerCase() === mapping.value.toLowerCase()
+      );
+      if (canonical) return canonical;
+    }
+
+    for (const sub of dbSubjects) {
+      if (matchesPhrase(normalized, sub)) {
+        return sub;
       }
     }
   } catch (e) {
     console.error('Failed to resolve subject dynamically', e);
   }
-  
+
   return null;
 }
 

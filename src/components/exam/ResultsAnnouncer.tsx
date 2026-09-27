@@ -5,6 +5,7 @@ import { useAccessibility } from '@/lib/accessibility/AccessibilityProvider';
 import { useVoice } from '@/lib/voice/VoiceProvider';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 import React, { useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 
 type ResultsAnnouncerProps = {
   score: number;
@@ -20,6 +21,7 @@ export function ResultsAnnouncer({ score, total, percentage, correct, incorrect,
   const { announce } = useAccessibility();
   const { speak, isContinuous } = useVoice();
   const { useVoiceAction } = useGlobalVoice();
+  const router = useRouter();
   const { tParams } = useI18n();
   const headingRef = useRef<HTMLHeadingElement>(null);
 
@@ -61,12 +63,36 @@ export function ResultsAnnouncer({ score, total, percentage, correct, incorrect,
     if (isContinuous) speak(msg);
   }, [announce, speak, isContinuous, getSummaryMessage]);
 
-  useVoiceAction((action) => {
+  useVoiceAction((action, payload) => {
     if (action === 'READ_RESULTS' || action === 'REPEAT') {
       const msg = getSummaryMessage();
       speak(msg);
       return true;
     }
+
+    if (
+      (action === 'OPEN_PRACTICE' || action === 'START_PRACTICE') &&
+      payload?.subject === 'weakest' &&
+      subjectStats
+    ) {
+      const weakest = Object.entries(subjectStats)
+        .filter(([, stats]) => stats.total > 0)
+        .sort((a, b) => {
+          const aAccuracy = a[1].correct / a[1].total;
+          const bAccuracy = b[1].correct / b[1].total;
+          return aAccuracy - bAccuracy || a[0].localeCompare(b[0]);
+        })[0]?.[0];
+
+      if (!weakest) {
+        speak('I do not have enough subject data to choose a weakest subject yet.');
+        return true;
+      }
+
+      speak(`Opening practice for ${weakest}.`);
+      router.push(`/practice?subject=${encodeURIComponent(weakest)}`);
+      return true;
+    }
+
     return false;
   });
 

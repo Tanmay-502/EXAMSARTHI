@@ -45,86 +45,101 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
 
   const { score, total_questions, attempted_questions, correct_questions, incorrect_questions, unanswered_questions, percentage } = session;
 
-  // Fetch the session answers with their questions and correct answers.
+  // Build the breakdown from the full question roster plus the session answers.
+  // This keeps unanswered questions in the subject denominator instead of silently
+  // dropping them because they have no row in answers.
   const { createAdminClient } = await import('@/lib/supabase/server');
   const adminClient = await createAdminClient();
-  const { data: answersWithQuestions } = await adminClient
-    .from('answers')
+
+  let questionQuery = adminClient
+    .from('questions')
     .select(`
-      selected_option_index,
-      questions!inner (
-        id,
-        subject,
-        question_answers (
-          correct_answer_index
-        )
+      id,
+      subject,
+      question_answers (
+        correct_answer_index
       )
-    `)
-    .eq('session_id', sessionId);
+    `);
 
-  // Compute Subject Breakdown
-  const subjectStats: Record<string, { total: number; correct: number; incorrect: number; unanswered: number }> = {};
-  let weakestSubject = '';
-  let weakestSubjectPerc = 100;
+  let rosterIds = Array.isArray(session.question_ids)
+    ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+    : [];
 
-  if (answersWithQuestions) {
-    type AnswerWithQuestion = {
-      selected_option_index: number | null;
-      questions: {
-        subject: string | null;
-        question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
-      }[] | {
-        subject: string | null;
-        question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
-      } | null;
-    };
+  if (rosterIds.length === 0) {
+    // Legacy practice/exam sessions created before question-roster persistence.
+    const { data: legacyAnswers } = await adminClient
+      .from('answers')
+      .select('question_id')
+      .eq('session_id', sessionId);
 
-    (answersWithQuestions as AnswerWithQuestion[]).forEach(answer => {
-      const question = Array.isArray(answer.questions) ? answer.questions[0] : answer.questions;
-      if (!question) return;
-
-      const subj = question.subject || 'General';
-      if (!subjectStats[subj]) {
-        subjectStats[subj] = { total: 0, correct: 0, incorrect: 0, unanswered: 0 };
-      }
-
-      subjectStats[subj].total += 1;
-
-      if (answer.selected_option_index === null) {
-        subjectStats[subj].unanswered += 1;
-      } else {
-        let correctIdx = -1;
-        if (Array.isArray(question.question_answers) && question.question_answers.length > 0) {
-          correctIdx = question.question_answers[0].correct_answer_index;
-        } else if (question.question_answers && !Array.isArray(question.question_answers)) {
-          correctIdx = question.question_answers.correct_answer_index;
-        }
-
-        if (answer.selected_option_index === correctIdx) {
-          subjectStats[subj].correct += 1;
-        } else {
-          subjectStats[subj].incorrect += 1;
-        }
-      }
-    });
-
-    // Find weakest subject
-    Object.entries(subjectStats).forEach(([subj, stats]) => {
-      if (stats.total > 0) {
-        const perc = Math.round((stats.correct / stats.total) * 100);
-        if (perc < weakestSubjectPerc) {
-          weakestSubjectPerc = perc;
-          weakestSubject = subj;
-        }
-      }
-    });
+    rosterIds = [...new Set(
+      (legacyAnswers || [])
+        .map(answer => answer.question_id)
+        .filter((id): id is string => typeof id === 'string')
+    )];
   }
 
+  if (rosterIds.length > 0) {
+    questionQuery = questionQuery.in('id', rosterIds);
+  } else if (session.is_practice) {
+    questionQuery = questionQuery.in('id', ['00000000-0000-0000-0000-000000000000']);
+  } else {
+    // Legacy exam fallback.
+    questionQuery = questionQuery.eq('exam_id', session.exam_id);
+  }
+
+  const [{ data: sessionQuestions }, { data: sessionAnswers }] = await Promise.all([
+    questionQuery,
+    adminClient
+      .from('answers')
+      .select('question_id, selected_option_index')
+      .eq('session_id', sessionId),
+  ]);
+
+  const answerByQuestion = new Map(
+    (sessionAnswers || []).map(answer => [answer.question_id, answer.selected_option_index])
+  );
+
+  const subjectStats: Record<string, { total: number; correct: number; incorrect: number; unanswered: number }> = {};
+  let weakestSubject = '';
+  let weakestSubjectPerc = Number.POSITIVE_INFINITY;
+
+  for (const question of sessionQuestions || []) {
+    const subject = question.subject || 'General';
+    const answer = answerByQuestion.get(question.id) ?? null;
+    const questionAnswers = question.question_answers;
+    const correctIndex = Array.isArray(questionAnswers)
+      ? questionAnswers[0]?.correct_answer_index
+      : questionAnswers?.correct_answer_index;
+
+    const stats = subjectStats[subject] || { total: 0, correct: 0, incorrect: 0, unanswered: 0 };
+    stats.total += 1;
+
+    if (answer === null) {
+      stats.unanswered += 1;
+    } else if (answer === correctIndex) {
+      stats.correct += 1;
+    } else {
+      stats.incorrect += 1;
+    }
+
+    subjectStats[subject] = stats;
+  }
+
+  Object.entries(subjectStats).forEach(([subject, stats]) => {
+    if (stats.total === 0) return;
+    const percentageForSubject = Math.round((stats.correct / stats.total) * 100);
+    if (percentageForSubject < weakestSubjectPerc) {
+      weakestSubjectPerc = percentageForSubject;
+      weakestSubject = subject;
+    }
+  });
   const isPassing = (percentage || 0) >= 50;
 
   return (
     <>
       <ResultsAnnouncer
+        score={score || 0}
         total={total_questions || 0}
         percentage={percentage || 0}
         correct={correct_questions || 0}

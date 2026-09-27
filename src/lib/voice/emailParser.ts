@@ -4,17 +4,17 @@ const NUMBER_WORDS: Record<string, string> = {
 };
 
 const SYMBOL_WORDS: Array<[RegExp, string]> = [
-  [/at the rate/gi, '@'],
-  [/at rate/gi, '@'],
-  [/at/gi, '@'],
-  [/dot/gi, '.'],
-  [/point/gi, '.'],
-  [/period/gi, '.'],
-  [/underscore/gi, '_'],
-  [/under score/gi, '_'],
-  [/dash/gi, '-'],
-  [/hyphen/gi, '-'],
-  [/plus/gi, '+'],
+  [/\bat the rate\b/gi, '@'],
+  [/\bat rate\b/gi, '@'],
+  [/\bat\b/gi, '@'],
+  [/\bdot\b/gi, '.'],
+  [/\bpoint\b/gi, '.'],
+  [/\bperiod\b/gi, '.'],
+  [/\bunderscore\b/gi, '_'],
+  [/\bunder score\b/gi, '_'],
+  [/\bdash\b/gi, '-'],
+  [/\bhyphen\b/gi, '-'],
+  [/\bplus\b/gi, '+'],
 ];
 
 const DOMAIN_ALIASES: Array<[RegExp, string]> = [
@@ -72,7 +72,7 @@ export function normalizeSpokenEmail(transcript: string): string | null {
     .replace(/\s*([_+\-])\s*/g, '$1')
     .replace(/\s+/g, '');
 
-  const match = value.match(/[a-z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-z0-9.-]+\.[a-z]{2,}/i);
+  const match = value.match(/^[a-z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i);
   if (!match) return null;
 
   const email = match[0].replace(/^\.+|\.+$/g, '');

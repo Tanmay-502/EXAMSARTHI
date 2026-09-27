@@ -97,7 +97,7 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
         
         {!allClear && (micStatus !== 'pending' && browserStatus !== 'pending') && (
            <div className="pt-8 text-zinc-500 font-light text-lg">
-             Voice features are currently unavailable. The exam will start in Standard mode.
+             Voice features are unavailable in this browser right now. You can retry voice access or explicitly continue with keyboard and screen reader mode.
            </div>
         )}
 
@@ -203,6 +203,13 @@ function ExamSelection({
       return true;
     }
 
+    if (
+      /\b(help|support|what can i say|sign in|login|log in|sign up|signup)\b/.test(normalized) &&
+      action !== 'OPEN_DASHBOARD'
+    ) {
+      return false;
+    }
+
     const isDashboardRequest =
       /\b(dashboard|home)\b/.test(normalized) &&
       /(back|return|take me|go to|open|show|bring me|send me)/.test(normalized);
@@ -292,6 +299,40 @@ function ExamSelection({
       return true;
     }
 
+    // Resolve the actual spoken exam title locally from the live database
+    // before falling back to Gemini. This keeps exact exam selection reliable
+    // even when the semantic service is unavailable.
+    if (normalized.length >= 2) {
+      lastHandledTranscriptRef.current = normalized;
+      void resolveExam(raw).then((matched) => {
+        if (!matched) return;
+        const availableMatch = exams.find(exam => exam.id === matched.id);
+        if (!availableMatch) return;
+
+        setSelectedExam(availableMatch);
+
+        const wantsImmediateStart =
+          /\b(start|begin|take|attempt|give)\b/.test(normalized) &&
+          /\b(exam|test)\b/.test(normalized);
+
+        speak(
+          wantsImmediateStart
+            ? "Starting " + availableMatch.title + "."
+            : availableMatch.title +
+              " selected. It has " +
+              availableMatch.question_count +
+              " questions and " +
+              availableMatch.duration_minutes +
+              " minutes. Say yes to start or say change to choose another."
+        );
+
+        if (wantsImmediateStart) {
+          onSelect(availableMatch.id);
+        }
+      });
+      return true;
+    }
+
     return false;
   });
 
@@ -352,7 +393,7 @@ function ExamPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const examIdParam = searchParams.get('exam_id');
-  const { mode: interactionMode, setMode } = usePreferredMode();
+  const { mode: interactionMode, setMode, isLoaded: preferenceLoaded } = usePreferredMode();
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -361,39 +402,75 @@ function ExamPageContent() {
   const [deviceCheckComplete, setDeviceCheckComplete] = useState(false);
   const [examMeta, setExamMeta] = useState<{ title: string; duration_minutes: number } | null>(null);
 
+  // First load only the selected exam metadata. Do not create an in-progress
+  // server session until the candidate has passed the device check.
   useEffect(() => {
     if (!examId) return;
-    
-    async function loadExam() {
+
+    async function loadExamMeta() {
       setLoading(true);
+      setError('');
       try {
         const exams = await fetchAvailableExams();
         const currentExam = exams.find(e => e.id === examId);
-        if (currentExam) {
-          setExamMeta({ title: currentExam.title, duration_minutes: currentExam.duration_minutes });
+
+        if (!currentExam) {
+          setError('The selected exam is no longer available.');
+          return;
         }
-        
-        const sessionId = await startExamSession(examId!);
-        const questions = await fetchExamQuestions(examId!, sessionId, lang);
-        
-        initializeExam(sessionId, examId!, questions);
-        setExamStarted(true);
+
+        setExamMeta({
+          title: currentExam.title,
+          duration_minutes: currentExam.duration_minutes
+        });
       } catch (err: unknown) {
-        if (err instanceof Error) {
-          if (err.message === 'Unauthorized') {
-            router.push('/auth/login?message=unauthenticated');
-            return;
-          }
-          setError(err.message || 'Failed to load exam');
-        } else {
-          setError('Failed to load exam');
+        if (err instanceof Error && err.message === 'Unauthorized') {
+          router.push('/auth/login?message=unauthenticated');
+          return;
         }
+
+        setError(err instanceof Error ? err.message : 'Failed to load exam');
       } finally {
         setLoading(false);
       }
     }
-    loadExam();
-  }, [examId, initializeExam, lang, router]);
+
+    loadExamMeta();
+  }, [examId, router]);
+
+  // Only create the server session after the device check is complete.
+  useEffect(() => {
+    if (!examId || !examMeta || !deviceCheckComplete || !preferenceLoaded || examStarted) {
+      return;
+    }
+
+    async function startSelectedExam() {
+      setLoading(true);
+      setError('');
+      try {
+        const sessionId = await startExamSession(examId);
+        const questions = await fetchExamQuestions(examId, sessionId, lang);
+
+        if (questions.length === 0) {
+          throw new Error('This exam has no available questions.');
+        }
+
+        initializeExam(sessionId, examId, questions);
+        setExamStarted(true);
+      } catch (err: unknown) {
+        if (err instanceof Error && err.message === 'Unauthorized') {
+          router.push('/auth/login?message=unauthenticated');
+          return;
+        }
+
+        setError(err instanceof Error ? err.message : 'Failed to start exam');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    startSelectedExam();
+  }, [examId, examMeta, deviceCheckComplete, preferenceLoaded, examStarted, initializeExam, lang, router]);
 
   if (!examId) {
     return <ExamSelection onSelect={(id) => {
@@ -403,7 +480,7 @@ function ExamPageContent() {
     }} />;
   }
 
-  if (loading) {
+  if (loading && !examMeta) {
     return <div className="flex flex-col items-center justify-center flex-1 p-6 text-xl">Loading Exam...</div>;
   }
 
@@ -411,8 +488,8 @@ function ExamPageContent() {
     return <div className="flex flex-col items-center justify-center flex-1 p-6 text-xl text-destructive">{error}</div>;
   }
 
-  if (!examStarted) {
-    return null;
+  if (!preferenceLoaded) {
+    return <div className="flex flex-col items-center justify-center flex-1 p-6 text-xl">Loading preferences...</div>;
   }
 
   if (!deviceCheckComplete) {
@@ -421,6 +498,10 @@ function ExamPageContent() {
       interactionMode={interactionMode}
       setInteractionMode={setMode}
     />;
+  }
+
+  if (loading || !examStarted) {
+    return <div className="flex flex-col items-center justify-center flex-1 p-6 text-xl">Starting exam...</div>;
   }
 
   return (

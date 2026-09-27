@@ -8,6 +8,7 @@ export interface VoiceCommandMap {
   READ_QUESTION: string[];
   READ_OPTIONS: string[];
   READ_RESULTS: string[];
+  READ_PROGRESS: string[];
   MARK_REVIEW: string[];
   REMOVE_REVIEW: string[];
   SUBMIT: string[];
@@ -65,6 +66,7 @@ export const LANGUAGE_REGISTRY: Record<Locale, LanguageDefinition> = {
       READ_QUESTION: ['read question'],
       READ_OPTIONS: ['read options'],
       READ_RESULTS: ['read results', 'results'],
+      READ_PROGRESS: ['progress', 'my progress', 'show progress', 'give me my progress', 'tell me my progress', 'how am i doing'],
       MARK_REVIEW: ['mark for review', 'mark'],
       REMOVE_REVIEW: ['remove review', 'unmark'],
       SUBMIT: ['submit', 'finish'],
@@ -183,6 +185,7 @@ export const LANGUAGE_REGISTRY: Record<Locale, LanguageDefinition> = {
       READ_QUESTION: ['प्रश्न पढ़ो', 'सवाल पढ़ो'],
       READ_OPTIONS: ['विकल्प पढ़ो', 'ऑप्शन पढ़ो'],
       READ_RESULTS: ['परिणाम पढ़ो', 'रिजल्ट पढ़ो'],
+      READ_PROGRESS: ['प्रगति', 'मेरी प्रगति', 'प्रगति बताओ'],
       MARK_REVIEW: ['समीक्षा के लिए चिन्हित करो', 'मार्क', 'समीक्षा'],
       REMOVE_REVIEW: ['समीक्षा हटाओ', 'अनमार्क'],
       SUBMIT: ['जमा करो', 'सबमिट', 'जमा'],
@@ -301,6 +304,7 @@ export const LANGUAGE_REGISTRY: Record<Locale, LanguageDefinition> = {
       READ_QUESTION: ['ప్రశ్న చదువు'],
       READ_OPTIONS: ['ఎంపికలు చదువు', 'ఆప్షన్స్ చదువు'],
       READ_RESULTS: ['ఫలితాలు చదువు', 'రిజల్ట్స్ చదువు'],
+      READ_PROGRESS: ['పురోగతి', 'నా పురోగతి', 'పురోగతి చెప్పు'],
       MARK_REVIEW: ['సమీక్షకు గుర్తించు', 'మార్క్'],
       REMOVE_REVIEW: ['సమీక్షను తొలగించు', 'అన్మార్క్'],
       SUBMIT: ['సమర్పించు', 'సబ్మిట్'],

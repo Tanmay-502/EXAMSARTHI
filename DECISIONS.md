@@ -1,43 +1,27 @@
-# Decisions Log: EXAMSAARTHI V2
+# EXAMSAARTHI V2 — Key Decisions
 
-## 1. Framework: Next.js App Router
+Snapshot: 2026-09-27
 
-**Decision:** Use Next.js with the App Router.
-**Rationale:** Provides robust server/client component separation, simple routing, excellent SEO/Accessibility out of the box, and easy integration with Tailwind CSS.
-**Status:** [REAL] - Next.js 15+ App Router is configured and functioning.
+## Authentication
+Use one passwordless Supabase Magic Link flow. A new email can create an account automatically; there is no separate password signup implementation.
 
-## 2. State Management: React Context / Zustand
+## Exam integrity
+Correct answers live in question_answers and are read only by privileged server-side grading. Client exam-session and answer writes are disabled; server actions validate candidate ownership and question/session boundaries.
 
-**Decision:** Start with React Context for global providers (Voice, A11y, i18n), and use a lightweight library like Zustand if complex exam state necessitates it.
-**Rationale:** Avoids the boilerplate of Redux. Context is sufficient for global preferences (language, voice settings). The exam state might require Zustand to prevent unnecessary re-renders when the timer ticks.
-**Status:** [PARTIAL] - Context providers for A11y, Voice, and i18n are REAL. Zustand state for Exam Session is currently STUB/PARTIAL.
+## Practice integrity
+Practice sessions store the exact question IDs shown to the candidate. Answer persistence and final grading are restricted to that roster.
 
-## 3. UI Components: shadcn/ui
+## Persistence
+Zustand + IndexedDB is the immediate local state layer. Server-backed saveAnswer is the durable synchronization path while a session is in progress, with replay when connectivity returns.
 
-**Decision:** Utilize `shadcn/ui` alongside standard Tailwind CSS.
-**Rationale:** `shadcn/ui` uses Radix UI under the hood, which provides unstyled, accessible primitives (Dialogs, Radio Groups, Selects). This ensures our components meet accessibility requirements without reinventing complex ARIA interactions.
-**Status:** [REAL] - Tailwind CSS is configured, shadcn initialization complete. Native semantic HTML utilized for forms and radio groups.
+## Voice
+VoiceProvider owns browser STT/TTS. GlobalVoiceAssistant owns contextual routing. Deterministic parsing handles common commands first; Gemini is a fallback for natural language. No separate competing voice engine should be added.
 
-## 4. Speech Capabilities: Web Speech API
+## Personalization
+Learning Profile analysis is consent-based context generation, not per-user model retraining. During active exams, AI services must not receive answer keys or solve current questions.
 
-**Decision:** Abstract the native browser Web Speech API (SpeechRecognition and SpeechSynthesis) behind a `VoiceEngine` service.
-**Rationale:** It allows immediate development and testing without incurring cloud costs or managing API keys. The abstraction ensures we can easily swap it out for Google Cloud Speech or Azure Cognitive Services in a production environment if the native APIs prove too inconsistent across browsers.
-**Status:** [PARTIAL] - TTS implemented and working. Command parsing STUBBED in Phase 2.
+## Accessibility
+The automated target is WCAG 2.1 AA. Manual NVDA/VoiceOver verification remains a release gate.
 
-## 5. Persistence: IndexedDB (idb-keyval)
-
-**Decision:** Use `idb-keyval` or standard `IndexedDB` for saving candidate progress locally.
-**Rationale:** Exams are high-stakes. If the network drops, the candidate's answers must be preserved locally so they can resume safely when the connection is restored. `localStorage` is synchronous and limited in size; IndexedDB is asynchronous and scalable.
-**Status:** [STUB] - IndexedDB sync queue layer planned for Phase 2.
-
-## 6. Authentication: Supabase
-
-**Decision:** Use Supabase for Auth and initial database.
-**Rationale:** Provides secure, ready-to-use authentication and PostgreSQL database with Row Level Security (RLS). Easy to integrate with Next.js. Avoids writing custom backend boilerplate.
-**Status:** [PARTIAL] - DB Schema designed. Magic Link auth being integrated in Phase 2.
-
-## 7. i18n: Custom lightweight provider or next-intl
-
-**Decision:** Implement a lightweight dictionary-based Context, or use a simple established library.
-**Rationale:** We only need `en-IN` and `hi-IN`. A complex i18n routing setup might overcomplicate the MVP. We will evaluate a simple Context-based approach first for dynamic UI string swapping.
-**Status:** [REAL] - Custom dictionary provider built and actively swapping strings and `lang` attrs.
+## PWA
+The service worker caches static assets only. Authenticated navigation, auth routes, API routes, and other user-specific HTML are intentionally not cached.

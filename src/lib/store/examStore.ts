@@ -106,7 +106,7 @@ export const useExamStore = create<ExamState>()(
               ...state.answers,
               [questionId]: {
                 question_id: questionId,
-                answer_data: currentAnswer?.answer_data || null,
+                answer_data: currentAnswer?.answer_data ?? null,
                 time_taken_seconds: currentAnswer ? currentAnswer.time_taken_seconds : 0,
                 is_marked_for_review: !currentAnswer?.is_marked_for_review,
               },

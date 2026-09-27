@@ -6,10 +6,16 @@ import { headers } from 'next/headers'
 
 export async function loginWithMagicLink(formData: FormData) {
   const supabase = await createClient()
-  const email = formData.get('email') as string
+  const email = String(formData.get('email') || '').trim()
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+    return redirect(`/auth/login?message=${encodeURIComponent('Please enter a valid email address.')}&_t=${Date.now()}`)
+  }
+
   const headersList = await headers()
   
-  let origin = headersList.get('origin')
+  const configuredOrigin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
+  let origin = configuredOrigin || headersList.get('origin')
   if (!origin) {
     const host = headersList.get('host') || 'localhost:3000'
     const protocol = host.includes('localhost') ? 'http' : 'https'

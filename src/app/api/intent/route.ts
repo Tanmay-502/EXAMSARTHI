@@ -15,6 +15,16 @@ export async function POST(req: Request) {
 
     const { transcript, lang, context } = await req.json();
 
+    if (typeof transcript !== 'string' || transcript.length === 0 || transcript.length > 2000) {
+      return NextResponse.json({ intent: 'UNKNOWN_COMMAND' }, { status: 400 });
+    }
+
+    if (!['en-IN', 'hi-IN', 'te-IN'].includes(lang)) {
+      return NextResponse.json({ intent: 'UNKNOWN_COMMAND' }, { status: 400 });
+    }
+
+    const safeContext = context && typeof context === 'object' ? context : null;
+
     const apiKey = getGeminiKey();
     if (!apiKey) {
       return NextResponse.json({ intent: 'UNKNOWN_COMMAND' });
@@ -32,7 +42,7 @@ export async function POST(req: Request) {
           'READ_RESULTS', 'HELP', 'REPEAT', 'NEXT_QUESTION', 'PREVIOUS_QUESTION',
           'SELECT_OPTION', 'MARK_REVIEW', 'CONFIRM', 'CHANGE', 'SUBMIT_EXAM', 'LOGOUT', 'QUESTION_SOLVING', 'SIGN_IN', 'SIGN_UP', 'OPEN_ANALYSIS', 'UNKNOWN_COMMAND'
         ]),
-        payload: z.any().optional(),
+        payload: z.unknown().optional(),
       }),
       prompt: `Parse the following voice transcript into an intent.
 Transcript: "${transcript}"

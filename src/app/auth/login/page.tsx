@@ -22,9 +22,9 @@ function LoginForm() {
   const emailRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const lastVoiceEmailRef = useRef<string>('');
+  const orientationSpokenRef = useRef(false);
   const [voiceStep, setVoiceStep] = useState<'idle' | 'awaiting_email' | 'confirming_email' | 'sending'>('idle');
   const [voiceEmail, setVoiceEmail] = useState('');
-  const [voiceAuthIntent, setVoiceAuthIntent] = useState<'signin' | 'signup'>('signin');
   const [voiceStatus, setVoiceStatus] = useState('');
 
   useEffect(() => {
@@ -48,13 +48,91 @@ function LoginForm() {
           ? 'సైన్ ఇన్ లేదా కొత్త ఖాతా కోసం మీ ఇమెయిల్ చెప్పండి. కొత్త ఇమెయిల్ అయితే ఖాతా ఆటోమేటిక్‌గా సృష్టించబడుతుంది.'
           : 'This page handles both sign in and new account creation. Tell me your email address; a new email will automatically create an account.';
 
-    speak(msg);
+    if (!orientationSpokenRef.current) {
+      orientationSpokenRef.current = true;
+      speak(msg);
+    }
     setVoiceStep('awaiting_email');
     setVoiceStatus('');
   }, [message, lang, modeLoaded, preferredMode, isContinuous, startContinuousListening, speak]);
 
   useVoiceAction((action, _payload, transcript) => {
     const raw = transcript?.trim() || '';
+
+    if ((action as string) === 'RAW_TRANSCRIPT' && raw) {
+      const lowerRaw = raw.toLowerCase();
+
+      // Let global commands reach the normal parser instead of treating them
+      // as malformed email input.
+      if (/\b(help|sign in|login|log in|sign up|signup|register|create an account)\b/.test(lowerRaw)) {
+        return false;
+      }
+
+      const parsedEmail = normalizeSpokenEmail(raw);
+
+      if (voiceStep === 'confirming_email') {
+        const normalized = raw.toLowerCase();
+        const yes = /\b(yes|yeah|yep|confirm|send|send it|okay|ok|haan|हाँ|అవును)\b/.test(normalized);
+        const no = /\b(no|nope|change|wrong|different|नहीं|नही|కాదు|మార్చు)\b/.test(normalized);
+
+        if (yes && lastVoiceEmailRef.current) {
+          setVoiceStep('sending');
+          setVoiceStatus(
+            lang === 'hi-IN' ? 'मैजिक लिंक भेजा जा रहा है।' :
+            lang === 'te-IN' ? 'మ్యాజిక్ లింక్ పంపుతోంది.' :
+            'Sending Magic Link...'
+          );
+          requestAnimationFrame(() => formRef.current?.requestSubmit());
+          return true;
+        }
+
+        if (no) {
+          setVoiceStep('awaiting_email');
+          setVoiceEmail('');
+          lastVoiceEmailRef.current = '';
+          setVoiceStatus('');
+          speak(
+            lang === 'hi-IN' ? 'ठीक है। अपना ईमेल पता फिर से बताएं।' :
+            lang === 'te-IN' ? 'సరే. మీ ఇమెయిల్ చిరునామాను మళ్లీ చెప్పండి.' :
+            'Okay. Please say your email address again.'
+          );
+          emailRef.current?.focus();
+          return true;
+        }
+      }
+
+      if (parsedEmail && voiceStep !== 'sending') {
+        lastVoiceEmailRef.current = parsedEmail;
+        setVoiceEmail(parsedEmail);
+        setVoiceStep('confirming_email');
+        setVoiceStatus(
+          lang === 'hi-IN'
+            ? `मैंने ${parsedEmail} सुना। भेजने के लिए हाँ कहें, बदलने के लिए नहीं कहें।`
+            : lang === 'te-IN'
+              ? `${parsedEmail} అని విన్నాను. పంపడానికి అవును, మార్చడానికి కాదు అని చెప్పండి.`
+              : `I heard ${parsedEmail}. Say yes to send the Magic Link, or say no to change it.`
+        );
+        speak(
+          lang === 'hi-IN'
+            ? `मैंने ${parsedEmail} सुना। सही है तो हाँ कहें, बदलना है तो नहीं कहें।`
+            : lang === 'te-IN'
+              ? `${parsedEmail} అని విన్నాను. సరైతే అవును అని, మార్చాలంటే కాదు అని చెప్పండి.`
+              : `I heard ${parsedEmail}. Say yes to confirm, or say no to change it.`
+        );
+        return true;
+      }
+
+      if (voiceStep === 'awaiting_email') {
+        speak(
+          lang === 'hi-IN'
+            ? 'कृपया ईमेल पता बताएं। उदाहरण: tanmay at gmail dot com.'
+            : lang === 'te-IN'
+              ? 'దయచేసి ఇమెయిల్ చిరునామా చెప్పండి. ఉదాహరణకు tanmay at gmail dot com.'
+              : 'Please say your email address. For example: tanmay at gmail dot com.'
+        );
+        return true;
+      }
+    }
 
     if (action === 'HELP') {
       speak(lang === 'hi-IN'
@@ -67,7 +145,6 @@ function LoginForm() {
     }
 
     if (action === 'SIGN_IN' || action === 'SIGN_UP') {
-      setVoiceAuthIntent(action === 'SIGN_UP' ? 'signup' : 'signin');
       setVoiceStep('awaiting_email');
       speak(action === 'SIGN_UP'
         ? 'Create Account selected. Please say your email address.'

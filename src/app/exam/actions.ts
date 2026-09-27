@@ -20,16 +20,24 @@ export async function fetchAvailableExams() {
     throw new Error(`Failed to fetch exams: ${error.message}`)
   }
 
-  return data.map((exam: { id: string; title: string; description: string | null; duration_minutes: number; questions: unknown }) => {
-    const qs = exam.questions as { count: number }[] | null;
-    return {
-      id: exam.id,
-      title: exam.title,
-      description: exam.description,
-      duration_minutes: exam.duration_minutes,
-      question_count: Array.isArray(qs) && qs.length > 0 ? qs[0].count : 0
-    };
-  }) as { id: string; title: string; description: string | null; duration_minutes: number; question_count: number }[];
+  return data
+    .map((exam: { id: string; title: string; description: string | null; duration_minutes: number; questions: unknown }) => {
+      const qs = exam.questions as { count: number }[] | null;
+      return {
+        id: exam.id,
+        title: exam.title,
+        description: exam.description,
+        duration_minutes: exam.duration_minutes,
+        question_count: Array.isArray(qs) && qs.length > 0 ? Number(qs[0].count) || 0 : 0
+      };
+    })
+    .filter(exam => exam.question_count > 0) as {
+      id: string;
+      title: string;
+      description: string | null;
+      duration_minutes: number;
+      question_count: number;
+    }[];
 }
 
 export async function fetchExamQuestions(examId: string, sessionId: string, lang: string = 'en-IN') {
@@ -44,7 +52,7 @@ export async function fetchExamQuestions(examId: string, sessionId: string, lang
   // Bind question retrieval to the authenticated in-progress session.
   const { data: session, error: sessionError } = await supabase
     .from('exam_sessions')
-    .select('id, exam_id, status')
+    .select('id, exam_id, status, question_ids')
     .eq('id', sessionId)
     .eq('candidate_id', user.id)
     .single()
@@ -53,19 +61,31 @@ export async function fetchExamQuestions(examId: string, sessionId: string, lang
     throw new Error('Exam session not found, inactive, or unauthorized')
   }
 
-  // Fetch questions, explicitly EXCLUDING correct_answer_index
-  const { data: questions, error } = await supabase
+  const rosterIds = Array.isArray(session.question_ids)
+    ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+    : []
+
+  // Fetch questions, explicitly EXCLUDING correct_answer_index.
+  const baseQuery = supabase
     .from('questions')
     .select('id, exam_id, order_index, content_text, options, content_translations, options_translations, image_url, image_alt_text')
-    .eq('exam_id', examId)
-    .order('order_index', { ascending: true })
+
+  const { data: questions, error } = rosterIds.length > 0
+    ? await baseQuery.in('id', rosterIds)
+    : await baseQuery.eq('exam_id', examId).order('order_index', { ascending: true })
 
   if (error) {
     throw new Error(`Failed to fetch questions: ${error.message}`)
   }
 
   // Map to the frontend Question type
-  const mappedQuestions = questions.map((q: { id: string; exam_id: string; order_index: number; content_text: string; options: string[]; content_translations: Record<string, string>; options_translations: Record<string, string[]>; image_url: string | null; image_alt_text: string | null }) => {
+  const orderedQuestions = rosterIds.length > 0
+    ? rosterIds
+        .map(id => questions.find(question => question.id === id))
+        .filter((question): question is NonNullable<typeof questions[number]> => Boolean(question))
+    : questions
+
+  const mappedQuestions = orderedQuestions.map((q: { id: string; exam_id: string; order_index: number; content_text: string; options: string[]; content_translations: Record<string, string>; options_translations: Record<string, string[]>; image_url: string | null; image_alt_text: string | null }) => {
     let questionText = q.content_text;
     let optionsList = q.options;
 
@@ -112,6 +132,42 @@ export async function fetchExamQuestions(examId: string, sessionId: string, lang
   return mappedQuestions;
 }
 
+async function getExamAnswerDeadline(
+  adminClient: SupabaseClient,
+  session: { is_practice: boolean | null; exam_id: string | null; started_at: string }
+) {
+  if (session.is_practice || !session.exam_id) return null;
+
+  const { data: exam, error } = await adminClient
+    .from('exams')
+    .select('duration_minutes')
+    .eq('id', session.exam_id)
+    .single();
+
+  if (error || !exam) {
+    throw new Error('Exam configuration could not be loaded');
+  }
+
+  const startedAt = new Date(session.started_at).getTime();
+  const durationSeconds = Number(exam.duration_minutes) * 60;
+
+  if (!Number.isFinite(startedAt) || !Number.isFinite(durationSeconds) || durationSeconds <= 0) {
+    throw new Error('Exam timing configuration is invalid');
+  }
+
+  return startedAt + (durationSeconds + 5) * 1000;
+}
+
+async function ensureExamAnswerWindow(
+  adminClient: SupabaseClient,
+  session: { is_practice: boolean | null; exam_id: string | null; started_at: string }
+) {
+  const deadline = await getExamAnswerDeadline(adminClient, session);
+  if (deadline !== null && Date.now() > deadline) {
+    throw new Error('Exam time has expired');
+  }
+}
+
 async function ensureCandidateProfile(supabase: SupabaseClient, user: User) {
   const { data: profile } = await supabase
     .from('profiles')
@@ -147,12 +203,28 @@ export async function startExamSession(examId: string) {
   // Provision profile if it doesn't exist
   await ensureCandidateProfile(supabase, user)
 
+  const { data: rosterQuestions, error: rosterError } = await adminClient
+    .from('questions')
+    .select('id')
+    .eq('exam_id', examId)
+    .order('order_index', { ascending: true })
+
+  if (rosterError) {
+    throw new Error(`Failed to load exam question roster: ${rosterError.message}`)
+  }
+
+  const questionIds = (rosterQuestions || []).map(question => question.id)
+  if (questionIds.length === 0) {
+    throw new Error('This exam currently has no available questions')
+  }
+
   const { data, error } = await adminClient
     .from('exam_sessions')
     .insert({
       exam_id: examId,
       candidate_id: user.id,
       status: 'in_progress',
+      question_ids: questionIds,
     })
     .select('id')
     .single()
@@ -170,7 +242,7 @@ export async function startExamSession(examId: string) {
   return data.id
 }
 
-export async function startPracticeSession() {
+export async function startPracticeSession(questionIds: string[] = [], practiceSubject = '', practiceDifficulty = '') {
   const supabase = await createClient()
   const adminClient = await createAdminClient()
   
@@ -179,15 +251,48 @@ export async function startPracticeSession() {
     throw new Error('Unauthorized')
   }
 
+  if (!Array.isArray(questionIds) || questionIds.length === 0) {
+    throw new Error('Practice session requires a question roster')
+  }
+
+  const uniqueQuestionIds = [...new Set(questionIds)].slice(0, 100)
   await ensureCandidateProfile(supabase, user)
+
+  const normalizedSubject = practiceSubject.trim()
+  const normalizedDifficulty = practiceDifficulty.trim().toLowerCase()
+
+  if (!normalizedSubject || !['easy', 'medium', 'hard'].includes(normalizedDifficulty)) {
+    throw new Error('Practice session parameters are invalid')
+  }
+
+  const { data: rosterQuestions, error: rosterError } = await adminClient
+    .from('questions')
+    .select('id, subject, difficulty')
+    .in('id', uniqueQuestionIds)
+
+  if (rosterError || !rosterQuestions || rosterQuestions.length !== uniqueQuestionIds.length) {
+    throw new Error('Practice question roster is invalid')
+  }
+
+  const rosterIsValid = rosterQuestions.every(
+    question =>
+      question.subject === normalizedSubject &&
+      question.difficulty === normalizedDifficulty
+  )
+
+  if (!rosterIsValid) {
+    throw new Error('Practice question roster does not match the selected parameters')
+  }
 
   const { data, error } = await adminClient
     .from('exam_sessions')
     .insert({
-      exam_id: null, // No specific exam for practice
+      exam_id: null,
       candidate_id: user.id,
       status: 'in_progress',
       is_practice: true,
+      question_ids: uniqueQuestionIds,
+      practice_subject: normalizedSubject,
     })
     .select('id')
     .single()
@@ -200,10 +305,34 @@ export async function startPracticeSession() {
     session_id: data.id,
     candidate_id: user.id,
     action: 'started_exam',
-    metadata: { is_practice: true }
+    metadata: { is_practice: true, question_count: uniqueQuestionIds.length }
   })
 
   return data.id
+}
+
+export async function fetchAvailablePracticeSubjects() {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    throw new Error('Unauthorized')
+  }
+
+  const { data, error } = await supabase
+    .from('questions')
+    .select('subject')
+    .not('subject', 'is', null)
+
+  if (error) {
+    throw new Error(`Failed to fetch practice subjects: ${error.message}`)
+  }
+
+  return [...new Set(
+    (data || [])
+      .map(row => row.subject?.trim())
+      .filter((subject): subject is string => Boolean(subject))
+  )].sort((a, b) => a.localeCompare(b))
 }
 
 export async function fetchPracticeQuestions(subject: string, difficulty: string, count: number, lang: string = 'en-IN') {
@@ -214,25 +343,62 @@ export async function fetchPracticeQuestions(subject: string, difficulty: string
     throw new Error('Unauthorized')
   }
 
-  let query = supabase
+  const normalizedSubject = subject.trim()
+  const normalizedDifficulty = difficulty.trim().toLowerCase()
+  const normalizedCount = Number.isInteger(count) ? count : Number.parseInt(String(count), 10)
+
+  if (!normalizedSubject || normalizedSubject.length > 100) {
+    throw new Error('Invalid practice subject')
+  }
+
+  if (!['easy', 'medium', 'hard'].includes(normalizedDifficulty)) {
+    throw new Error('Invalid practice difficulty')
+  }
+
+  if (!Number.isInteger(normalizedCount) || normalizedCount < 1 || normalizedCount > 100) {
+    throw new Error('Invalid practice question count')
+  }
+
+  const countQuery = await supabase
+    .from('questions')
+    .select('id', { count: 'exact', head: true })
+    .eq('subject', normalizedSubject)
+    .eq('difficulty', normalizedDifficulty)
+
+  if (countQuery.error) {
+    throw new Error(`Failed to count practice questions: ${countQuery.error.message}`)
+  }
+
+  const availableCount = countQuery.count || 0
+  const fetchCount = Math.min(normalizedCount, availableCount)
+  if (fetchCount === 0) {
+    return { questions: [], totalFound: availableCount }
+  }
+
+  const maxOffset = Math.max(0, availableCount - fetchCount)
+  const offset = maxOffset > 0 ? Math.floor(Math.random() * (maxOffset + 1)) : 0
+
+  const questionsQuery = await supabase
     .from('questions')
     .select('id, exam_id, order_index, content_text, options, content_translations, options_translations, subject, difficulty, image_url, image_alt_text')
-    
-  if (subject) {
-    query = query.ilike('subject', `%${subject}%`)
-  }
-  if (difficulty) {
-    query = query.eq('difficulty', difficulty)
+    .eq('subject', normalizedSubject)
+    .eq('difficulty', normalizedDifficulty)
+    .order('order_index', { ascending: true })
+    .range(offset, Math.max(offset - 1, offset + fetchCount - 1))
+
+  if (questionsQuery.error) {
+    throw new Error(`Failed to fetch practice questions: ${questionsQuery.error.message}`)
   }
 
-  const { data: questions, error } = await query.limit(count)
-
-  if (error) {
-    throw new Error(`Failed to fetch practice questions: ${error.message}`)
+  const questions = questionsQuery.data || []
+  const shuffledQuestions = [...questions]
+  for (let i = shuffledQuestions.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffledQuestions[i], shuffledQuestions[j]] = [shuffledQuestions[j], shuffledQuestions[i]]
   }
 
   return {
-    questions: questions.map((qRaw: Record<string, unknown>, i: number) => {
+    questions: shuffledQuestions.map((qRaw: Record<string, unknown>, i: number) => {
       const q = qRaw as {
         id: string;
         content_text: string;
@@ -270,7 +436,7 @@ export async function fetchPracticeQuestions(subject: string, difficulty: string
         difficulty: q.difficulty
       };
     }) as Question[],
-    totalFound: questions.length
+    totalFound: availableCount
   };
 }
 
@@ -288,7 +454,7 @@ export async function saveAnswer(
 
   const { data: session, error: sessionError } = await supabase
     .from('exam_sessions')
-    .select('id, exam_id, is_practice, status')
+    .select('id, exam_id, is_practice, status, question_ids, started_at')
     .eq('id', sessionId)
     .eq('candidate_id', user.id)
     .single();
@@ -301,6 +467,8 @@ export async function saveAnswer(
     throw new Error('Answers can only be saved while the session is in progress');
   }
 
+  await ensureExamAnswerWindow(adminClient, session);
+
   const { data: question, error: questionError } = await adminClient
     .from('questions')
     .select('id, exam_id, options')
@@ -311,7 +479,15 @@ export async function saveAnswer(
     throw new Error('Question not found');
   }
 
-  if (!session.is_practice && question.exam_id !== session.exam_id) {
+  const practiceQuestionIds = Array.isArray(session.question_ids)
+    ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+    : [];
+
+  if (session.is_practice) {
+    if (!practiceQuestionIds.includes(questionId)) {
+      throw new Error('Question does not belong to this practice session');
+    }
+  } else if (question.exam_id !== session.exam_id) {
     throw new Error('Question does not belong to this exam session');
   }
 
@@ -364,7 +540,7 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
   // 1. Fetch the exam session to get exam_id and check if practice
   const { data: session, error: sessionErr } = await supabase
     .from('exam_sessions')
-    .select('exam_id, status, is_practice')
+    .select('exam_id, status, is_practice, question_ids, started_at')
     .eq('id', sessionId)
     .eq('candidate_id', user.id)
     .single()
@@ -373,28 +549,33 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     throw new Error('Exam session not found or unauthorized')
   }
 
-  if (session.status === 'submitted') {
-    throw new Error('Exam session already submitted')
+  if (session.status !== 'in_progress') {
+    throw new Error('Exam session is not active')
   }
 
-  // Extract question IDs from answers
-  const answerKeys = Object.values(answers).map((a: unknown) => (a as { question_id: string }).question_id);
-  
+  const serverDeadline = await getExamAnswerDeadline(adminClient, {
+    is_practice: session.is_practice,
+    exam_id: session.exam_id,
+    started_at: session.started_at
+  });
+  const acceptingNewClientAnswers = serverDeadline === null || Date.now() <= serverDeadline;
+
   // 2. Fetch correct answers via admin client (bypasses RLS)
   let query = adminClient
     .from('questions')
-    .select('id, question_answers(correct_answer_index)');
+    .select('id, options, question_answers(correct_answer_index)');
 
-  if (session.is_practice) {
-    if (!questionIds || questionIds.length === 0) {
-      if (answerKeys.length === 0) {
-        throw new Error('No questions provided for practice session');
-      }
-      query = query.in('id', answerKeys);
-    } else {
-      query = query.in('id', questionIds);
-    }
+  const rosterIds = Array.isArray(session.question_ids)
+    ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+    : [];
+
+  if (rosterIds.length > 0) {
+    query = query.in('id', rosterIds);
+  } else if (session.is_practice) {
+    throw new Error('Practice session has no question roster');
   } else {
+    // Legacy exam sessions created before roster persistence can still be graded
+    // against the exam's then-current question set.
     query = query.eq('exam_id', session.exam_id);
   }
 
@@ -410,13 +591,16 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
   let incorrect_questions = 0;
   const total_questions = questions.length;
   const questionMap = new Map<string, number>();
+  const optionCountMap = new Map<string, number>();
   
   type QuestionWithAnswer = {
     id: string;
+    options: unknown;
     question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
   };
   
   (questions as QuestionWithAnswer[]).forEach((q) => {
+    optionCountMap.set(q.id, Array.isArray(q.options) ? q.options.length : 0);
     if (Array.isArray(q.question_answers) && q.question_answers.length > 0) {
       questionMap.set(q.id, q.question_answers[0].correct_answer_index);
     } else if (q.question_answers && !Array.isArray(q.question_answers)) {
@@ -426,13 +610,16 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
 
   const validQuestionIds = new Set(questions.map((q) => q.id));
 
-  const answersToInsert = Object.values(answers)
-    .map((ans: unknown) => ans as { question_id: string; answer_data: unknown; is_marked_for_review: boolean; })
-    .filter((ansTyped) => validQuestionIds.has(ansTyped.question_id))
-    .map((ansTyped) => {
+  const answersToInsert = acceptingNewClientAnswers
+    ? Object.values(answers)
+        .map((ans: unknown) => ans as { question_id: string; answer_data: unknown; is_marked_for_review: boolean; })
+        .filter((ansTyped) => validQuestionIds.has(ansTyped.question_id))
+        .map((ansTyped) => {
     
-    // Grading
-    const isAttempted = typeof ansTyped.answer_data === 'number' && ansTyped.answer_data >= 0;
+    const isAttempted = typeof ansTyped.answer_data === 'number'
+      && Number.isInteger(ansTyped.answer_data)
+      && ansTyped.answer_data >= 0
+      && ansTyped.answer_data < (optionCountMap.get(ansTyped.question_id) || 0);
     if (isAttempted) {
       attempted_questions += 1;
       if (questionMap.get(ansTyped.question_id) === ansTyped.answer_data) {
@@ -445,29 +632,70 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     return {
       session_id: sessionId,
       question_id: ansTyped.question_id,
-      selected_option_index: (typeof ansTyped.answer_data === 'number' && ansTyped.answer_data >= 0) ? ansTyped.answer_data : null,
+      selected_option_index: (typeof ansTyped.answer_data === 'number' && Number.isInteger(ansTyped.answer_data) && ansTyped.answer_data >= 0 && ansTyped.answer_data < (optionCountMap.get(ansTyped.question_id) || 0)) ? ansTyped.answer_data : null,
       marked_for_review: ansTyped.is_marked_for_review
     };
   })
+    : [];
+
+  if (acceptingNewClientAnswers && answersToInsert.length > 0) {
+    const { error: ansError } = await adminClient
+      .from('answers')
+      .upsert(answersToInsert, { onConflict: 'session_id, question_id' });
+
+    if (ansError) {
+      throw new Error(`Failed to save answers: ${ansError.message}`);
+    }
+  }
+
+  // Always calculate the final score from server-persisted answers. If the
+  // exam deadline has already passed, no new client answers are accepted.
+  const { data: persistedAnswers, error: persistedAnswersError } = await adminClient
+    .from('answers')
+    .select('question_id, selected_option_index')
+    .eq('session_id', sessionId);
+
+  if (persistedAnswersError) {
+    throw new Error(`Failed to load persisted answers: ${persistedAnswersError.message}`);
+  }
+
+  const serverAnswerMap = new Map(
+    (persistedAnswers || []).map(answer => [answer.question_id, answer.selected_option_index])
+  );
+
+  correct_questions = 0;
+  attempted_questions = 0;
+  incorrect_questions = 0;
+
+  for (const question of questions) {
+    const selectedIndex = serverAnswerMap.get(question.id) ?? null;
+    const optionCount = optionCountMap.get(question.id) || 0;
+
+    if (
+      typeof selectedIndex !== 'number' ||
+      !Number.isInteger(selectedIndex) ||
+      selectedIndex < 0 ||
+      selectedIndex >= optionCount
+    ) {
+      continue;
+    }
+
+    attempted_questions += 1;
+
+    if (questionMap.get(question.id) === selectedIndex) {
+      correct_questions += 1;
+    } else {
+      incorrect_questions += 1;
+    }
+  }
 
   const unanswered_questions = total_questions - attempted_questions;
   const percentage = total_questions > 0 ? (correct_questions / total_questions) * 100 : 0;
 
-  // 4. Upsert answers using adminClient to bypass disabled UPDATE/INSERT policy for clients
-  if (answersToInsert.length > 0) {
-    const { error: ansError } = await adminClient
-      .from('answers')
-      .upsert(answersToInsert, { onConflict: 'session_id, question_id' })
-      
-    if (ansError) {
-      throw new Error(`Failed to save answers: ${ansError.message}`)
-    }
-  }
-
   // 5. Complete session with comprehensive analytics using adminClient to bypass disabled UPDATE policy
-  const { error: sessionError } = await adminClient
+  const { data: updatedSession, error: sessionError } = await adminClient
     .from('exam_sessions')
-    .update({ 
+    .update({
       status: 'submitted',
       completed_at: new Date().toISOString(),
       score: correct_questions,
@@ -481,9 +709,15 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     .eq('id', sessionId)
     .eq('candidate_id', user.id)
     .eq('status', 'in_progress')
+    .select('id')
+    .maybeSingle()
 
   if (sessionError) {
     throw new Error(`Failed to complete session: ${sessionError.message}`)
+  }
+
+  if (!updatedSession) {
+    throw new Error('Exam session was already submitted or is no longer active')
   }
 
   await supabase.from('audit_logs').insert({
@@ -571,6 +805,12 @@ export async function updateLearningProfileConsent(consent: boolean) {
 }
 
 export async function buildLearningProfile(userId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user || user.id !== userId) {
+    throw new Error('Unauthorized');
+  }
+
   const adminClient = await createAdminClient();
   
   const { data: profile } = await adminClient
@@ -583,10 +823,10 @@ export async function buildLearningProfile(userId: string) {
     throw new Error('Consent not granted or profile not found');
   }
 
-  // Fetch all submitted sessions
+  // Fetch all submitted sessions and their frozen question rosters.
   const { data: sessions } = await adminClient
     .from('exam_sessions')
-    .select('id, is_practice, percentage, started_at, completed_at, score, total_questions')
+    .select('id, is_practice, exam_id, question_ids, percentage, started_at, completed_at, score, total_questions')
     .eq('candidate_id', userId)
     .eq('status', 'submitted')
     .order('completed_at', { ascending: false });
@@ -600,51 +840,84 @@ export async function buildLearningProfile(userId: string) {
   const examSessions = totalSessions - practiceSessions;
   const recentAccuracy = sessions.slice(0, 5).map((s: { percentage: number }) => s.percentage);
 
-  // Fetch answers to get subject-wise accuracy
   const sessionIds = sessions.map((s: { id: string }) => s.id);
   const { data: answersData } = await adminClient
     .from('answers')
-    .select(`
-      session_id,
-      selected_option_index,
-      questions (
-        subject,
-        question_answers (
-          correct_answer_index
-        )
-      )
-    `)
+    .select('session_id, question_id, selected_option_index')
     .in('session_id', sessionIds);
 
+  const answerBySessionQuestion = new Map<string, number | null>();
+  for (const answer of answersData || []) {
+    answerBySessionQuestion.set(
+      `${answer.session_id}:${answer.question_id}`,
+      answer.selected_option_index
+    );
+  }
+
+  const rosterIds = [...new Set(
+    sessions.flatMap(session =>
+      Array.isArray(session.question_ids)
+        ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+        : []
+    )
+  )];
+
+  const legacyExamIds = [...new Set(
+    sessions
+      .filter(session => !Array.isArray(session.question_ids) || session.question_ids.length === 0)
+      .map(session => session.exam_id)
+      .filter((id): id is string => typeof id === 'string')
+  )];
+
+  let questionQuery = adminClient
+    .from('questions')
+    .select('id, exam_id, subject, question_answers(correct_answer_index)');
+
+  if (rosterIds.length > 0 && legacyExamIds.length === 0) {
+    questionQuery = questionQuery.in('id', rosterIds);
+  } else if (rosterIds.length === 0 && legacyExamIds.length > 0) {
+    questionQuery = questionQuery.in('exam_id', legacyExamIds);
+  } else if (rosterIds.length > 0 || legacyExamIds.length > 0) {
+    const filters = [];
+    if (rosterIds.length > 0) filters.push(`id.in.(${rosterIds.join(',')})`);
+    if (legacyExamIds.length > 0) filters.push(`exam_id.in.(${legacyExamIds.join(',')})`);
+    questionQuery = questionQuery.or(filters.join(','));
+  }
+
+  const { data: questions } = await questionQuery;
+  const questionMap = new Map((questions || []).map(question => [question.id, question]));
   const subjectStats = new Map<string, { correct: number; total: number }>();
 
-  if (answersData) {
-    answersData.forEach((ans: {
-      selected_option_index: number | null;
-      questions: {
-        subject: string | null;
-        question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
-      }[] | {
-        subject: string | null;
-        question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
-      } | null;
-    }) => {
-      const qList = Array.isArray(ans.questions) ? ans.questions : (ans.questions ? [ans.questions] : []);
-      const q = qList[0];
-      if (!q) return;
-      const subject = q.subject || 'General';
-      const qa = q.question_answers;
-      const correctIndex = Array.isArray(qa) 
-        ? (qa.length > 0 ? qa[0].correct_answer_index : -1)
-        : qa?.correct_answer_index;
-      
-      const isCorrect = ans.selected_option_index !== null && ans.selected_option_index === correctIndex;
-      
+  for (const session of sessions) {
+    let sessionQuestionIds = Array.isArray(session.question_ids)
+      ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+      : [];
+
+    if (sessionQuestionIds.length === 0 && session.exam_id) {
+      sessionQuestionIds = (questions || [])
+        .filter(question => question.exam_id === session.exam_id)
+        .map(question => question.id);
+    }
+
+    for (const questionId of sessionQuestionIds) {
+      const question = questionMap.get(questionId);
+      if (!question) continue;
+
+      const subject = question.subject || 'General';
       const stat = subjectStats.get(subject) || { correct: 0, total: 0 };
       stat.total += 1;
-      if (isCorrect) stat.correct += 1;
+
+      const answer = answerBySessionQuestion.get(`${session.id}:${questionId}`) ?? null;
+      const questionAnswers = question.question_answers;
+      const correctIndex = Array.isArray(questionAnswers)
+        ? questionAnswers[0]?.correct_answer_index
+        : questionAnswers?.correct_answer_index;
+
+      if (answer !== null && answer === correctIndex) {
+        stat.correct += 1;
+      }
       subjectStats.set(subject, stat);
-    });
+    }
   }
 
   const subjects = Array.from(subjectStats.entries()).map(([sub, stat]) => ({

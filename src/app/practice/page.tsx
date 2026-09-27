@@ -8,9 +8,9 @@ import { useSearchParams } from 'next/navigation';
 import { useVoice } from '@/lib/voice/VoiceProvider';
 import { VoiceCore } from '@/components/voice/VoiceCore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { fetchPracticeQuestions, startPracticeSession } from '@/app/exam/actions';
+import { fetchPracticeQuestions, fetchAvailablePracticeSubjects, startPracticeSession } from '@/app/exam/actions';
 import { usePreferredMode } from '@/lib/hooks/usePreferredMode';
-import { SUPPORTED_SUBJECTS, resolveSubject } from '@/lib/catalog/examCatalog';
+import { resolveSubject } from '@/lib/catalog/examCatalog';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 import { SafeAction } from '@/lib/voice/safeActionRegistry';
 
@@ -27,7 +27,7 @@ function PracticeContent() {
   
   const { mode: interactionMode, isLoaded } = usePreferredMode();
 
-  const [setupState, setSetupState] = useState<'ASK_SUBJECT' | 'ASK_COUNT' | 'ASK_DIFFICULTY' | 'FETCHING' | 'CONFIRM_SHORTFALL' | 'STARTING' | 'READY'>(() => {
+  const [setupState, setSetupState] = useState<'ASK_SUBJECT' | 'ASK_COUNT' | 'ASK_DIFFICULTY' | 'FETCHING' | 'CONFIRM_SHORTFALL' | 'STARTING' | 'ERROR' | 'READY'>(() => {
     if (initialSubject && initialCount && initialDifficulty) {
       return 'FETCHING';
     }
@@ -40,6 +40,8 @@ function PracticeContent() {
   const [confirmedShortfall, setConfirmedShortfall] = useState(false);
   const [fetchedQuestions, setFetchedQuestions] = useState<Question[]>([]);
   const [availableCount, setAvailableCount] = useState<number>(0);
+  const [availableSubjects, setAvailableSubjects] = useState<string[]>([]);
+  const [setupError, setSetupError] = useState('');
   
   const hasStartedRef = useRef(false);
 
@@ -87,8 +89,18 @@ function PracticeContent() {
   }, [isContinuous, startContinuousListening]);
 
   useEffect(() => {
+    fetchAvailablePracticeSubjects()
+      .then(setAvailableSubjects)
+      .catch((error) => {
+        console.error('Failed to load practice subjects', error);
+        setAvailableSubjects([]);
+      });
+  }, []);
+
+  useEffect(() => {
     if (setupState === 'FETCHING') {
       const qCount = parseInt(count, 10) || 5;
+      setSetupError('');
       fetchPracticeQuestions(subject, difficulty, qCount, lang)
         .then(res => {
           setFetchedQuestions(res.questions);
@@ -105,7 +117,13 @@ function PracticeContent() {
         })
         .catch(err => {
           console.error(err);
-          speak("Sorry, there was an error loading practice questions.");
+          setSetupError(
+            err instanceof Error
+              ? err.message
+              : "Sorry, there was an error loading practice questions."
+          );
+          setSetupState('ERROR');
+          speak("I couldn't load those practice questions. I can retry or you can choose another subject.");
         });
     }
   }, [setupState, subject, count, difficulty, lang, speak]);
@@ -120,12 +138,16 @@ function PracticeContent() {
         : `Starting a ${actualCount}-question ${difficulty} ${subject} practice session.`;
       
       speak(confirmMsg);
-      startPracticeSession().then(sessionId => {
+      startPracticeSession(fetchedQuestions.map(question => question.id), subject, difficulty).then(sessionId => {
         initializeExam(sessionId, 'practice-exam', fetchedQuestions);
         setSetupState('READY');
       }).catch(err => {
         console.error(err);
-        speak("Failed to create practice session.");
+        setSetupError(
+          err instanceof Error ? err.message : 'Failed to create practice session.'
+        );
+        setSetupState('ERROR');
+        speak("I couldn't start that practice session. You can retry.");
       });
     }
   }, [setupState, fetchedQuestions, subject, difficulty, lang, initializeExam, speak]);
@@ -154,75 +176,121 @@ function PracticeContent() {
       speak(`${errorMsg} ${repromptMsg}`);
     };
 
+    if (setupState === 'ERROR') {
+      const lower = transcript?.trim().toLowerCase() || '';
+      if (/\b(retry|again|try again|yes|start)\b/.test(lower)) {
+        setSetupState('FETCHING');
+        speak('Retrying the practice question load.');
+        return true;
+      }
+      if (/\b(change|subject|different)\b/.test(lower)) {
+        setSetupError('');
+        setSubject('');
+        setCount('');
+        setDifficulty('');
+        setSetupState('ASK_SUBJECT');
+        speak('Okay. What subject would you like to practice?');
+        return true;
+      }
+      return true;
+    }
+
     if ((action as string === 'RAW_TRANSCRIPT' || action === 'UNKNOWN_COMMAND') && transcript) {
+      const raw = transcript.trim();
+      const lower = raw.toLowerCase();
+
+      if (/\b(help|support|dashboard|home|history|analysis|settings|logout|log out)\b/.test(lower)) {
+        return false;
+      }
+
       if (setupState === 'ASK_SUBJECT') {
-        const trimmed = transcript.trim();
-        resolveSubject(trimmed).then(resolved => {
+        const countVal = parseQuestionCount(raw);
+        const diff = /\b(easy|medium|hard)\b/.exec(lower)?.[1] || '';
+        resolveSubject(raw).then(resolved => {
           if (!resolved) {
-             handleVoiceFallback("I didn't quite catch that.", "What subject would you like to practice?");
+            handleVoiceFallback("I didn't quite catch that.", "What subject would you like to practice?");
+            return;
+          }
+
+          setSubject(resolved);
+          if (countVal && diff) {
+            setCount(countVal);
+            setDifficulty(diff);
+            setSetupState('FETCHING');
+          } else if (countVal) {
+            setCount(countVal);
+            setSetupState('ASK_DIFFICULTY');
           } else {
-             setSubject(resolved);
-             setSetupState('ASK_COUNT');
+            setSetupState('ASK_COUNT');
           }
         });
         return true;
       }
 
       if (setupState === 'ASK_COUNT') {
-        const countVal = parseQuestionCount(transcript);
+        const countVal = parseQuestionCount(raw);
+        const diff = /\b(easy|medium|hard)\b/.exec(lower)?.[1] || '';
 
         if (!countVal) {
-           handleVoiceFallback("Please say the number of questions, such as 10 or 20.", "How many questions would you like?");
+          handleVoiceFallback("Please say the number of questions, such as 10 or 20.", "How many questions would you like?");
+        } else if (diff) {
+          setCount(countVal);
+          setDifficulty(diff);
+          setSetupState('FETCHING');
         } else {
-           setCount(countVal);
-           setSetupState('ASK_DIFFICULTY');
+          setCount(countVal);
+          setSetupState('ASK_DIFFICULTY');
         }
         return true;
       }
 
       if (setupState === 'ASK_DIFFICULTY') {
-        const t = transcript.trim().toLowerCase();
-        let diff = '';
-        if (t.includes('easy')) diff = 'easy';
-        else if (t.includes('medium')) diff = 'medium';
-        else if (t.includes('hard')) diff = 'hard';
-        
+        const diff = /\b(easy|medium|hard)\b/.exec(lower)?.[1] || '';
+
         if (!diff) {
-           handleVoiceFallback("Please say easy, medium, or hard.", "What difficulty?");
+          handleVoiceFallback("Please say easy, medium, or hard.", "What difficulty?");
         } else {
-           setDifficulty(diff);
-           setSetupState('FETCHING');
+          setDifficulty(diff);
+          setSetupState('FETCHING');
         }
         return true;
       }
 
       if (setupState === 'CONFIRM_SHORTFALL') {
-        const t = transcript.trim().toLowerCase();
-        if (t.includes('yes') || t.includes('confirm') || t.includes('हाँ') || t.includes('అవును') || t.includes('start') || t.includes('ok')) {
+        if (lower.includes('yes') || lower.includes('confirm') || lower.includes('हाँ') || lower.includes('అవును') || lower.includes('start') || lower.includes('ok')) {
           setConfirmedShortfall(true);
           setSetupState('STARTING');
-        } else if (t.includes('no') || t.includes('change') || t.includes('नहीं') || t.includes('కాదు') || t.includes('wait') || t.includes('cancel')) {
+        } else if (lower.includes('no') || lower.includes('change') || lower.includes('नहीं') || lower.includes('కాదు') || lower.includes('wait') || lower.includes('cancel')) {
           setCount('');
           setSetupState('ASK_COUNT');
         } else {
-           handleVoiceFallback("Please say yes or no.", "Would you like me to start with the available questions?");
+          handleVoiceFallback("Please say yes or no.", "Would you like me to start with the available questions?");
         }
         return true;
       }
     }
     
-    // Explicit global START_PRACTICE inside practice context restarts the flow
+    // Explicit natural START_PRACTICE commands can carry all three parameters.
     if (action === 'START_PRACTICE' || action === 'OPEN_PRACTICE') {
-      if (payload?.subject) setSubject(payload.subject as string);
-      else setSubject('');
-      
-      if (payload?.count) setCount(String(payload.count));
-      else setCount('');
+      const nextSubject = typeof payload?.subject === 'string' ? payload.subject : '';
+      const nextCount = payload?.count !== undefined ? String(payload.count) : '';
+      const nextDifficulty = typeof payload?.difficulty === 'string'
+        ? payload.difficulty.toLowerCase()
+        : '';
 
-      if (payload?.difficulty) setDifficulty(payload.difficulty as string);
-      else setDifficulty('');
+      setSubject(nextSubject);
+      setCount(nextCount);
+      setDifficulty(nextDifficulty);
 
-      setSetupState('ASK_SUBJECT'); // will autoprogress if all 3 are set via useEffect
+      if (nextSubject && nextCount && ['easy', 'medium', 'hard'].includes(nextDifficulty)) {
+        setSetupState('FETCHING');
+      } else if (!nextSubject) {
+        setSetupState('ASK_SUBJECT');
+      } else if (!nextCount) {
+        setSetupState('ASK_COUNT');
+      } else {
+        setSetupState('ASK_DIFFICULTY');
+      }
       return true;
     }
 
@@ -230,6 +298,42 @@ function PracticeContent() {
   });
 
   if (setupState !== 'READY') {
+    if (setupState === 'ERROR') {
+      return (
+        <div className="relative flex flex-col min-h-screen w-full max-w-4xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
+          <div className="flex-1 flex flex-col justify-center space-y-10">
+            <p className="text-zinc-500 tracking-[0.2em] text-sm uppercase">PRACTICE</p>
+            <h1 className="text-[clamp(3rem,6vw,6rem)] font-light tracking-tighter">Something went wrong.</h1>
+            <p className="text-xl text-zinc-400 font-light" aria-live="assertive">
+              {setupError || 'I could not start the practice session.'}
+            </p>
+            <div className="flex flex-wrap gap-4 border-t border-zinc-900 pt-10">
+              <button
+                type="button"
+                onClick={() => setSetupState('FETCHING')}
+                className="px-10 py-4 rounded-full bg-white text-black uppercase tracking-widest text-sm font-bold"
+              >
+                Retry
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSetupError('');
+                  setSubject('');
+                  setCount('');
+                  setDifficulty('');
+                  setSetupState('ASK_SUBJECT');
+                }}
+                className="px-10 py-4 rounded-full border border-zinc-800 text-zinc-300 uppercase tracking-widest text-sm font-medium"
+              >
+                Choose another subject
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="relative flex flex-col min-h-screen w-full max-w-7xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
         
@@ -258,7 +362,7 @@ function PracticeContent() {
                     <p className="text-2xl text-zinc-500 font-light">&quot;What subject would you like to practice?&quot;</p>
                   </div>
                   <div className="flex flex-wrap gap-4">
-                    {SUPPORTED_SUBJECTS.map(subj => (
+                    {availableSubjects.length > 0 ? availableSubjects.map(subj => (
                       <button 
                         key={subj}
                         onClick={() => { setSubject(subj); setSetupState('ASK_COUNT'); }}
@@ -266,7 +370,11 @@ function PracticeContent() {
                       >
                         {subj}
                       </button>
-                    ))}
+                    )) : (
+                      <p className="text-zinc-500 text-base">
+                        Subjects will appear here once questions are available.
+                      </p>
+                    )}
                   </div>
                 </div>
               )}

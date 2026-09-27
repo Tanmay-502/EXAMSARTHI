@@ -46,6 +46,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
     if (pathname.startsWith('/results')) return 'results';
     if (pathname.startsWith('/history')) return 'history';
     if (pathname.startsWith('/auth')) return 'auth';
+    if (pathname.startsWith('/settings')) return 'settings';
     if (pathname.startsWith('/analysis')) return 'analysis';
     return 'unknown';
   }, [pathname]);
@@ -210,7 +211,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
         speak(lang === 'hi-IN' ? 'आप पहले से ही अभ्यास मोड में हैं।' : lang === 'te-IN' ? 'మీరు ఇప్పటికే ప్రాక్టీస్ మోడ్‌లో ఉన్నారు.' : 'You are already in practice mode.');
       }
     }
-    if (action === 'OPEN_HISTORY' || action === 'READ_PROGRESS' || action === 'READ_HISTORY' || action === 'READ_RESULTS') {
+    if (action === 'OPEN_HISTORY' || action === 'READ_HISTORY' || action === 'READ_RESULTS') {
       speak(lang === 'hi-IN' ? 'आपका इतिहास खोल रहा हूँ।' : lang === 'te-IN' ? 'మీ చరిత్రను తెరుస్తున్నాను.' : 'Opening your results and history.');
       isNavigatingRef.current = true;
       router.push('/history');
@@ -221,9 +222,30 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
       router.push('/settings');
     }
     if (action === 'LOGOUT') {
-      speak(lang === 'hi-IN' ? 'लॉग आउट कर रहा हूँ।' : lang === 'te-IN' ? 'లాగ్ అవుట్ చేస్తున్నాను.' : 'Logging you out.');
-      isNavigatingRef.current = true;
-      router.push('/auth/login');
+      speak(
+        lang === 'hi-IN'
+          ? 'लॉग आउट किया जा रहा है।'
+          : lang === 'te-IN'
+            ? 'లాగ్ అవుట్ చేస్తున్నాను.'
+            : 'Logging you out.'
+      );
+      try {
+        const supabase = createClient();
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+        isNavigatingRef.current = true;
+        router.push('/');
+      } catch (error) {
+        console.error('[VOICE] Sign-out failed:', error);
+        isNavigatingRef.current = false;
+        speak(
+          lang === 'hi-IN'
+            ? 'लॉग आउट नहीं हो सका। कृपया फिर से प्रयास करें।'
+            : lang === 'te-IN'
+              ? 'లాగ్ అవుట్ కాలేదు. దయచేసి మళ్లీ ప్రయత్నించండి.'
+              : 'I could not log you out. Please try again.'
+        );
+      }
     }
 
   }, [getContextName, registry, router, setLang, speak, lang, pathname]);

@@ -32,7 +32,7 @@ export async function fetchAnalyticsData(): Promise<AnalyticsData> {
 
   const { data: sessions, error: sessionsError } = await supabase
     .from('exam_sessions')
-    .select('*')
+    .select('id, is_practice, exam_id, question_ids, percentage, started_at, completed_at, score, total_questions')
     .eq('candidate_id', user.id)
     .eq('status', 'submitted')
     .order('started_at', { ascending: true }); // Chronological for trend analysis
@@ -76,67 +76,114 @@ export async function fetchAnalyticsData(): Promise<AnalyticsData> {
   const subjectStatsMap: Record<string, SubjectStats> = {};
   const strongSubjects: string[] = [];
   const weakSubjects: string[] = [];
+  const adminClient = totalSessions > 0 ? await createAdminClient() : null;
 
-  if (totalSessions > 0) {
-    const adminClient = await createAdminClient();
+  if (adminClient && totalSessions > 0) {
+    const sessionIds = completedSessions.map(session => session.id);
     const { data: answers, error: answersError } = await adminClient
       .from('answers')
-      .select(`
-        id,
-        session_id,
-        selected_option_index,
-        questions!inner (
-          subject,
-          question_answers (
-            correct_answer_index
-          )
-        )
-      `)
-      .in('session_id', completedSessions.map(s => s.id));
+      .select('session_id, question_id, selected_option_index')
+      .in('session_id', sessionIds);
 
-    if (!answersError && answers && answers.length > 0) {
-      // Type assertion or robust handling
-      answers.forEach((ans: {
-        selected_option_index: number | null;
-        questions: {
-          subject: string | null;
-          question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
-        }[] | {
-          subject: string | null;
-          question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
-        } | null;
-      }) => {
-        const qList = Array.isArray(ans.questions) ? ans.questions : (ans.questions ? [ans.questions] : []);
-        const q = qList[0];
-        const subject = q?.subject || 'General';
-        const qa = q?.question_answers;
-        const correctIndex = Array.isArray(qa) ? qa[0]?.correct_answer_index : qa?.correct_answer_index;
-        
-        if (!subjectStatsMap[subject]) {
-          subjectStatsMap[subject] = { subject, correct: 0, incorrect: 0, unanswered: 0, total: 0, accuracy: 0 };
-        }
-        
-        subjectStatsMap[subject].total += 1;
-        
-        if (ans.selected_option_index === null) {
-          subjectStatsMap[subject].unanswered += 1;
-        } else if (ans.selected_option_index === correctIndex) {
-          subjectStatsMap[subject].correct += 1;
-        } else {
-          subjectStatsMap[subject].incorrect += 1;
-        }
-      });
-
-      Object.values(subjectStatsMap).forEach(stats => {
-        stats.accuracy = Math.round((stats.correct / stats.total) * 100);
-        if (stats.total >= 2) {
-          if (stats.accuracy >= 70) strongSubjects.push(stats.subject);
-          if (stats.accuracy <= 50) weakSubjects.push(stats.subject);
-        }
-      });
+    const answerBySessionQuestion = new Map<string, number | null>();
+    for (const answer of answers || []) {
+      answerBySessionQuestion.set(
+        `${answer.session_id}:${answer.question_id}`,
+        answer.selected_option_index
+      );
     }
-  }
 
+    const rosterQuestionIds = [...new Set(
+      completedSessions.flatMap(session =>
+        Array.isArray(session.question_ids)
+          ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+          : []
+      )
+    )];
+
+    const legacyExamIds = [...new Set(
+      completedSessions
+        .filter(session => !Array.isArray(session.question_ids) || session.question_ids.length === 0)
+        .map(session => session.exam_id)
+        .filter((id): id is string => typeof id === 'string')
+    )];
+
+    let questionQuery = adminClient
+      .from('questions')
+      .select(`id, exam_id, subject, question_answers(correct_answer_index)`);
+
+    if (rosterQuestionIds.length > 0 && legacyExamIds.length === 0) {
+      questionQuery = questionQuery.in('id', rosterQuestionIds);
+    } else if (rosterQuestionIds.length === 0 && legacyExamIds.length > 0) {
+      questionQuery = questionQuery.in('exam_id', legacyExamIds);
+    } else if (rosterQuestionIds.length > 0 || legacyExamIds.length > 0) {
+      const filters = [];
+      if (rosterQuestionIds.length > 0) filters.push(`id.in.(${rosterQuestionIds.join(',')})`);
+      if (legacyExamIds.length > 0) filters.push(`exam_id.in.(${legacyExamIds.join(',')})`);
+      questionQuery = questionQuery.or(filters.join(','));
+    }
+
+    const { data: questions, error: questionsError } = await questionQuery;
+    if (questionsError) {
+      console.error('Failed to fetch analysis question roster:', questionsError.message);
+    }
+
+    type AnalysisQuestion = {
+      id: string;
+      exam_id: string | null;
+      subject: string | null;
+      question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
+    };
+
+    const questionMap = new Map((questions || []).map(question => [question.id, question as AnalysisQuestion]));
+
+    for (const session of completedSessions) {
+      let rosterIds = Array.isArray(session.question_ids)
+        ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+        : [];
+
+      if (rosterIds.length === 0 && session.exam_id) {
+        rosterIds = (questions || [])
+          .filter(question => question.exam_id === session.exam_id)
+          .map(question => question.id);
+      }
+
+      for (const questionId of rosterIds) {
+        const question = questionMap.get(questionId);
+        if (!question) continue;
+
+        const subject = question.subject || 'General';
+        const stats = subjectStatsMap[subject] || {
+          subject, correct: 0, incorrect: 0, unanswered: 0, total: 0, accuracy: 0
+        };
+        stats.total += 1;
+
+        const answer = answerBySessionQuestion.get(`${session.id}:${questionId}`) ?? null;
+        const questionAnswers = question.question_answers;
+        const correctIndex = Array.isArray(questionAnswers)
+          ? questionAnswers[0]?.correct_answer_index
+          : questionAnswers?.correct_answer_index;
+
+        if (answer === null) {
+          stats.unanswered += 1;
+        } else if (answer === correctIndex) {
+          stats.correct += 1;
+        } else {
+          stats.incorrect += 1;
+        }
+
+        subjectStatsMap[subject] = stats;
+      }
+    }
+
+    Object.values(subjectStatsMap).forEach(stats => {
+      stats.accuracy = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+      if (stats.total >= 2) {
+        if (stats.accuracy >= 70) strongSubjects.push(stats.subject);
+        if (stats.accuracy <= 50) weakSubjects.push(stats.subject);
+      }
+    });
+  }
   return {
     overall: {
       totalSessions,

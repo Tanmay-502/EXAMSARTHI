@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { generateText } from 'ai';
-import { google } from '@ai-sdk/google';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { getGeminiKey } from '@/lib/ai/getGeminiKey';
 import { createClient } from '@/lib/supabase/server';
 import { buildLearningProfile } from '@/app/exam/actions';
 
@@ -13,7 +14,7 @@ export async function POST() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Security check: Refuse if there is an active exam
+    // Security check: Refuse if there is an active exam.
     const { data: activeSessions } = await supabase
       .from('exam_sessions')
       .select('id')
@@ -25,9 +26,22 @@ export async function POST() {
       return NextResponse.json({ error: 'Insights disabled during an active exam.' }, { status: 403 });
     }
 
-    if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('learning_profile_consent')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile?.learning_profile_consent) {
+      return NextResponse.json({ error: 'Consent not granted' }, { status: 403 });
+    }
+
+    const apiKey = getGeminiKey();
+    if (!apiKey) {
       return NextResponse.json({ error: 'AI API Key not configured' }, { status: 500 });
     }
+
+    const google = createGoogleGenerativeAI({ apiKey });
 
     const profile = await buildLearningProfile(user.id);
 
@@ -42,7 +56,7 @@ Do not provide exam answers. Do not invent details.
 Profile context:
 - Strong Subjects: ${profile.strongSubjects.join(', ') || 'None yet'}
 - Weak Subjects: ${profile.weakSubjects.join(', ') || 'None yet'}
-- Recent accuracy trend: ${profile.recentAccuracy.join('%, ')}%
+- Recent accuracy trend: ${profile.recentAccuracy.join('%, ')}
 - Total sessions completed: ${profile.totalSessions} (Practice: ${profile.practiceSessions}, Exam: ${profile.examSessions})
 `;
 

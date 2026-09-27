@@ -11,6 +11,7 @@ export default function ModeSelectionPage() {
   const router = useRouter();
   const { setMode } = usePreferredMode();
   const standardButtonRef = useRef<HTMLButtonElement>(null);
+  const spokenRef = useRef(false);
   
   const { speak, startContinuousListening } = useVoice();
   const { useVoiceAction } = useGlobalVoice();
@@ -21,9 +22,11 @@ export default function ModeSelectionPage() {
       standardButtonRef.current.focus();
     }
     
-    // Voice activation
-    speak("Welcome to ExamSaarthi. How would you like to interact? Say Standard for keyboard and screen-reader mode, or say Voice-first for voice-controlled mode. You can also use the keyboard.");
-    startContinuousListening();
+    if (!spokenRef.current) {
+      spokenRef.current = true;
+      speak("Welcome to ExamSaarthi. How would you like to interact? Say Standard for keyboard and screen-reader mode, or say Voice-first for voice-controlled mode. You can also use the keyboard.");
+      startContinuousListening();
+    }
   }, [speak, startContinuousListening]);
 
   const handleSelectMode = (mode: InteractionMode) => {
