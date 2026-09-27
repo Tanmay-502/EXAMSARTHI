@@ -1,26 +1,24 @@
 # Runtime & Security Verification Matrix
 
-**Snapshot:** 2026-09-27
-**Canonical audit:** docs/AUDIT_RESOLUTION_2026-09-27.md
+Snapshot: 2026-09-27
 
-This file separates code-backed implementation from observations that still need to be executed manually.
-
-| Area | Current implementation | Verification state |
+| Area | Implementation | Verification state |
 |---|---|---|
-| Authentication | Supabase Magic Link + protected-route proxy | Manual end-to-end email verification required |
-| Exam session creation | Privileged server action; client INSERT policy removed in migration 00008 | Apply migration and verify in target Supabase |
-| Correct-answer protection | Client question query excludes answer key; grading uses server/admin context | Code path implemented |
-| Answer autosave | IndexedDB + incremental saveAnswer + reconnect replay | Manual network-drop test required |
-| Submission integrity | Ownership check + status = in_progress on final update | Code path implemented |
-| Practice results breakdown | Subject stats derived through answers.session_id | Code path implemented |
-| History filters | Promise-based Next.js 16 searchParams handling | Code path implemented |
-| Voice safety | Context allowlists + explicit spoken blocked-action feedback | Automated/unit coverage added; manual voice rehearsal required |
-| Telugu voice coverage | Deterministic mode + analysis phrases added | Unit coverage added |
-| Question randomisation | Candidate/exam-seeded deterministic shuffle | Code path implemented |
-| Gemini key handling | Unified getGeminiKey + provider instance with resolved key | Code path implemented |
-| PWA | Manifest + production static-asset service worker | Browser installability check required |
-| Accessibility | Semantic UI, focus/live-region support, reduced motion, WCAG 2.1 AA automated target | Manual NVDA/VoiceOver audit required |
+| Authentication | Supabase Magic Link + protected-route proxy | Real email/callback verification required |
+| Auth redirect | Same-origin next-path validation in auth confirm | Code-backed |
+| Exam creation | Server action + server-defined question roster | Code-backed; apply migrations |
+| Practice creation | Server action + exact question roster + subject/difficulty validation | Code-backed; apply migrations |
+| Correct-answer protection | question_answers isolated from client question payloads | Code-backed |
+| Answer persistence | IndexedDB + incremental server saveAnswer + reconnect replay | Network-drop test required |
+| Exam timing | Server-side answer-write deadline based on exam duration | Boundary/manual test required |
+| Submission integrity | Server grading + frozen roster + in_progress conditional update | Code-backed |
+| Results analysis | Full roster denominator including unanswered | Code-backed |
+| Voice routing | GlobalVoiceAssistant + SafeActionRegistry + deterministic parser | Full voice rehearsal required |
+| Voice auth | Spoken email normalization + read-back confirmation | Real browser microphone test required |
+| Semantic intent | Gemini fallback bounded by 5s client timeout | Code-backed; API availability test |
+| AI insights | Consent and active-exam checks before Gemini | Code-backed |
+| Security headers | X-Content-Type-Options, Referrer-Policy, X-Frame-Options, Permissions-Policy | Deployment header check |
+| PWA | Manifest + static-only service worker | Browser installability test |
+| Accessibility | Semantic UI, live announcements, focus support, reduced motion | NVDA/VoiceOver manual test |
 
-## Evidence discipline
-
-Do not label a row PASS until the target environment has produced an observed result. Build output, static inspection, automated tests, and manual browser testing are separate evidence classes.
+Do not mark manual rows PASS until the target environment produces the corresponding observation.
