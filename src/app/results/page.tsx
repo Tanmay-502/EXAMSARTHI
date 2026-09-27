@@ -67,9 +67,18 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
   const { createAdminClient } = await import('@/lib/supabase/server');
   const adminClient = await createAdminClient();
   const { data: questionsWithAnswers } = await adminClient
-    .from('questions')
-    .select('id, subject, question_answers(correct_answer_index)')
-    .eq('exam_id', session.exam_id);
+    .from('answers')
+    .select(`
+      selected_option_index,
+      questions!inner (
+        id,
+        subject,
+        question_answers (
+          correct_answer_index
+        )
+      )
+    `)
+    .eq('session_id', sessionId);
 
   // 3. Compute Subject Breakdown
   const subjectStats: Record<string, { total: number; correct: number; incorrect: number; unanswered: number }> = {};
@@ -78,29 +87,39 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
   
   if (questionsWithAnswers && userAnswers) {
     type QuestionWithAnswer = {
-      id: string;
-      subject: string;
-      question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
+      selected_option_index: number | null;
+      questions: {
+        id: string;
+        subject: string | null;
+        question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
+      }[] | {
+        id: string;
+        subject: string | null;
+        question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
+      } | null;
     };
     
-    (questionsWithAnswers as QuestionWithAnswer[]).forEach(q => {
-      const subj = q.subject || 'General';
+    (questionsWithAnswers as QuestionWithAnswer[]).forEach(answer => {
+      const question = Array.isArray(answer.questions) ? answer.questions[0] : answer.questions;
+      if (!question) return;
+
+      const subj = question.subject || 'General';
       if (!subjectStats[subj]) {
         subjectStats[subj] = { total: 0, correct: 0, incorrect: 0, unanswered: 0 };
       }
       
       subjectStats[subj].total += 1;
       
-      const userAns = userAnswers.find(a => a.question_id === q.id);
+      const userAns = userAnswers.find(a => a.question_id === question.id);
       
       if (!userAns || userAns.selected_option_index === null) {
         subjectStats[subj].unanswered += 1;
       } else {
         let correctIdx = -1;
-        if (Array.isArray(q.question_answers) && q.question_answers.length > 0) {
-          correctIdx = q.question_answers[0].correct_answer_index;
-        } else if (q.question_answers && !Array.isArray(q.question_answers)) {
-          correctIdx = q.question_answers.correct_answer_index;
+        if (Array.isArray(question.question_answers) && question.question_answers.length > 0) {
+          correctIdx = question.question_answers[0].correct_answer_index;
+        } else if (question.question_answers && !Array.isArray(question.question_answers)) {
+          correctIdx = question.question_answers.correct_answer_index;
         }
         
         if (userAns.selected_option_index === correctIdx) {
