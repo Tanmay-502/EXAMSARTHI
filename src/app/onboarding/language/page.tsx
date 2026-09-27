@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useVoice } from '@/lib/voice/VoiceProvider';
+import { usePreferredMode } from '@/lib/hooks/usePreferredMode';
 import { useI18n } from '@/lib/i18n/I18nProvider';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 
@@ -15,7 +16,8 @@ export default function LanguageSelectionPage() {
   const spokenRef = useRef(false);
   const [isSaving, setIsSaving] = useState(false);
   
-  const { speak, startContinuousListening } = useVoice();
+  const { speak, startContinuousListening, pauseListening, isContinuous } = useVoice();
+  const { mode: preferredMode, isLoaded: modeLoaded } = usePreferredMode();
   const { setLang } = useI18n();
   const { useVoiceAction } = useGlobalVoice();
 
@@ -24,12 +26,18 @@ export default function LanguageSelectionPage() {
       firstButtonRef.current.focus();
     }
     
-    if (!spokenRef.current) {
-      spokenRef.current = true;
-      speak("Choose your language. Say English, Hindi, or Telugu.");
-      startContinuousListening();
+    if (!modeLoaded || spokenRef.current) return;
+
+    spokenRef.current = true;
+    const prompt = "Choose your language. Say English, Hindi, or Telugu.";
+    speak(prompt);
+
+    if (preferredMode === 'voice-first') {
+      if (!isContinuous) startContinuousListening();
+    } else {
+      pauseListening();
     }
-  }, [speak, startContinuousListening]);
+  }, [speak, startContinuousListening, pauseListening, isContinuous, preferredMode, modeLoaded]);
 
   const handleSelectLanguage = (langCode: LanguageCode) => {
     setIsSaving(true);
@@ -39,9 +47,20 @@ export default function LanguageSelectionPage() {
 
   useVoiceAction((action, payload) => {
     if (action === 'CHANGE_LANGUAGE' && payload?.lang) {
-       // VoiceAssistant already speaks the language confirmation internally, so we just handle routing
-       handleSelectLanguage(payload.lang as LanguageCode);
-       return true;
+      const nextLanguage = payload.lang as LanguageCode;
+      setLang(nextLanguage);
+      const confirmation =
+        nextLanguage === 'hi-IN'
+          ? 'हिंदी चुनी गई। अब लॉगिन पेज पर जा रहे हैं।'
+          : nextLanguage === 'te-IN'
+            ? 'తెలుగు ఎంచుకోబడింది. ఇప్పుడు సైన్ ఇన్ పేజీకి వెళ్తున్నాము.'
+            : 'English selected. Taking you to the sign in page.';
+
+      speak(confirmation);
+      if (preferredMode !== 'voice-first') pauseListening();
+      setIsSaving(true);
+      setTimeout(() => router.push('/auth/login'), 450);
+      return true;
     }
     return false;
   });
