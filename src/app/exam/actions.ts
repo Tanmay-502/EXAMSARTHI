@@ -199,6 +199,20 @@ export async function startExamSession(examId: string) {
     .single();
 
   if (error) {
+    if (error.code === '23505') {
+      const { data: raced } = await adminClient
+        .from('exam_sessions')
+        .select('id')
+        .eq('exam_id', examId)
+        .eq('candidate_id', user.id)
+        .eq('status', 'in_progress')
+        .order('started_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (raced) return raced.id;
+    }
+
     throw new Error(`Failed to start session: ${error.message}`);
   }
 
