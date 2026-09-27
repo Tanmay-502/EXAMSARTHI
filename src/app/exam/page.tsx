@@ -216,13 +216,29 @@ function ExamSelection({
       // A new exam name while a selection is pending replaces the pending choice.
       resolveExam(raw).then((matched) => {
         if (!matched) return;
-        setSelectedExam(matched as AvailableExam);
+        const availableMatch = exams.find(exam => exam.id === matched.id);
+        if (!availableMatch) return;
+
+        setSelectedExam(availableMatch);
+
+        const wantsImmediateStart =
+          /\b(start|begin|take|attempt|give)\b/.test(normalized) &&
+          /\b(exam|test)\b/.test(normalized);
+
         speak(
-          matched.title +
-          " selected. It has " +
-          String((matched as AvailableExam).question_count || 0) +
-          " questions. Say yes to start or say change to choose another."
+          wantsImmediateStart
+            ? "Starting " + availableMatch.title + "."
+            : availableMatch.title +
+              " selected. It has " +
+              availableMatch.question_count +
+              " questions and " +
+              availableMatch.duration_minutes +
+              " minutes. Say yes to start or say change to choose another."
         );
+
+        if (wantsImmediateStart) {
+          onSelect(availableMatch.id);
+        }
       });
       lastHandledTranscriptRef.current = normalized;
       return true;
