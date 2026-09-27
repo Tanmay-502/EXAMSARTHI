@@ -29,19 +29,22 @@ export class OptionalLLMIntentProvider implements IntentProvider {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 5000);
 
-      const response = await fetch('/api/intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript, lang, context }),
-        signal: controller.signal,
-      });
+      try {
+        const response = await fetch('/api/intent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transcript, lang, context }),
+          signal: controller.signal,
+        });
 
-      clearTimeout(timeout);
-      if (response.ok) {
-        const data = await response.json();
-        if (data.intent) {
-          return { type: 'NATURAL_INTENT', intent: data.intent, payload: data.payload };
+        if (response.ok) {
+          const data = await response.json();
+          if (data.intent) {
+            return { type: 'NATURAL_INTENT', intent: data.intent, payload: data.payload };
+          }
         }
+      } finally {
+        clearTimeout(timeout);
       }
     } catch {
       console.warn("LLM intent parsing failed, falling back to unknown");
