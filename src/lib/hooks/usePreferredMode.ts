@@ -25,7 +25,11 @@ export function usePreferredMode(): {
 
   const setMode = (newMode: InteractionMode) => {
     setModeState(newMode)
-    localStorage.setItem(STORAGE_KEY, newMode)
+    try {
+      localStorage.setItem(STORAGE_KEY, newMode)
+    } catch {
+      // Preference persistence is best-effort; keep the in-memory mode.
+    }
   }
 
   return { mode, setMode, isLoaded }
