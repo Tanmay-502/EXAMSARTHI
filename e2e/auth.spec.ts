@@ -16,6 +16,14 @@ test.describe('Authentication Flow & Middleware Routing', () => {
     await expect(submitButton).toBeVisible();
   });
 
+  test('Auth entry remains a reachable visible route', async ({ page }) => {
+    await page.goto('/auth/login?from=voice');
+    await expect(page).toHaveURL(/.*\/auth\/login\?from=voice/);
+    await expect(page.getByRole('heading', { name: /Login|Sign Up/i })).toBeVisible();
+    await expect(page.getByRole('textbox', { name: /email/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Send Magic Link/i })).toBeVisible();
+  });
+
   test('Unauthenticated user is redirected to login when accessing protected routes', async ({ page }) => {
     // Try to go to dashboard
     await page.goto('/dashboard');
