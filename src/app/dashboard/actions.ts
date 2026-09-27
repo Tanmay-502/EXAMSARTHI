@@ -60,74 +60,96 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
   }));
 
   const adminClient = await createAdminClient();
-  
-  const strongSubjects: string[] = [];
-  const weakSubjects: string[] = [];
-  let focusSubject: string | null = null;
-  let focusPercentage: number | null = null;
+  const subjectStats: Record<string, { subject: string; total: number; correct: number; incorrect: number; unanswered: number; accuracy: number }> = {};
+
+  const sessionIds = completedSessions.map(session => session.id);
+  const rosterQuestionIds = [...new Set(
+    completedSessions.flatMap(session =>
+      Array.isArray(session.question_ids)
+        ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+        : []
+    )
+  )];
+
+  const legacyExamIds = [...new Set(
+    completedSessions
+      .filter(session => !Array.isArray(session.question_ids) || session.question_ids.length === 0)
+      .map(session => session.exam_id)
+      .filter((id): id is string => typeof id === 'string')
+  )];
 
   if (completedSessions.length > 0) {
-    const { data: answers, error: answersError } = await adminClient
-      .from('answers')
-      .select(`
-        id,
-        session_id,
-        selected_option_index,
-        questions!inner (
-          subject,
-          question_answers (
-            correct_answer_index
-          )
-        )
-      `)
-      .in('session_id', completedSessions.map(s => s.id));
-
-    if (!answersError && answers && answers.length > 0) {
-      const subjectStats: Record<string, { correct: number, total: number }> = {};
-      
-      answers.forEach((ans: {
-        selected_option_index: number | null;
-        questions: {
-          subject: string | null;
-          question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
-        }[] | {
-          subject: string | null;
-          question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
-        } | null;
-      }) => {
-        const qList = Array.isArray(ans.questions) ? ans.questions : (ans.questions ? [ans.questions] : []);
-        const q = qList[0];
-        const subject = q?.subject || 'General';
-        const qa = q?.question_answers;
-        const correctIndex = Array.isArray(qa) ? qa[0]?.correct_answer_index : qa?.correct_answer_index;
-        const isCorrect = ans.selected_option_index !== null && ans.selected_option_index === correctIndex;
-        
-        if (!subjectStats[subject]) {
-          subjectStats[subject] = { correct: 0, total: 0 };
+    const [{ data: answers, error: answersError }, { data: questions, error: questionsError }] = await Promise.all([
+      adminClient
+        .from('answers')
+        .select('session_id, question_id, selected_option_index')
+        .in('session_id', sessionIds),
+      (() => {
+        let query = adminClient.from('questions').select('id, exam_id, subject, question_answers(correct_answer_index)');
+        if (rosterQuestionIds.length > 0 && legacyExamIds.length === 0) return query.in('id', rosterQuestionIds);
+        if (rosterQuestionIds.length === 0 && legacyExamIds.length > 0) return query.in('exam_id', legacyExamIds);
+        if (rosterQuestionIds.length > 0 || legacyExamIds.length > 0) {
+          const filters: string[] = [];
+          if (rosterQuestionIds.length > 0) filters.push(`id.in.(${rosterQuestionIds.join(',')})`);
+          if (legacyExamIds.length > 0) filters.push(`exam_id.in.(${legacyExamIds.join(',')})`);
+          return query.or(filters.join(','));
         }
-        subjectStats[subject].total += 1;
-        if (isCorrect) subjectStats[subject].correct += 1;
-      });
+        return query;
+      })(),
+    ]);
 
-      Object.entries(subjectStats)
-        .filter(([, stats]) => stats.total >= 2)
-        .forEach(([subject, stats]) => {
-          const accuracy = (stats.correct / stats.total) * 100;
-          if (accuracy >= 70) strongSubjects.push(subject);
-          if (accuracy <= 50) weakSubjects.push(subject);
+    if (answersError) throw new Error(answersError.message);
+    if (questionsError) throw new Error(questionsError.message);
 
-          if (
-            focusPercentage === null ||
-            accuracy < focusPercentage ||
-            (accuracy === focusPercentage && subject.localeCompare(focusSubject || '') < 0)
-          ) {
-            focusSubject = subject;
-            focusPercentage = Math.round(accuracy);
-          }
-        });
+    const answerMap = new Map(
+      (answers || []).map(answer => [`${answer.session_id}:${answer.question_id}`, answer.selected_option_index])
+    );
+    const questionMap = new Map((questions || []).map(question => [question.id, question]));
+
+    for (const session of completedSessions) {
+      let ids = Array.isArray(session.question_ids)
+        ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+        : [];
+      if (ids.length === 0 && session.exam_id) {
+        ids = (questions || []).filter(question => question.exam_id === session.exam_id).map(question => question.id);
+      }
+
+      for (const questionId of ids) {
+        const question = questionMap.get(questionId);
+        if (!question) continue;
+
+        const subject = question.subject || 'General';
+        const current = subjectStats[subject] || { subject, total: 0, correct: 0, incorrect: 0, unanswered: 0, accuracy: 0 };
+        const answer = answerMap.get(`${session.id}:${questionId}`) ?? null;
+        const qa = question.question_answers;
+        const correctIndex = Array.isArray(qa) ? qa[0]?.correct_answer_index : qa?.correct_answer_index;
+
+        current.total += 1;
+        if (answer === null || answer === undefined) current.unanswered += 1;
+        else if (answer === correctIndex) current.correct += 1;
+        else current.incorrect += 1;
+
+        current.accuracy = Math.round((current.correct / current.total) * 100);
+        subjectStats[subject] = current;
+      }
+    }
+
+    Object.values(subjectStats).forEach(stats => {
+      if (stats.total >= 2) {
+        if (stats.accuracy >= 70) strongSubjects.push(stats.subject);
+        if (stats.accuracy <= 50) weakSubjects.push(stats.subject);
+      }
+    });
+
+    for (const stats of Object.values(subjectStats)) {
+      if (stats.total === 0) continue;
+      if (focusPercentage === null || stats.accuracy < focusPercentage ||
+          (stats.accuracy === focusPercentage && stats.subject.localeCompare(focusSubject || '') < 0)) {
+        focusSubject = stats.subject;
+        focusPercentage = stats.accuracy;
+      }
     }
   }
-
   return {
     totalExams,
     totalPractice,
