@@ -24,9 +24,9 @@ export default function AnalysisPageContent({ data }: { data: AnalyticsData }) {
           className="mb-24 flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-zinc-900 pb-12"
         >
           <div>
-            <p className="text-zinc-500 tracking-[0.2em] text-xs uppercase mb-6">PERFORMANCE</p>
+            <p className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-6">PERFORMANCE</p>
             <h1 className="text-[clamp(3rem,6vw,7rem)] leading-[0.9] font-light tracking-tighter mb-6 text-zinc-100" tabIndex={-1}>Analysis.</h1>
-            <p className="text-2xl md:text-3xl font-light text-zinc-500">Detailed insights across all your practice and exam sessions.</p>
+            <p className="text-2xl md:text-3xl font-light text-zinc-400">Detailed insights across all your practice and exam sessions.</p>
           </div>
           <VoiceCore size="sm" />
         </motion.div>
@@ -39,31 +39,31 @@ export default function AnalysisPageContent({ data }: { data: AnalyticsData }) {
           className="grid gap-12 lg:grid-cols-3 mb-24"
         >
           <div className="border-t border-zinc-900 pt-8">
-            <h3 className="text-zinc-500 tracking-[0.2em] text-xs uppercase mb-6">Overall Accuracy</h3>
+            <h3 className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-6">Overall Accuracy</h3>
             <div className="text-6xl md:text-7xl font-light tracking-tighter">{data.overall.avgPercentage}%</div>
-            <p className="text-sm text-zinc-500 mt-3">Across {data.overall.totalSessions} sessions</p>
+            <p className="text-sm text-zinc-400 mt-3">Across {data.overall.totalSessions} sessions</p>
           </div>
 
           <div className="border-t border-zinc-900 pt-8">
-            <h3 className="text-zinc-500 tracking-[0.2em] text-xs uppercase mb-6">Improvement Trend</h3>
+            <h3 className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-6">Improvement Trend</h3>
             <div className="flex items-center gap-2">
               {data.overall.improvementTrend === 'improving' && <TrendingUp className="text-green-500 w-8 h-8" />}
               {data.overall.improvementTrend === 'declining' && <TrendingDown className="text-red-500 w-8 h-8" />}
-              {data.overall.improvementTrend === 'stable' && <Minus className="text-zinc-500 w-8 h-8" />}
-              {data.overall.improvementTrend === 'insufficient_data' && <Minus className="text-zinc-500 w-8 h-8" />}
+              {data.overall.improvementTrend === 'stable' && <Minus className="text-zinc-400 w-8 h-8" />}
+              {data.overall.improvementTrend === 'insufficient_data' && <Minus className="text-zinc-400 w-8 h-8" />}
               <div className="text-3xl font-light capitalize">
                 {data.overall.improvementTrend.replace('_', ' ')}
               </div>
             </div>
             {data.overall.improvementTrend === 'insufficient_data' && (
-              <p className="text-sm text-zinc-500 mt-3">Take more exams to see trends</p>
+              <p className="text-sm text-zinc-400 mt-3">Take more exams to see trends</p>
             )}
           </div>
 
           <div className="border-t border-zinc-900 pt-8">
-            <h3 className="text-zinc-500 tracking-[0.2em] text-xs uppercase mb-6">Avg Time per Session</h3>
+            <h3 className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-6">Avg Time per Session</h3>
             <div className="flex items-center gap-2">
-              <Clock className="text-zinc-500 w-8 h-8" />
+              <Clock className="text-zinc-400 w-8 h-8" />
               <div className="text-4xl font-light tracking-tighter">{formatDuration(data.timeEfficiency.avgDurationSeconds)}</div>
             </div>
           </div>
@@ -77,7 +77,7 @@ export default function AnalysisPageContent({ data }: { data: AnalyticsData }) {
         >
           <div className="border-t border-zinc-900 pt-8">
             <h2 className="text-4xl md:text-5xl font-light tracking-tighter mb-4">Strong Areas</h2>
-            <p className="text-zinc-500 text-lg font-light mb-8">Subjects where you score above 70%</p>
+            <p className="text-zinc-400 text-lg font-light mb-8">Subjects where you score above 70%</p>
             {data.strongSubjects.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {data.strongSubjects.map(subject => (
@@ -88,13 +88,13 @@ export default function AnalysisPageContent({ data }: { data: AnalyticsData }) {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-zinc-500">No strong subjects identified yet.</p>
+              <p className="text-sm text-zinc-400">No strong subjects identified yet.</p>
             )}
           </div>
 
           <div className="border-t border-zinc-900 pt-8">
             <h2 className="text-4xl md:text-5xl font-light tracking-tighter mb-4">Areas for Improvement</h2>
-            <p className="text-zinc-500 text-lg font-light mb-8">Subjects where you score below 50%</p>
+            <p className="text-zinc-400 text-lg font-light mb-8">Subjects where you score below 50%</p>
             {data.weakSubjects.length > 0 ? (
               <div className="space-y-4">
                 <div className="flex flex-wrap gap-2">
@@ -113,7 +113,7 @@ export default function AnalysisPageContent({ data }: { data: AnalyticsData }) {
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-zinc-500">No weak subjects identified yet. Keep it up!</p>
+              <p className="text-sm text-zinc-400">No weak subjects identified yet. Keep it up!</p>
             )}
           </div>
         </motion.div>
@@ -125,14 +125,14 @@ export default function AnalysisPageContent({ data }: { data: AnalyticsData }) {
           className="border-t border-zinc-900 pt-8"
         >
           <h2 className="text-4xl md:text-5xl font-light tracking-tighter mb-4">Subject-wise Breakdown</h2>
-          <p className="text-zinc-500 text-lg font-light mb-12">Detailed accuracy across all subjects</p>
+          <p className="text-zinc-400 text-lg font-light mb-12">Detailed accuracy across all subjects</p>
           {data.subjectAccuracy.length > 0 ? (
             <div className="space-y-10">
               {data.subjectAccuracy.map(stat => (
                 <div key={stat.subject} className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="font-light text-2xl">{stat.subject}</span>
-                    <span className="text-zinc-500">{stat.accuracy}% ({stat.correct}/{stat.total} correct)</span>
+                    <span className="text-zinc-400">{stat.accuracy}% ({stat.correct}/{stat.total} correct)</span>
                   </div>
                   <div className="h-2 w-full bg-zinc-900 rounded-full overflow-hidden" role="progressbar" aria-valuenow={stat.accuracy} aria-valuemin={0} aria-valuemax={100} aria-label={`Accuracy for ${stat.subject}`}>
                     <div 
@@ -143,13 +143,13 @@ export default function AnalysisPageContent({ data }: { data: AnalyticsData }) {
                   <div className="flex gap-4 text-xs font-medium">
                     <span className="text-green-500">{stat.correct} Correct</span>
                     <span className="text-red-500">{stat.incorrect} Incorrect</span>
-                    <span className="text-zinc-500">{stat.unanswered} Unanswered</span>
+                    <span className="text-zinc-400">{stat.unanswered} Unanswered</span>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-zinc-500 text-center py-8">Not enough data to show subject breakdown.</p>
+            <p className="text-sm text-zinc-400 text-center py-8">Not enough data to show subject breakdown.</p>
           )}
         </motion.div>
 
