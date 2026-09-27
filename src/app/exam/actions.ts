@@ -170,7 +170,7 @@ export async function startExamSession(examId: string) {
   return data.id
 }
 
-export async function startPracticeSession() {
+export async function startPracticeSession(questionIds: string[] = []) {
   const supabase = await createClient()
   const adminClient = await createAdminClient()
   
@@ -179,15 +179,30 @@ export async function startPracticeSession() {
     throw new Error('Unauthorized')
   }
 
+  if (!Array.isArray(questionIds) || questionIds.length === 0) {
+    throw new Error('Practice session requires a question roster')
+  }
+
+  const uniqueQuestionIds = [...new Set(questionIds)].slice(0, 100)
   await ensureCandidateProfile(supabase, user)
+
+  const { data: rosterQuestions, error: rosterError } = await adminClient
+    .from('questions')
+    .select('id')
+    .in('id', uniqueQuestionIds)
+
+  if (rosterError || !rosterQuestions || rosterQuestions.length !== uniqueQuestionIds.length) {
+    throw new Error('Practice question roster is invalid')
+  }
 
   const { data, error } = await adminClient
     .from('exam_sessions')
     .insert({
-      exam_id: null, // No specific exam for practice
+      exam_id: null,
       candidate_id: user.id,
       status: 'in_progress',
       is_practice: true,
+      question_ids: uniqueQuestionIds,
     })
     .select('id')
     .single()
@@ -200,7 +215,7 @@ export async function startPracticeSession() {
     session_id: data.id,
     candidate_id: user.id,
     action: 'started_exam',
-    metadata: { is_practice: true }
+    metadata: { is_practice: true, question_count: uniqueQuestionIds.length }
   })
 
   return data.id
@@ -214,25 +229,42 @@ export async function fetchPracticeQuestions(subject: string, difficulty: string
     throw new Error('Unauthorized')
   }
 
-  let query = supabase
-    .from('questions')
-    .select('id, exam_id, order_index, content_text, options, content_translations, options_translations, subject, difficulty, image_url, image_alt_text')
-    
-  if (subject) {
-    query = query.ilike('subject', `%${subject}%`)
-  }
-  if (difficulty) {
-    query = query.eq('difficulty', difficulty)
+  const normalizedSubject = subject.trim()
+  const normalizedDifficulty = difficulty.trim().toLowerCase()
+  const normalizedCount = Number.isInteger(count) ? count : Number.parseInt(String(count), 10)
+
+  if (!normalizedSubject || normalizedSubject.length > 100) {
+    throw new Error('Invalid practice subject')
   }
 
-  const { data: questions, error } = await query.limit(count)
+  if (!['easy', 'medium', 'hard'].includes(normalizedDifficulty)) {
+    throw new Error('Invalid practice difficulty')
+  }
+
+  if (!Number.isInteger(normalizedCount) || normalizedCount < 1 || normalizedCount > 100) {
+    throw new Error('Invalid practice question count')
+  }
+
+  const { data: questions, error } = await supabase
+    .from('questions')
+    .select('id, exam_id, order_index, content_text, options, content_translations, options_translations, subject, difficulty, image_url, image_alt_text')
+    .eq('subject', normalizedSubject)
+    .eq('difficulty', normalizedDifficulty)
+    .order('order_index', { ascending: true })
+    .limit(normalizedCount)
 
   if (error) {
     throw new Error(`Failed to fetch practice questions: ${error.message}`)
   }
 
+  const shuffledQuestions = [...questions]
+  for (let i = shuffledQuestions.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffledQuestions[i], shuffledQuestions[j]] = [shuffledQuestions[j], shuffledQuestions[i]]
+  }
+
   return {
-    questions: questions.map((qRaw: Record<string, unknown>, i: number) => {
+    questions: shuffledQuestions.map((qRaw: Record<string, unknown>, i: number) => {
       const q = qRaw as {
         id: string;
         content_text: string;
