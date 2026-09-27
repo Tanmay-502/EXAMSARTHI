@@ -74,6 +74,8 @@ export async function fetchAnalyticsData(): Promise<AnalyticsData> {
   }
 
   const subjectStatsMap: Record<string, SubjectStats> = {};
+  const strongSubjects: string[] = [];
+  const weakSubjects: string[] = [];
   const adminClient = totalSessions > 0 ? await createAdminClient() : null;
 
   if (adminClient && totalSessions > 0) {
