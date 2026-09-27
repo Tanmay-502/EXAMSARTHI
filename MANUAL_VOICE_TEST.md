@@ -1,59 +1,58 @@
-# Voice Testing Protocol — ExamSaarthi V2
+# Final Voice Verification Protocol — ExamSaarthi V2
 
-All voice tests below must be run in a real browser with a real microphone. Record browser, OS, date, and observed result.
+Snapshot: 2026-09-27
+
+Run with a real microphone in a supported browser. Record browser, OS, date, and observed result.
 
 ## Public flow
-1. Open `/`.
-2. Verify the welcome is spoken and voice listening starts.
-3. Say `voice first`.
-4. Say `English`.
-5. Verify the visible Login / Sign Up screen opens.
-6. Say `I want to sign in`.
-7. Say an email such as `tanmay at gmail dot com`.
-8. Verify the app reads the normalized email back.
-9. Say `yes` and verify the existing Magic Link form is submitted.
+Landing → Voice-first → Language → Login / Create Account → Dashboard.
+
+Verify:
+- welcome and mode prompts are spoken once;
+- selected language updates UI, speech recognition, and TTS;
+- login/signup is a visible step even when the browser already has a session;
+- voice email capture reads the normalized address back before sending.
 
 ## Exam selection
-1. After authentication, say `I want to give exam`.
-2. Verify the app lists only database-backed exams with available questions.
-3. Say the full exam name, including titles containing `&`.
-4. Verify the exact database exam is selected.
-5. Say `yes` or `start` and verify the device check begins.
+- Say `I want to give exam`.
+- Say `list exams`.
+- Say an exact exam title including titles containing `&`.
+- Say `first exam` or `second exam`.
+- Say `yes` to confirm.
 
 ## Practice
-1. Say `I want to practice`.
-2. Say a real subject.
-3. Say a count such as `10` or `twenty`.
-4. Say `easy`, `medium`, or `hard`.
-5. Verify the server creates the session with the exact question roster shown.
+- Say `I want to practice`.
+- Give a database-backed subject.
+- Give a count such as `10` or `twenty`.
+- Give `easy`, `medium`, or `hard`.
+- Verify a server session is created only after the question set is loaded.
 
-## Active session
-1. Say `option B`; verify the candidate gets a confirmation prompt.
-2. Say `confirm`; verify the answer is persisted.
-3. Say `next`, `back`, `time left`, `mark for review`, and `repeat`.
-4. Try `go to dashboard`, `history`, `analysis`, `settings`, and `logout` during the active exam.
-5. Verify these navigation actions are blocked with an explicit spoken boundary.
-6. Ask the assistant to solve the active question and verify it refuses.
+## Active exam
+- Verify question and options are spoken.
+- `option A/B/C/D` → confirmation → `confirm`.
+- `next`, `back`, `repeat`, `time left`, `mark for review`, `review unanswered`, `review marked`, `jump to question 5`.
+- Try dashboard/history/settings/analysis/practice/logout. Verify explicit safety response and no navigation.
+- Ask the assistant to solve the live question. Verify refusal.
 
-## Submission
-1. Say `submit`.
-2. Verify unanswered/marked counts are announced.
-3. Say `no`; verify the exam remains active.
-4. Say `submit`, then `yes`.
-5. Verify only a successful server response transitions the session to submitted and opens results.
-6. Simulate a submission failure and verify the app remains in a retryable state rather than falsely showing results.
+## Submission and persistence
+- Submit and confirm.
+- Verify results only appear after successful server submission.
+- Disconnect the network briefly and reconnect.
+- Verify local state remains available and pending answers can be replayed.
+- Verify server rejects answer writes after the exam time window.
 
-## Results, analysis, history
-1. Say `read results` or `repeat`.
-2. Say `give me my analysis`.
-3. Say `I want to practice` from analysis; verify `/practice` opens.
-4. Open history and test `practice history`, `exam history`, and `all history`.
+## Results / analysis / history
+- `read results`, `repeat`.
+- `give me my analysis`.
+- `I want to practice my weakest subject`.
+- `practice history`, `exam history`, `all history`.
 
-## Languages
-Repeat the key flow in Hindi and Telugu. Changing the spoken language should only change application language when the candidate explicitly requests a language change.
-
-## Final manual gates
+## Accessibility
+- Keyboard-only walkthrough.
 - NVDA or VoiceOver walkthrough.
-- Network drop/reconnect during a live session.
-- Real Magic Link delivery and callback.
-- PWA installability and update behavior.
+- Verify headings, focus order, labels, live announcements, contrast, reduced motion, and no audio clashing.
+
+## PWA
+- Verify manifest and installability on production.
+- Verify static asset caching.
+- Verify authenticated pages and API routes are not cached.
