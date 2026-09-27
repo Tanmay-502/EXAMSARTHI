@@ -20,7 +20,7 @@ type VoiceContextType = {
   stopListening: () => void;
   startContinuousListening: (onResult?: (text: string) => void) => void;
   pauseListening: () => void;
-  setOnResult: (onResult: (text: string) => void) => void;
+  setOnResult: (onResult: (text: string) => void | Promise<void>) => void;
   isListening: boolean;
   isContinuous: boolean;
   micError: string | null;
@@ -45,7 +45,8 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const voiceStateRef = useRef<VoiceState>('IDLE');
   const utteranceQueueRef = useRef<string[]>([]);
   const speechSessionIdRef = useRef<number>(0);
-  const onResultRef = useRef<((text: string) => void) | null>(null);
+  const onResultRef = useRef<((text: string) => void | Promise<void>) | null>(null);
+  const processingRef = useRef(false);
   const micErrorRef = useRef<string | null>(null);
   const restartTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSpokenRef = useRef<{ text: string; at: number }>({ text: '', at: 0 });
@@ -254,6 +255,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
         restartTimeoutRef.current = null;
       }
       updateVoiceState('PROCESSING');
+      processingRef.current = true;
       
       setTranscript(prev => [...prev, {
         id: Math.random().toString(36).substring(7),
@@ -262,7 +264,35 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
         timestamp: new Date()
       }]);
       
-      if (onResultRef.current) onResultRef.current(resultTranscript);
+      const callback = onResultRef.current;
+      if (callback) {
+        Promise.resolve(callback(resultTranscript))
+          .catch((error) => console.error('Voice command processing failed:', error))
+          .finally(() => {
+            processingRef.current = false;
+
+            if (
+              isContinuousRef.current &&
+              voiceStateRef.current === 'PROCESSING' &&
+              micErrorRef.current !== 'denied' &&
+              micErrorRef.current !== 'not-supported'
+            ) {
+              updateVoiceState('IDLE');
+              if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+              restartTimeoutRef.current = setTimeout(() => {
+                if (
+                  isContinuousRef.current &&
+                  !processingRef.current &&
+                  voiceStateRef.current !== 'SPEAKING'
+                ) {
+                  try { recognition.start(); } catch { /* ignore already-started race */ }
+                }
+              }, 250);
+            }
+          });
+      } else {
+        processingRef.current = false;
+      }
     };
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -301,20 +331,25 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
         updateVoiceState('IDLE');
       }
       
-      // Safely restart if continuous mode is active, not speaking, and no fatal error
-      if (isContinuousRef.current && voiceStateRef.current !== 'SPEAKING' && micErrorRef.current !== 'denied' && micErrorRef.current !== 'not-supported') {
-        // Add delay with backoff
+      // Do not start another recognition cycle while a previous transcript
+      // is still being parsed or dispatched by the global assistant.
+      if (
+        !processingRef.current &&
+        isContinuousRef.current &&
+        voiceStateRef.current !== 'SPEAKING' &&
+        micErrorRef.current !== 'denied' &&
+        micErrorRef.current !== 'not-supported'
+      ) {
         if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
         restartTimeoutRef.current = setTimeout(() => {
           if (
             isContinuousRef.current &&
-            voiceStateRef.current === 'IDLE' &&
-            micErrorRef.current !== 'denied' &&
-            micErrorRef.current !== 'not-supported'
+            !processingRef.current &&
+            voiceStateRef.current !== 'SPEAKING'
           ) {
             try { recognition.start(); } catch { /* ignore */ }
           }
-        }, 500); // 500ms delay to prevent tight loop
+        }, 350);
       }
     };
     
@@ -352,12 +387,13 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     startListening();
   }, [startListening]);
 
-  const setOnResult = useCallback((onResult: (text: string) => void) => {
+  const setOnResult = useCallback((onResult: (text: string) => void | Promise<void>) => {
     onResultRef.current = onResult;
   }, []);
 
   const pauseListening = useCallback(() => {
     isContinuousRef.current = false;
+    processingRef.current = false;
     setIsContinuous(false);
     onResultRef.current = null;
     stopListening();
