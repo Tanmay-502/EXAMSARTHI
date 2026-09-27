@@ -389,6 +389,7 @@ function ExamSelection({
 
 function ExamPageContent() {
   const initializeExam = useExamStore(state => state.initializeExam);
+  const hasHydrated = useExamStore(state => state.hasHydrated);
   const { lang } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -440,7 +441,7 @@ function ExamPageContent() {
 
   // Only create the server session after the device check is complete.
   useEffect(() => {
-    if (!examId || !examMeta || !deviceCheckComplete || !preferenceLoaded || examStarted) {
+    if (!hasHydrated || !examId || !examMeta || !deviceCheckComplete || !preferenceLoaded || examStarted) {
       return;
     }
 
@@ -470,7 +471,11 @@ function ExamPageContent() {
     }
 
     startSelectedExam();
-  }, [examId, examMeta, deviceCheckComplete, preferenceLoaded, examStarted, initializeExam, lang, router]);
+  }, [hasHydrated, examId, examMeta, deviceCheckComplete, preferenceLoaded, examStarted, initializeExam, lang, router]);
+
+  if (!hasHydrated) {
+    return <div className="flex flex-col items-center justify-center min-h-screen flex-1 p-6 text-xl">Preparing exam state...</div>;
+  }
 
   if (!examId) {
     return <ExamSelection onSelect={(id) => {
