@@ -135,7 +135,6 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
       weakestSubject = subject;
     }
   });
-  const isPassing = (percentage || 0) >= 50;
 
   return (
     <>
@@ -157,7 +156,6 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
         percentage={percentage || 0}
         subjectStats={subjectStats}
         weakestSubject={weakestSubject}
-        isPassing={isPassing}
       />
     </>
   );
