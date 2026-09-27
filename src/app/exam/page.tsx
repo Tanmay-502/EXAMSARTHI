@@ -57,13 +57,14 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
     
     let msg = '';
     if (micStatus === 'success' && browserStatus === 'success') {
-      msg = 'Microphone and speech services are ready. You can start the exam.';
+      msg = 'Microphone and speech services are ready. You can start the exam by saying start exam, or use the button.';
+    } else if (browserStatus === 'error') {
+      msg = 'This browser does not provide speech recognition. Voice mode cannot be used here. You can continue with keyboard and screen reader mode.';
     } else {
-      msg = 'Microphone or speech services are not available. You can still take the exam using standard mode.';
-      setInteractionMode('standard');
+      msg = 'Microphone access is unavailable. Your voice-first preference is still kept. Allow microphone access and choose Retry, or continue with keyboard and screen reader mode.';
     }
     announce(msg, 'assertive');
-    if (interactionMode === 'voice-first') speak(msg);
+    speak(msg);
   }, [micStatus, browserStatus, announce, speak, interactionMode, setInteractionMode]);
 
   const allClear = micStatus === 'success' && browserStatus === 'success';
@@ -100,7 +101,26 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
            </div>
         )}
 
-        <div className="pt-16 border-t border-zinc-900 flex justify-end">
+        <div className="pt-16 border-t border-zinc-900 flex flex-wrap justify-end gap-4">
+          {!(micStatus === 'success' && browserStatus === 'success') && (
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              disabled={micStatus === 'pending' || browserStatus === 'pending'}
+              className="px-8 py-4 rounded-full border border-zinc-800 text-zinc-300 hover:border-zinc-500 hover:text-white disabled:opacity-50 transition-colors uppercase tracking-widest text-sm font-bold"
+            >
+              Retry Voice Check
+            </button>
+          )}
+          {!(micStatus === 'success' && browserStatus === 'success') && (
+            <button
+              type="button"
+              onClick={() => setInteractionMode('standard')}
+              className="px-8 py-4 rounded-full border border-zinc-800 text-zinc-300 hover:border-zinc-500 hover:text-white transition-colors uppercase tracking-widest text-sm font-bold"
+            >
+              Continue with Keyboard
+            </button>
+          )}
           <button
             onClick={onComplete}
             disabled={micStatus === 'pending' || browserStatus === 'pending'}
