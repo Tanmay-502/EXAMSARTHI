@@ -14,7 +14,7 @@ export async function POST() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Security check: Refuse if there is an active exam
+    // Security check: Refuse if there is an active exam.
     const { data: activeSessions } = await supabase
       .from('exam_sessions')
       .select('id')
@@ -24,6 +24,16 @@ export async function POST() {
 
     if (activeSessions && activeSessions.length > 0) {
       return NextResponse.json({ error: 'Insights disabled during an active exam.' }, { status: 403 });
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('learning_profile_consent')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile?.learning_profile_consent) {
+      return NextResponse.json({ error: 'Consent not granted' }, { status: 403 });
     }
 
     const apiKey = getGeminiKey();
