@@ -14,7 +14,6 @@ type SubjectStat = {
 };
 
 type ResultsPageContentProps = {
-  score: number;
   total_questions: number;
   attempted_questions: number;
   correct_questions: number;
@@ -27,7 +26,6 @@ type ResultsPageContentProps = {
 };
 
 export default function ResultsPageContent({
-  score,
   total_questions,
   attempted_questions,
   correct_questions,
