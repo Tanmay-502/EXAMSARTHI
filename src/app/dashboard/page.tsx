@@ -161,7 +161,11 @@ function DashboardContent() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="lg:col-span-8 flex flex-col space-y-12"
         >
-          <div className="group border-t border-zinc-900 pt-12 pb-12 cursor-pointer transition-colors hover:border-zinc-700" onClick={() => router.push('/practice')}>
+          <Link
+            href={stats?.focusSubject ? `/practice?subject=${encodeURIComponent(stats.focusSubject)}` : '/practice'}
+            className="group block border-t border-zinc-900 pt-12 pb-12 transition-colors hover:border-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-4 focus-visible:ring-offset-black"
+            aria-label={stats?.focusSubject ? `Continue practicing ${stats.focusSubject}` : 'Choose a subject to practice'}
+          >
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
               <div>
                 <p className="text-zinc-500 tracking-[0.2em] text-sm uppercase mb-4">CURRENT FOCUS</p>
@@ -184,7 +188,7 @@ function DashboardContent() {
             <div className="flex items-center text-sm tracking-wide font-medium text-white transition-transform group-hover:translate-x-2">
               Continue preparation ↗
             </div>
-          </div>
+          </Link>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 border-t border-zinc-900 pt-12">
             <div>
