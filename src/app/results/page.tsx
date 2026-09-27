@@ -3,6 +3,12 @@ import { redirect } from 'next/navigation';
 import { ResultsAnnouncer } from '@/components/exam/ResultsAnnouncer';
 import ResultsPageContent from './ResultsPageContent';
 
+type ServerResultQuestion = {
+  id: string;
+  subject: string | null;
+  question_answers: { correct_answer_index: number } | { correct_answer_index: number }[] | null;
+};
+
 export default async function ResultsPage({ searchParams }: { searchParams: Promise<{ session_id?: string }> }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -97,6 +103,8 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
       .eq('session_id', sessionId),
   ]);
 
+  const typedSessionQuestions = (sessionQuestions || []) as ServerResultQuestion[];
+
   const answerByQuestion = new Map(
     (sessionAnswers || []).map(answer => [answer.question_id, answer.selected_option_index])
   );
@@ -105,7 +113,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
   let weakestSubject = '';
   let weakestSubjectPerc = Number.POSITIVE_INFINITY;
 
-  for (const question of sessionQuestions || []) {
+  for (const question of typedSessionQuestions) {
     const subject = question.subject || 'General';
     const answer = answerByQuestion.get(question.id) ?? null;
     const questionAnswers = question.question_answers;
