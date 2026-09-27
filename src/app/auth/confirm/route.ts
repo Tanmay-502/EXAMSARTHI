@@ -7,12 +7,17 @@ export async function GET(request: Request) {
   const token_hash = searchParams.get('token_hash')
   const type = searchParams.get('type') as EmailOtpType | null
   const requestedNext = searchParams.get('next')
-  const next =
-    requestedNext &&
-    requestedNext.startsWith('/') &&
-    !requestedNext.startsWith('//')
-      ? requestedNext
-      : '/dashboard'
+  let next = '/dashboard'
+  if (requestedNext) {
+    try {
+      const candidate = new URL(requestedNext, origin)
+      if (candidate.origin === origin) {
+        next = `${candidate.pathname}${candidate.search}${candidate.hash}`
+      }
+    } catch {
+      // Keep the safe default when the redirect target is malformed.
+    }
+  }
 
   if (token_hash && type) {
     const supabase = await createClient()
