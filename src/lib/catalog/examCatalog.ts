@@ -7,12 +7,6 @@ export interface ExamRecord {
   title: string;
 }
 
-export const SUPPORTED_EXAMS: ExamRecord[] = [
-  {
-    id: 'e2f9d6c3-1b8a-4c5e-8d2a-1b4e9f3c7a8b',
-    title: 'General Knowledge & Reasoning Demo'
-  }
-];
 
 export const SUPPORTED_SUBJECTS: SupportedSubject[] = [
   'Geography',
