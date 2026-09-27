@@ -129,9 +129,10 @@ function PracticeContent() {
   ]);
 
   useEffect(() => {
-    if (setupState === 'FETCHING') {
-      const qCount = parseInt(count, 10) || 5;
-      setSetupError('');
+    if (!hasHydrated || setupState !== 'FETCHING') return;
+
+    const qCount = parseInt(count, 10) || 5;
+    setSetupError('');
       fetchPracticeQuestions(subject, difficulty, qCount, lang)
         .then(res => {
           setFetchedQuestions(res.questions);
@@ -156,11 +157,10 @@ function PracticeContent() {
           setSetupState('ERROR');
           speak("I couldn't load those practice questions. I can retry or you can choose another subject.");
         });
-    }
-  }, [setupState, subject, count, difficulty, lang, speak]);
+  }, [hasHydrated, setupState, subject, count, difficulty, lang, speak]);
 
   useEffect(() => {
-    if (setupState === 'STARTING') {
+    if (!hasHydrated || setupState !== 'STARTING') return;
       const actualCount = fetchedQuestions.length;
       const confirmMsg = lang === 'hi-IN' 
         ? `${actualCount} प्रश्नों का ${difficulty} स्तर का ${subject} अभ्यास शुरू हो रहा है।` 
@@ -181,7 +181,7 @@ function PracticeContent() {
         speak("I couldn't start that practice session. You can retry.");
       });
     }
-  }, [setupState, fetchedQuestions, subject, difficulty, lang, initializeExam, speak]);
+  }, [hasHydrated, setupState, fetchedQuestions, subject, difficulty, lang, initializeExam, speak]);
 
   useEffect(() => {
     if (setupState === 'CONFIRM_SHORTFALL' && !confirmedShortfall) {
