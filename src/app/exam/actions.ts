@@ -307,6 +307,10 @@ export async function fetchPracticeQuestions(subject: string, difficulty: string
 
   const availableCount = countQuery.count || 0
   const fetchCount = Math.min(normalizedCount, availableCount)
+  if (fetchCount === 0) {
+    return { questions: [], totalFound: availableCount }
+  }
+
   const maxOffset = Math.max(0, availableCount - fetchCount)
   const offset = maxOffset > 0 ? Math.floor(Math.random() * (maxOffset + 1)) : 0
 
