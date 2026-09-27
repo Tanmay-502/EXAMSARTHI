@@ -13,13 +13,21 @@ import { motion } from 'framer-motion';
 
 export default function SettingsPage() {
   const { lang, setLang, t } = useI18n();
-  const { announce } = useAccessibility();
+  const {
+    announce,
+    speechRate,
+    voiceURI,
+    highContrast,
+    fontScale,
+    updateAccessibilityPreferences,
+  } = useAccessibility();
   const { speak } = useVoice();
   const router = useRouter();
   
   const headingRef = useRef<HTMLHeadingElement>(null);
   const [consent, setConsent] = useState<boolean>(false);
   const [loadingConsent, setLoadingConsent] = useState<boolean>(true);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
   useEffect(() => {
     headingRef.current?.focus();
@@ -43,7 +51,23 @@ export default function SettingsPage() {
       }
     };
     fetchConsent();
-  }, [announce, speak]);
+  }, [announce]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+
+    const updateVoices = () => {
+      setVoices(window.speechSynthesis.getVoices());
+    };
+
+    const timer = window.setTimeout(updateVoices, 0);
+    window.speechSynthesis.addEventListener('voiceschanged', updateVoices);
+
+    return () => {
+      window.clearTimeout(timer);
+      window.speechSynthesis.removeEventListener('voiceschanged', updateVoices);
+    };
+  }, []);
 
   const handleLanguageChange = (newLang: Lang) => {
     setLang(newLang);
@@ -123,6 +147,98 @@ export default function SettingsPage() {
               తెలుగు
             </button>
           </div>
+          </div>
+
+          <div className="space-y-10 border-t border-zinc-900 pt-10">
+            <h2 className="text-2xl md:text-3xl font-light tracking-tight">Voice & Display</h2>
+
+            <div className="grid gap-8 md:grid-cols-2">
+              <div className="space-y-4">
+                <label htmlFor="speech-rate" className="block text-sm uppercase tracking-[0.2em] font-bold text-zinc-400">
+                  Speech rate
+                </label>
+                <select
+                  id="speech-rate"
+                  value={speechRate}
+                  onChange={(event) => {
+                    const nextRate = Number(event.target.value);
+                    updateAccessibilityPreferences({ speechRate: nextRate });
+                    announce(`Speech rate set to ${nextRate} times.`);
+                  }}
+                  className="h-14 w-full rounded-xl border border-zinc-800 bg-black px-4 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                >
+                  <option value="0.75">0.75×</option>
+                  <option value="0.9">0.9×</option>
+                  <option value="1">1×</option>
+                  <option value="1.1">1.1×</option>
+                  <option value="1.25">1.25×</option>
+                  <option value="1.5">1.5×</option>
+                </select>
+              </div>
+
+              <div className="space-y-4">
+                <label htmlFor="voice-selection" className="block text-sm uppercase tracking-[0.2em] font-bold text-zinc-400">
+                  Voice selection
+                </label>
+                <select
+                  id="voice-selection"
+                  value={voiceURI}
+                  onChange={(event) => {
+                    updateAccessibilityPreferences({ voiceURI: event.target.value });
+                    announce(event.target.value ? 'Selected voice updated.' : 'Browser default voice selected.');
+                  }}
+                  className="h-14 w-full rounded-xl border border-zinc-800 bg-black px-4 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                >
+                  <option value="">Browser default voice</option>
+                  {voices.map((voice) => (
+                    <option key={voice.voiceURI} value={voice.voiceURI}>
+                      {voice.name} ({voice.lang})
+                    </option>
+                  ))}
+                </select>
+                <p className="text-sm text-zinc-400">
+                  The available voices come from your current browser and operating system.
+                </p>
+              </div>
+
+              <label className="flex items-center justify-between gap-6 rounded-2xl border border-zinc-900 bg-black p-5">
+                <span>
+                  <span className="block text-lg font-light text-white">High contrast</span>
+                  <span className="block mt-1 text-sm text-zinc-400">Increase text, border, and control contrast.</span>
+                </span>
+                <input
+                  type="checkbox"
+                  checked={highContrast}
+                  onChange={(event) => {
+                    updateAccessibilityPreferences({ highContrast: event.target.checked });
+                    announce(event.target.checked ? 'High contrast enabled.' : 'High contrast disabled.');
+                  }}
+                  className="h-5 w-5 rounded border-zinc-700 bg-black text-white focus:ring-white"
+                  aria-label="High contrast"
+                />
+              </label>
+
+              <div className="space-y-4">
+                <label htmlFor="font-scale" className="block text-sm uppercase tracking-[0.2em] font-bold text-zinc-400">
+                  Font scaling
+                </label>
+                <select
+                  id="font-scale"
+                  value={fontScale}
+                  onChange={(event) => {
+                    const nextScale = Number(event.target.value);
+                    updateAccessibilityPreferences({ fontScale: nextScale });
+                    announce(`Font scaling set to ${Math.round(nextScale * 100)} percent.`);
+                  }}
+                  className="h-14 w-full rounded-xl border border-zinc-800 bg-black px-4 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                >
+                  <option value="1">100%</option>
+                  <option value="1.1">110%</option>
+                  <option value="1.25">125%</option>
+                  <option value="1.5">150%</option>
+                </select>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-8 border-t border-zinc-900 pt-10">
