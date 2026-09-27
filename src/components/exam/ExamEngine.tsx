@@ -387,13 +387,15 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         if (engineState === 'CONFIRM_ANSWER' && pendingAnswer !== null) {
           handleOptionSelect(pendingAnswer);
           setPendingAnswer(null);
-          spokenStateKey.current = `EXAM-${currentQuestionIndex}`; // prevent re-announcing the question
+          spokenStateKey.current = `EXAM-${currentQuestionIndex}`;
           setEngineState('EXAM');
           const msg = t('answer_saved') + ' ' + t('say_next_continue');
           speak(msg);
           announce(msg);
         } else if (engineState === 'CONFIRM_SUBMIT') {
           executeSubmit();
+        } else {
+          speak(lang === 'hi-IN' ? 'अभी पुष्टि करने के लिए कुछ नहीं है।' : lang === 'te-IN' ? 'ప్రస్తుతం నిర్ధారించడానికి ఏమీ లేదు.' : 'There is nothing to confirm right now.');
         }
         return true;
         
@@ -413,6 +415,8 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             }
           }
           speak(announcement);
+        } else {
+          speak(lang === 'hi-IN' ? 'अभी बदलने के लिए कोई चयन नहीं है।' : lang === 'te-IN' ? 'ప్రస్తుతం మార్చడానికి ఏ ఎంపిక లేదు.' : 'There is nothing to change right now.');
         }
         return true;
 
@@ -472,6 +476,8 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             }
           }
           speak(announcement);
+        } else {
+          speak(lang === 'hi-IN' ? 'कृपया पहले शुरू करें।' : lang === 'te-IN' ? 'దయచేసి ముందుగా ప్రారంభించండి.' : 'Please start the session first.');
         }
         return true;
         
@@ -484,16 +490,26 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         return true;
         
       case 'REVIEW_UNANSWERED':
-        if (engineState === 'EXAM') jumpToUnanswered();
+        if (engineState === 'EXAM') {
+          jumpToUnanswered();
+        } else {
+          speak(lang === 'hi-IN' ? 'कृपया पहले शुरू करें।' : lang === 'te-IN' ? 'దయచేసి ముందుగా ప్రారంభించండి.' : 'Please start the session first.');
+        }
         return true;
         
       case 'REVIEW_MARKED':
-        if (engineState === 'EXAM') jumpToMarked();
+        if (engineState === 'EXAM') {
+          jumpToMarked();
+        } else {
+          speak(lang === 'hi-IN' ? 'कृपया पहले शुरू करें।' : lang === 'te-IN' ? 'దయచేసి ముందుగా ప్రారంభించండి.' : 'Please start the session first.');
+        }
         return true;
         
       case 'JUMP_TO_QUESTION':
         if (engineState === 'EXAM' && typeof payload?.index === 'number') {
           jumpToQuestion(payload.index);
+        } else {
+          speak(lang === 'hi-IN' ? 'कृपया पहले शुरू करें और फिर प्रश्न संख्या बताएं।' : lang === 'te-IN' ? 'దయచేసి ముందుగా ప్రారంభించి, తరువాత ప్రశ్న సంఖ్య చెప్పండి.' : 'Please start the session first, then say the question number.');
         }
         return true;
         
@@ -516,6 +532,8 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           } else {
             speak(tParams('time_remaining', { time: `${durationMinutes ?? 60} ${t('minutes')}` }));
           }
+        } else {
+          speak(lang === 'hi-IN' ? 'अभ्यास मोड में समय सीमा नहीं है।' : lang === 'te-IN' ? 'ప్రాక్టీస్ మోడ్‌లో సమయ పరిమితి లేదు.' : 'Practice mode has no time limit.');
         }
         return true;
         
@@ -532,6 +550,8 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           } else {
             speak(t('invalid_option'));
           }
+        } else {
+          speak(lang === 'hi-IN' ? 'कृपया पहले शुरू करें और फिर विकल्प चुनें।' : lang === 'te-IN' ? 'దయచేసి ముందుగా ప్రారంభించి, తరువాత ఒక ఎంపికను చెప్పండి.' : 'Please start the session first, then choose an option.');
         }
         return true;
         
