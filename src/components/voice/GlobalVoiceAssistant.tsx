@@ -65,19 +65,6 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   const dispatchAction = React.useCallback(async (action: SafeAction, payload?: Record<string, unknown> | null, transcript?: string) => {
-    // 1. Notify page-level handlers first so they can intercept and override global behavior
-    let handledLocally = false;
-    for (let i = handlersRef.current.length - 1; i >= 0; i--) {
-      const h = handlersRef.current[i];
-      if (h(action, payload, transcript)) {
-        handledLocally = true;
-        break;
-      }
-    }
-
-    if (handledLocally) return;
-
-    // 2. Check if action is allowed in current context
     const context = getContextName();
     if (action === 'QUESTION_SOLVING' as SafeAction) {
       if (context === 'exam' || context === 'practice') {
@@ -140,6 +127,18 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
        }
        return;
     }
+
+    // 1. Notify page-level handlers first so they can intercept and override global behavior
+    let handledLocally = false;
+    for (let i = handlersRef.current.length - 1; i >= 0; i--) {
+      const h = handlersRef.current[i];
+      if (h(action, payload, transcript)) {
+        handledLocally = true;
+        break;
+      }
+    }
+
+    if (handledLocally) return;
 
     // Authentication is an explicit step in the public flow.
     // Never silently skip the visible Sign In / Create Account screen just
