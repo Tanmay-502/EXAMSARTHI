@@ -1,9 +1,6 @@
 'use client'
 
-'use client'
-
-import { useRef } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useVoice } from '@/lib/voice/VoiceProvider';
 import { useI18n } from '@/lib/i18n/I18nProvider';
@@ -14,14 +11,18 @@ const HeroScene = dynamic(() => import('@/components/experience/HeroScene').then
 
 export default function Home() {
   const router = useRouter();
-  const { speak } = useVoice();
+  const { speak, startContinuousListening } = useVoice();
   const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement>(null);
+  const hasSpokenRef = useRef(false);
   const { scrollYProgress } = useScroll({ target: containerRef });
 
   useEffect(() => {
+    if (hasSpokenRef.current) return;
+    hasSpokenRef.current = true;
     speak(t('gateway_welcome'));
-  }, [speak, t]);
+    startContinuousListening();
+  }, [speak, startContinuousListening, t]);
   
   const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);

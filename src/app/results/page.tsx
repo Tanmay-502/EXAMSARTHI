@@ -57,16 +57,10 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
 
   const { score, total_questions, attempted_questions, correct_questions, incorrect_questions, unanswered_questions, percentage } = session;
 
-  // 1. Fetch the user's answers for this session
-  const { data: userAnswers } = await supabase
-    .from('answers')
-    .select('question_id, selected_option_index')
-    .eq('session_id', sessionId);
-
-  // 2. Fetch the questions and correct answers using admin client
+  // Fetch the session answers with their questions and correct answers.
   const { createAdminClient } = await import('@/lib/supabase/server');
   const adminClient = await createAdminClient();
-  const { data: questionsWithAnswers } = await adminClient
+  const { data: answersWithQuestions } = await adminClient
     .from('answers')
     .select(`
       selected_option_index,
@@ -80,26 +74,24 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
     `)
     .eq('session_id', sessionId);
 
-  // 3. Compute Subject Breakdown
+  // Compute Subject Breakdown
   const subjectStats: Record<string, { total: number; correct: number; incorrect: number; unanswered: number }> = {};
   let weakestSubject = '';
   let weakestSubjectPerc = 100;
   
-  if (questionsWithAnswers && userAnswers) {
-    type QuestionWithAnswer = {
+  if (answersWithQuestions) {
+    type AnswerWithQuestion = {
       selected_option_index: number | null;
       questions: {
-        id: string;
         subject: string | null;
         question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
       }[] | {
-        id: string;
         subject: string | null;
         question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
       } | null;
     };
     
-    (questionsWithAnswers as QuestionWithAnswer[]).forEach(answer => {
+    (answersWithQuestions as AnswerWithQuestion[]).forEach(answer => {
       const question = Array.isArray(answer.questions) ? answer.questions[0] : answer.questions;
       if (!question) return;
 
@@ -110,9 +102,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
       
       subjectStats[subj].total += 1;
       
-      const userAns = userAnswers.find(a => a.question_id === question.id);
-      
-      if (!userAns || userAns.selected_option_index === null) {
+      if (answer.selected_option_index === null) {
         subjectStats[subj].unanswered += 1;
       } else {
         let correctIdx = -1;
@@ -122,7 +112,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
           correctIdx = question.question_answers.correct_answer_index;
         }
         
-        if (userAns.selected_option_index === correctIdx) {
+        if (answer.selected_option_index === correctIdx) {
           subjectStats[subj].correct += 1;
         } else {
           subjectStats[subj].incorrect += 1;
