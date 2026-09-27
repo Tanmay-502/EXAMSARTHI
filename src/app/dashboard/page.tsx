@@ -158,7 +158,10 @@ function DashboardContent() {
             const hasHistory = Boolean(stats && (stats.totalExams + stats.totalPractice) > 0);
 
             return (
-              <div className="group border-t border-zinc-900 pt-12 pb-12 cursor-pointer transition-colors hover:border-zinc-700" onClick={() => router.push('/practice')}>
+              <Link
+                href="/practice"
+                className="group border-t border-zinc-900 pt-12 pb-12 block cursor-pointer transition-colors hover:border-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-4 focus-visible:ring-offset-black"
+              >
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
                   <div>
                     <p className="text-zinc-500 tracking-[0.2em] text-sm uppercase mb-4">
@@ -176,7 +179,7 @@ function DashboardContent() {
                 <div className="flex items-center text-sm tracking-wide font-medium text-white transition-transform group-hover:translate-x-2">
                   {hasHistory ? `Practice ${focusSubject} ↗` : 'Start your first practice session ↗'}
                 </div>
-              </div>
+              </Link>
             );
           })()}
 
