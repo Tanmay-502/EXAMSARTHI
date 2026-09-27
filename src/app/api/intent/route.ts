@@ -3,6 +3,7 @@ import { generateObject } from 'ai';
 import { google } from '@ai-sdk/google';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
+import { getGeminiKey } from '@/lib/ai/getGeminiKey';
 
 export async function POST(req: Request) {
   try {
@@ -14,7 +15,7 @@ export async function POST(req: Request) {
 
     const { transcript, lang, context } = await req.json();
 
-    if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY && !process.env.GEMINI_API_KEY) {
+    if (!getGeminiKey()) {
       return NextResponse.json({ intent: 'UNKNOWN_COMMAND' });
     }
 

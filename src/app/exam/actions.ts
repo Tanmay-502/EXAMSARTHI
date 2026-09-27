@@ -52,16 +52,8 @@ export async function fetchExamQuestions(examId: string, sessionId: string, lang
     throw new Error(`Failed to fetch questions: ${error.message}`)
   }
 
-  let seed = Array.from(sessionId).reduce((hash, char) => ((hash << 5) - hash + char.charCodeAt(0)) | 0, 0) >>> 0;
-  const shuffledQuestions = [...questions];
-  for (let i = shuffledQuestions.length - 1; i > 0; i -= 1) {
-    seed = (seed * 1664525 + 1013904223) >>> 0;
-    const j = seed % (i + 1);
-    [shuffledQuestions[i], shuffledQuestions[j]] = [shuffledQuestions[j], shuffledQuestions[i]];
-  }
-
   // Map to the frontend Question type
-  return shuffledQuestions.map((q: { id: string; exam_id: string; order_index: number; content_text: string; options: string[]; content_translations: Record<string, string>; options_translations: Record<string, string[]>; image_url: string | null; image_alt_text: string | null }) => {
+  const mappedQuestions = questions.map((q: { id: string; exam_id: string; order_index: number; content_text: string; options: string[]; content_translations: Record<string, string>; options_translations: Record<string, string[]>; image_url: string | null; image_alt_text: string | null }) => {
     let questionText = q.content_text;
     let optionsList = q.options;
 
@@ -86,7 +78,26 @@ export async function fetchExamQuestions(examId: string, sessionId: string, lang
       image_alt_text: q.image_alt_text || undefined,
       order_num: q.order_index
     };
-  }) as Question[]
+  }) as Question[];
+
+  let seed = Array.from(`${examId}:${user.id}`).reduce(
+    (hash, char) => ((hash << 5) - hash + char.charCodeAt(0)) | 0,
+    0
+  ) >>> 0;
+  const random = () => {
+    seed += 0x6D2B79F5;
+    let value = seed;
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+
+  for (let i = mappedQuestions.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(random() * (i + 1));
+    [mappedQuestions[i], mappedQuestions[j]] = [mappedQuestions[j], mappedQuestions[i]];
+  }
+
+  return mappedQuestions;
 }
 
 async function ensureCandidateProfile(supabase: SupabaseClient, user: User) {

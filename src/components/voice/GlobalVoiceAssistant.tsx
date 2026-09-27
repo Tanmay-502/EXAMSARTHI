@@ -197,6 +197,8 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
         const query = new URLSearchParams();
         if (payload?.exam_id) query.set('exam_id', payload.exam_id as string);
         router.push(`/exam?${query.toString()}`);
+      } else {
+        speak(lang === 'hi-IN' ? 'आप पहले से ही परीक्षा मोड में हैं।' : lang === 'te-IN' ? 'మీరు ఇప్పటికే పరీక్ష మోడ్‌లో ఉన్నారు.' : 'You are already in exam mode.');
       }
     }
     if (action === 'OPEN_PRACTICE' || action === 'START_PRACTICE') {
@@ -208,6 +210,8 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
         if (payload?.count) query.set('count', String(payload.count));
         if (payload?.difficulty) query.set('difficulty', payload.difficulty as string);
         router.push(`/practice?${query.toString()}`);
+      } else {
+        speak(lang === 'hi-IN' ? 'आप पहले से ही अभ्यास मोड में हैं।' : lang === 'te-IN' ? 'మీరు ఇప్పటికే ప్రాక్టీస్ మోడ్‌లో ఉన్నారు.' : 'You are already in practice mode.');
       }
     }
     if (action === 'OPEN_HISTORY' || action === 'READ_PROGRESS' || action === 'READ_HISTORY' || action === 'READ_RESULTS') {
