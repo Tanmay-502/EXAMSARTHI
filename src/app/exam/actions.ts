@@ -261,7 +261,23 @@ export async function startPracticeSession(questionIds?: string[]) {
     const existingQuestionIds = Array.isArray(existing.question_ids)
       ? existing.question_ids.filter((id: unknown): id is string => typeof id === 'string')
       : [];
-    if (existingQuestionIds.length > 0) return existing.id;
+    const requestedSet = new Set(requestedQuestionIds);
+    const existingSet = new Set(existingQuestionIds);
+    const sameQuestionSet =
+      requestedSet.size === existingSet.size &&
+      requestedQuestionIds.every((id) => existingSet.has(id));
+
+    if (sameQuestionSet) return existing.id;
+
+    await adminClient
+      .from('exam_sessions')
+      .update({
+        status: 'abandoned',
+        completed_at: new Date().toISOString(),
+      })
+      .eq('id', existing.id)
+      .eq('candidate_id', user.id)
+      .eq('status', 'in_progress');
   }
 
   const { data, error } = await adminClient
