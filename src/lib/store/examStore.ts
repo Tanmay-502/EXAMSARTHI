@@ -49,7 +49,7 @@ interface ExamState {
   hasHydrated: boolean
   
   // Actions
-  initializeExam: (sessionId: string, examId: string, questions: Question[]) => void
+  initializeExam: (sessionId: string, examId: string, questions: Question[], startedAt?: number) => void
   setAnswer: (questionId: string, answerData: unknown) => void
   toggleMarkForReview: (questionId: string) => void
   setCurrentQuestionIndex: (index: number) => void
@@ -71,12 +71,17 @@ export const useExamStore = create<ExamState>()(
       status: 'NOT_STARTED',
       hasHydrated: false,
 
-      initializeExam: (sessionId, examId, questions) => {
+      initializeExam: (sessionId, examId, questions, startedAt) => {
         set((state) => {
           const isResuming =
             state.sessionId === sessionId &&
             state.examId === examId &&
             state.status === 'IN_PROGRESS';
+
+          const normalizedStartedAt =
+            typeof startedAt === 'number' && Number.isFinite(startedAt)
+              ? startedAt
+              : Date.now();
 
           return {
             sessionId,
@@ -86,7 +91,7 @@ export const useExamStore = create<ExamState>()(
             currentQuestionIndex: isResuming
               ? Math.min(state.currentQuestionIndex, Math.max(0, questions.length - 1))
               : 0,
-            startTime: isResuming ? state.startTime : Date.now(),
+            startTime: isResuming ? state.startTime : normalizedStartedAt,
             endTime: null,
             status: 'IN_PROGRESS',
           };
