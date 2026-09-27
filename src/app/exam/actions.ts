@@ -106,6 +106,7 @@ async function ensureCandidateProfile(supabase: SupabaseClient, user: User) {
 
 export async function startExamSession(examId: string) {
   const supabase = await createClient()
+  const adminClient = await createAdminClient()
   
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
@@ -115,7 +116,7 @@ export async function startExamSession(examId: string) {
   // Provision profile if it doesn't exist
   await ensureCandidateProfile(supabase, user)
 
-  const { data, error } = await supabase
+  const { data, error } = await adminClient
     .from('exam_sessions')
     .insert({
       exam_id: examId,
@@ -140,6 +141,7 @@ export async function startExamSession(examId: string) {
 
 export async function startPracticeSession() {
   const supabase = await createClient()
+  const adminClient = await createAdminClient()
   
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
@@ -148,7 +150,7 @@ export async function startPracticeSession() {
 
   await ensureCandidateProfile(supabase, user)
 
-  const { data, error } = await supabase
+  const { data, error } = await adminClient
     .from('exam_sessions')
     .insert({
       exam_id: null, // No specific exam for practice
@@ -369,6 +371,7 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     })
     .eq('id', sessionId)
     .eq('candidate_id', user.id)
+    .eq('status', 'in_progress')
 
   if (sessionError) {
     throw new Error(`Failed to complete session: ${sessionError.message}`)
