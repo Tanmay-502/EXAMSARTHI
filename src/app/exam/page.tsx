@@ -366,6 +366,7 @@ function ExamSelection({
 
 function ExamPageContent() {
   const initializeExam = useExamStore(state => state.initializeExam);
+  const hasHydrated = useExamStore(state => state.hasHydrated);
   const { lang } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -420,7 +421,7 @@ function ExamPageContent() {
   }, [examId, router]);
 
   useEffect(() => {
-    if (!examId || !examMeta || !deviceCheckComplete || examStarted) return;
+    if (!hasHydrated || !examId || !examMeta || !deviceCheckComplete || examStarted) return;
 
     let cancelled = false;
 
@@ -459,7 +460,11 @@ function ExamPageContent() {
     return () => {
       cancelled = true;
     };
-  }, [examId, examMeta, deviceCheckComplete, examStarted, initializeExam, lang, router, speak]);
+  }, [hasHydrated, examId, examMeta, deviceCheckComplete, examStarted, initializeExam, lang, router, speak]);
+
+  if (!hasHydrated) {
+    return <div className="flex flex-col items-center justify-center min-h-screen bg-black text-zinc-500 font-light text-xl">Preparing exam state...</div>;
+  }
 
   if (!examId) {
     return <ExamSelection onSelect={(id) => {
