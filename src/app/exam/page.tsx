@@ -23,22 +23,31 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
 
   useEffect(() => {
     let isMounted = true;
+
     const checkDevices = async () => {
-      // Browser speech check
+      // Standard mode does not need microphone or browser speech permission.
+      if (interactionMode === 'standard') {
+        setBrowserStatus('success');
+        setMicStatus('success');
+        return;
+      }
+
       interface WindowWithSpeech extends Window {
         SpeechRecognition?: unknown;
         webkitSpeechRecognition?: unknown;
       }
+
       const win = window as unknown as WindowWithSpeech;
       const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        setBrowserStatus('success');
-      } else {
-        setBrowserStatus('error');
+      if (isMounted) {
+        setBrowserStatus(SpeechRecognition ? 'success' : 'error');
       }
 
-      // Mic check
       try {
+        if (!navigator.mediaDevices?.getUserMedia) {
+          throw new Error('Microphone API unavailable');
+        }
+
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         if (isMounted) setMicStatus('success');
         stream.getTracks().forEach(track => track.stop());
@@ -47,16 +56,21 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
         if (isMounted) setMicStatus('error');
       }
     };
-    checkDevices();
-    return () => { isMounted = false; };
-  }, []);
+
+    void checkDevices();
+    return () => {
+      isMounted = false;
+    };
+  }, [interactionMode]);]);
 
   useEffect(() => {
     if (micStatus === 'pending' || browserStatus === 'pending' || hasSpoken.current) return;
     hasSpoken.current = true;
     
     let msg = '';
-    if (micStatus === 'success' && browserStatus === 'success') {
+    if (interactionMode === 'standard') {
+      msg = 'Keyboard and screen reader controls are ready. You can start the exam using the button.';
+    } else if (micStatus === 'success' && browserStatus === 'success') {
       msg = 'Microphone and speech services are ready. You can start the exam by saying start exam, or use the button.';
     } else if (browserStatus === 'error') {
       msg = 'This browser does not provide speech recognition. Voice mode cannot be used here. You can continue with keyboard and screen reader mode.';
