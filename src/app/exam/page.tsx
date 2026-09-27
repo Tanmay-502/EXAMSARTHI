@@ -352,7 +352,7 @@ function ExamPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const examIdParam = searchParams.get('exam_id');
-  const { mode: interactionMode, setMode } = usePreferredMode();
+  const { mode: interactionMode, setMode, isLoaded: preferenceLoaded } = usePreferredMode();
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -413,6 +413,10 @@ function ExamPageContent() {
 
   if (!examStarted) {
     return null;
+  }
+
+  if (!preferenceLoaded) {
+    return <div className="flex flex-col items-center justify-center flex-1 p-6 text-xl">Loading preferences...</div>;
   }
 
   if (!deviceCheckComplete) {
