@@ -47,6 +47,8 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   const [pendingAnswer, setPendingAnswer] = useState<number | null>(null);
   const [timeRemainingStr, setTimeRemainingStr] = useState<string>('60:00');
   const hasTriggeredExpiry = useRef(false);
+  const isSubmittingRef = useRef(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   useEffect(() => {
     let timer: ReturnType<typeof setInterval>;
@@ -74,12 +76,22 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
               if (latestState.sessionId) {
                 const questionIds = latestState.questions.map(q => q.id);
                 submitExamAnswers(latestState.sessionId, latestState.answers, questionIds).then(() => {
+                  setSubmissionError(null);
                   latestState.submitExam();
                   router.push(`/results?session_id=${latestState.sessionId}`);
                 }).catch(err => {
                   console.error('Failed to auto-submit exam:', err);
-                  latestState.submitExam();
-                  router.push('/results');
+                  setSubmissionError(
+                    'Your time ended, but the server could not save the submission. Please check your connection and retry submission.'
+                  );
+                  setEngineState('PROCESSING');
+                  speak(
+                    lang === 'hi-IN'
+                      ? 'समय समाप्त हो गया, लेकिन परीक्षा जमा नहीं हो सकी। कनेक्शन जाँचकर फिर से प्रयास करें।'
+                      : lang === 'te-IN'
+                        ? 'సమయం ముగిసింది, కానీ పరీక్ష సమర్పించలేకపోయాం. మీ కనెక్షన్‌ను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.'
+                        : 'Time ended, but the submission could not be saved. Check your connection and retry.'
+                  );
                 });
               }
             });
@@ -333,23 +345,55 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   };
 
   const executeSubmit = async () => {
+    if (isSubmittingRef.current) return;
+
+    const state = useExamStore.getState();
+    if (!state.sessionId) {
+      const message = 'This session has no server session ID. The submission cannot be completed.';
+      setSubmissionError(message);
+      setEngineState('PROCESSING');
+      speak(message);
+      return;
+    }
+
+    isSubmittingRef.current = true;
+    setSubmissionError(null);
     setEngineState('PROCESSING');
-    speak(lang === 'hi-IN' ? 'जमा किया जा रहा है...' : lang === 'te-IN' ? 'సమర్పిస్తున్నాము...' : 'Processing submission...');
+    speak(
+      lang === 'hi-IN'
+        ? 'जमा किया जा रहा है...'
+        : lang === 'te-IN'
+          ? 'సమర్పిస్తున్నాము...'
+          : 'Processing submission...'
+    );
+
     try {
       const { submitExamAnswers } = await import('@/app/exam/actions');
-      const state = useExamStore.getState();
-      if (state.sessionId) {
-        const questionIds = state.questions.map(q => q.id);
-        await submitExamAnswers(state.sessionId, state.answers, questionIds);
-        state.submitExam();
-        router.push(`/results?session_id=${state.sessionId}`);
-        return;
-      }
+      const questionIds = state.questions.map(q => q.id);
+      await submitExamAnswers(state.sessionId, state.answers, questionIds);
+
+      state.submitExam();
+      router.push(`/results?session_id=${state.sessionId}`);
     } catch (err) {
       console.error('Failed to submit exam:', err);
+      setSubmissionError(
+        lang === 'hi-IN'
+          ? 'परीक्षा जमा नहीं हो सकी। कृपया कनेक्शन जाँचें और फिर से प्रयास करें।'
+          : lang === 'te-IN'
+            ? 'పరీక్ష సమర్పించలేకపోయాం. దయచేసి కనెక్షన్ తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.'
+            : 'The exam could not be submitted. Check your connection and retry.'
+      );
+      setEngineState('PROCESSING');
+      speak(
+        lang === 'hi-IN'
+          ? 'परीक्षा जमा नहीं हो सकी। कनेक्शन जाँचें और फिर से प्रयास करें।'
+          : lang === 'te-IN'
+            ? 'పరీక్ష సమర్పించలేకపోయాం. కనెక్షన్ తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.'
+            : 'The exam could not be submitted. Check your connection and try again.'
+      );
+    } finally {
+      isSubmittingRef.current = false;
     }
-    useExamStore.getState().submitExam();
-    router.push('/results');
   };
 
   const voiceHandler = (action: SafeAction, payload?: Record<string, unknown> | null) => {
@@ -675,15 +719,32 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           <HeroScene />
         </div>
         <VoiceCore size="lg" />
-        <motion.h1 
+        <motion.h1
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="text-2xl font-light tracking-wide mt-12 text-zinc-400 uppercase" 
+          className="text-2xl font-light tracking-wide mt-12 text-zinc-400 uppercase"
           aria-live="assertive"
         >
-          {lang === 'hi-IN' ? 'जमा किया जा रहा है...' : lang === 'te-IN' ? 'సమర్పిస్తున్నాము...' : 'Processing submission...'}
+          {submissionError
+            ? (lang === 'hi-IN' ? 'Submission could not be completed' : lang === 'te-IN' ? 'సమర్పణ పూర్తి కాలేదు' : 'Submission could not be completed')
+            : (lang === 'hi-IN' ? 'जमा किया जा रहा है...' : lang === 'te-IN' ? 'సమర్పిస్తున్నాము...' : 'Processing submission...')}
         </motion.h1>
+
+        {submissionError && (
+          <div className="mt-8 w-full max-w-xl text-center">
+            <p className="text-lg text-zinc-400 font-light" aria-live="assertive">
+              {submissionError}
+            </p>
+            <button
+              type="button"
+              onClick={() => void executeSubmit()}
+              className="mt-8 px-10 py-4 bg-white text-black rounded-full text-sm font-bold uppercase tracking-widest hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/30"
+            >
+              Retry Submission
+            </button>
+          </div>
+        )}
       </div>
     );
   }
