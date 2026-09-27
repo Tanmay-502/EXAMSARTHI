@@ -12,7 +12,6 @@ import { VoiceCore } from '@/components/voice/VoiceCore';
 import { useAccessibility } from '@/lib/accessibility/AccessibilityProvider';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 import { SafeAction } from '@/lib/voice/safeActionRegistry';
-import { resolveExam } from '@/lib/catalog/examCatalog';
 
 function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onComplete: () => void, interactionMode: InteractionMode, setInteractionMode: (m: InteractionMode) => void }) {
   const [micStatus, setMicStatus] = useState<'pending' | 'success' | 'error' | 'not-required'>('pending');
@@ -160,6 +159,49 @@ type AvailableExam = {
   question_count: number;
 }
 
+function normalizeExamSpeech(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/\b(gk|general knowledge)\b/g, 'general knowledge')
+    .replace(/\breasoning\b/g, 'reasoning')
+    .replace(/\b(jee|j e e)\b/g, 'jee')
+    .replace(/\b(gate|g a t e)\b/g, 'gate')
+    .replace(/\b(neet|n e e t)\b/g, 'neet')
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function findExamFromSpeech(exams: AvailableExam[], spoken: string): AvailableExam | null {
+  const text = normalizeExamSpeech(spoken);
+  if (!text) return null;
+
+  const exact = exams.find(exam => normalizeExamSpeech(exam.title) === text);
+  if (exact) return exact;
+
+  const compact = exams.find(exam => {
+    const title = normalizeExamSpeech(exam.title);
+    return text.includes(title) || title.includes(text);
+  });
+  if (compact) return compact;
+
+  const stopWords = new Set(['i','want','to','take','give','start','attempt','write','an','a','the','exam','test','paper','please','can','you','could','would','like','me']);
+  const inputTokens = new Set(text.split(' ').filter(token => token && !stopWords.has(token)));
+  if (inputTokens.size === 0) return null;
+
+  let best: { exam: AvailableExam; score: number } | null = null;
+  for (const exam of exams) {
+    const titleTokens = normalizeExamSpeech(exam.title).split(' ').filter(Boolean);
+    const matched = titleTokens.filter(token => inputTokens.has(token)).length;
+    const score = matched / Math.max(inputTokens.size, titleTokens.length);
+    if (matched > 0 && score >= 0.5 && (!best || score > best.score)) {
+      best = { exam, score };
+    }
+  }
+  return best?.exam || null;
+}
+
 function ExamSelection({ 
   onSelect 
 }: { 
@@ -259,33 +301,30 @@ function ExamSelection({
       }
 
       // A new exam name while a selection is pending replaces the pending choice.
-      resolveExam(raw).then((matched) => {
-        if (!matched) return;
-        const availableMatch = exams.find(exam => exam.id === matched.id);
-        if (!availableMatch) return;
-
-        setSelectedExam(availableMatch);
-
+      const localMatch = findExamFromSpeech(exams, raw);
+      if (localMatch) {
+        setSelectedExam(localMatch);
         const wantsImmediateStart =
-          /\b(start|begin|take|attempt|give)\b/.test(normalized) &&
-          /\b(exam|test)\b/.test(normalized);
+          /\b(start|begin|take|attempt|give|write)\b/.test(normalized) &&
+          /\b(exam|test|paper)\b/.test(normalized);
 
         speak(
           wantsImmediateStart
-            ? "Starting " + availableMatch.title + "."
-            : availableMatch.title +
+            ? "Starting " + localMatch.title + "."
+            : localMatch.title +
               " selected. It has " +
-              availableMatch.question_count +
+              localMatch.question_count +
               " questions and " +
-              availableMatch.duration_minutes +
+              localMatch.duration_minutes +
               " minutes. Say yes to start or say change to choose another."
         );
 
-        if (wantsImmediateStart) {
-          onSelect(availableMatch.id);
-        }
-      });
+        if (wantsImmediateStart) onSelect(localMatch.id);
+        lastHandledTranscriptRef.current = normalized;
+        return true;
+      }
       lastHandledTranscriptRef.current = normalized;
+      speak("I couldn't match that to an available exam. Say list exams to hear the choices, or say the exam name again.");
       return true;
     }
 
@@ -323,37 +362,35 @@ function ExamSelection({
       return true;
     }
 
-    // Resolve the actual spoken exam title locally from the live database
-    // before falling back to Gemini. This keeps exact exam selection reliable
-    // even when the semantic service is unavailable.
+    // Match the live exam catalog deterministically before using any
+    // semantic fallback. This makes ordinary spoken exam names reliable.
     if (normalized.length >= 2) {
-      lastHandledTranscriptRef.current = normalized;
-      void resolveExam(raw).then((matched) => {
-        if (!matched) return;
-        const availableMatch = exams.find(exam => exam.id === matched.id);
-        if (!availableMatch) return;
-
-        setSelectedExam(availableMatch);
+      const localMatch = findExamFromSpeech(exams, raw);
+      if (localMatch) {
+        lastHandledTranscriptRef.current = normalized;
+        setSelectedExam(localMatch);
 
         const wantsImmediateStart =
-          /\b(start|begin|take|attempt|give)\b/.test(normalized) &&
-          /\b(exam|test)\b/.test(normalized);
+          /\b(start|begin|take|attempt|give|write)\b/.test(normalized) &&
+          /\b(exam|test|paper)\b/.test(normalized);
 
         speak(
           wantsImmediateStart
-            ? "Starting " + availableMatch.title + "."
-            : availableMatch.title +
+            ? "Starting " + localMatch.title + "."
+            : localMatch.title +
               " selected. It has " +
-              availableMatch.question_count +
+              localMatch.question_count +
               " questions and " +
-              availableMatch.duration_minutes +
+              localMatch.duration_minutes +
               " minutes. Say yes to start or say change to choose another."
         );
 
-        if (wantsImmediateStart) {
-          onSelect(availableMatch.id);
-        }
-      });
+        if (wantsImmediateStart) onSelect(localMatch.id);
+        return true;
+      }
+
+      lastHandledTranscriptRef.current = normalized;
+      speak("I couldn't match that to an available exam. Say list exams to hear the choices, or say the exam name again.");
       return true;
     }
 
