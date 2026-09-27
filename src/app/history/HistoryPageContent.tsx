@@ -25,9 +25,7 @@ function formatDuration(start: string, end: string) {
 
 export default function HistoryPageContent({ filter, displayedSessions }: { filter: string; displayedSessions: HistorySession[] }) {
   return (
-
     <main id="main-content" className="flex flex-col flex-1 min-h-screen w-full max-w-7xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
-      <HistoryVoiceHandler totalSessions={displayedSessions.length} />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -45,21 +43,21 @@ export default function HistoryPageContent({ filter, displayedSessions }: { filt
         <div className="flex flex-wrap gap-4 mb-16" role="group" aria-label="Filter history">
           <Link 
             href="/history?filter=all" 
-            className={`px-6 py-3 rounded-full border uppercase tracking-widest text-xs font-bold transition-colors \${filter === 'all' ? 'bg-white text-black border-white' : 'border-zinc-800 text-zinc-400 hover:border-zinc-500 hover:text-white'}`}
+            className={`px-6 py-3 rounded-full border uppercase tracking-widest text-xs font-bold transition-colors ${filter === 'all' ? 'bg-white text-black border-white' : 'border-zinc-800 text-zinc-400 hover:border-zinc-500 hover:text-white'}`}
             aria-pressed={filter === 'all'}
           >
             All Sessions
           </Link>
           <Link 
             href="/history?filter=exam" 
-            className={`px-6 py-3 rounded-full border uppercase tracking-widest text-xs font-bold transition-colors \${filter === 'exam' ? 'bg-white text-black border-white' : 'border-zinc-800 text-zinc-400 hover:border-zinc-500 hover:text-white'}`}
+            className={`px-6 py-3 rounded-full border uppercase tracking-widest text-xs font-bold transition-colors ${filter === 'exam' ? 'bg-white text-black border-white' : 'border-zinc-800 text-zinc-400 hover:border-zinc-500 hover:text-white'}`}
             aria-pressed={filter === 'exam'}
           >
             Exams
           </Link>
           <Link 
             href="/history?filter=practice" 
-            className={`px-6 py-3 rounded-full border uppercase tracking-widest text-xs font-bold transition-colors \${filter === 'practice' ? 'bg-white text-black border-white' : 'border-zinc-800 text-zinc-400 hover:border-zinc-500 hover:text-white'}`}
+            className={`px-6 py-3 rounded-full border uppercase tracking-widest text-xs font-bold transition-colors ${filter === 'practice' ? 'bg-white text-black border-white' : 'border-zinc-800 text-zinc-400 hover:border-zinc-500 hover:text-white'}`}
             aria-pressed={filter === 'practice'}
           >
             Practice
@@ -103,17 +101,17 @@ export default function HistoryPageContent({ filter, displayedSessions }: { filt
                       {session.started_at && session.completed_at ? formatDuration(session.started_at, session.completed_at) : '-'}
                     </td>
                     <td className="p-6 font-light">
-                      {session.score !== null ? `\${session.score} / \${session.total_questions}` : '-'}
+                      {session.score !== null ? `${session.score} / ${session.total_questions}` : '-'}
                     </td>
                     <td className="p-6 text-center font-light text-2xl">
-                      {session.percentage !== null ? `\${session.percentage}%` : '-'}
+                      {session.percentage !== null ? `${session.percentage}%` : '-'}
                     </td>
                     <td className="p-6 text-right">
                       {session.status === 'submitted' && (
                         <Link
-                          href={`/results?session_id=\${session.id}`}
+                          href={`/results?session_id=${session.id}`}
                           className="inline-flex items-center justify-center rounded-full text-xs font-bold uppercase tracking-widest border border-zinc-800 text-zinc-300 hover:border-zinc-500 hover:text-white h-10 px-5 transition-colors"
-                          aria-label={`View detailed results for \${session.completed_at}`}
+                          aria-label={`View detailed results for ${session.completed_at}`}
                         >
                           View Results
                         </Link>
