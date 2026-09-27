@@ -96,7 +96,7 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
         .select('session_id, question_id, selected_option_index')
         .in('session_id', sessionIds),
       (() => {
-        let query = adminClient.from('questions').select('id, exam_id, subject, question_answers(correct_answer_index)');
+        const query = adminClient.from('questions').select('id, exam_id, subject, question_answers(correct_answer_index)');
         if (rosterQuestionIds.length > 0 && legacyExamIds.length === 0) return query.in('id', rosterQuestionIds);
         if (rosterQuestionIds.length === 0 && legacyExamIds.length > 0) return query.in('exam_id', legacyExamIds);
         if (rosterQuestionIds.length > 0 || legacyExamIds.length > 0) {
