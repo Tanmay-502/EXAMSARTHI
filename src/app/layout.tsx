@@ -8,6 +8,7 @@ import { GlobalVoiceAssistant } from "@/components/voice/GlobalVoiceAssistant";
 import { VoiceOverlay } from "@/components/voice/VoiceOverlay";
 
 import { MotionConfig } from "framer-motion";
+import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -31,6 +32,7 @@ export default function RootLayout({
               <VoiceProvider>
                 <GlobalVoiceAssistant>
                   <VoiceOverlay />
+                  <ServiceWorkerRegistration />
                   {children}
                 </GlobalVoiceAssistant>
               </VoiceProvider>
