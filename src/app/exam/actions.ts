@@ -860,7 +860,7 @@ export async function buildLearningProfile() {
   // Fetch all submitted sessions
   const { data: sessions } = await adminClient
     .from('exam_sessions')
-    .select('id, is_practice, percentage, started_at, completed_at, score, total_questions')
+    .select('id, exam_id, is_practice, question_ids, percentage, started_at, completed_at, score, total_questions')
     .eq('candidate_id', userId)
     .eq('status', 'submitted')
     .order('completed_at', { ascending: false });
@@ -875,16 +875,11 @@ export async function buildLearningProfile() {
   const recentAccuracy = sessions.slice(0, 5).map((s: { percentage: number }) => s.percentage);
 
   const subjectStats = await buildSubjectStats(adminClient, sessions);
-  const subjects = Object.values(subjectStats).map(stat => ({
-    subject: stat.subject,
-    accuracy: stat.accuracy,
-  }));
-
-  const subjects = Array.from(subjectStats.entries())
-    .filter(([, stat]) => stat.total >= 2)
-    .map(([sub, stat]) => ({
-      subject: sub,
-      accuracy: Math.round((stat.correct / stat.total) * 100)
+  const subjects = Object.values(subjectStats)
+    .filter(stat => stat.total >= 2)
+    .map(stat => ({
+      subject: stat.subject,
+      accuracy: stat.accuracy,
     }));
 
   const strongSubjects = subjects.filter(s => s.accuracy >= 70).map(s => s.subject);
