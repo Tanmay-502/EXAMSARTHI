@@ -7,12 +7,6 @@ export interface ExamRecord {
   title: string;
 }
 
-export const SUPPORTED_EXAMS: ExamRecord[] = [
-  {
-    id: 'e2f9d6c3-1b8a-4c5e-8d2a-1b4e9f3c7a8b',
-    title: 'General Knowledge & Reasoning Demo'
-  }
-];
 
 export const SUPPORTED_SUBJECTS: SupportedSubject[] = [
   'Geography',
@@ -24,10 +18,45 @@ export const SUPPORTED_SUBJECTS: SupportedSubject[] = [
   'DBMS'
 ];
 
+function normalizeSpokenText(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function matchesPhrase(text: string, phrase: string): boolean {
-  const escapedPhrase = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const regex = new RegExp(`\\b${escapedPhrase}\\b`, 'i');
-  return regex.test(text);
+  const normalizedText = normalizeSpokenText(text);
+  const normalizedPhrase = normalizeSpokenText(phrase);
+  if (!normalizedText || !normalizedPhrase) return false;
+
+  if (normalizedText === normalizedPhrase || normalizedText.includes(normalizedPhrase)) {
+    return true;
+  }
+
+  const textTokens = normalizedText.split(' ');
+  const phraseTokens = normalizedPhrase.split(' ').filter(
+    token => !['the', 'a', 'an', 'and', 'of', 'to', 'for', 'my', 'me'].includes(token)
+  );
+
+  if (phraseTokens.length === 0) return false;
+
+  let matched = 0;
+  let lastIndex = -1;
+  for (const token of phraseTokens) {
+    const index = textTokens.findIndex((candidate, i) => i > lastIndex && candidate === token);
+    if (index === -1) continue;
+    matched += 1;
+    lastIndex = index;
+  }
+
+  return matched === phraseTokens.length;
+}
+
+export function normalizeExamName(text: string): string {
+  return normalizeSpokenText(text);
 }
 
 export async function resolveSubject(spokenText: string): Promise<SupportedSubject | null> {
@@ -76,23 +105,35 @@ export async function resolveSubject(spokenText: string): Promise<SupportedSubje
 }
 
 export async function resolveExam(spokenText: string): Promise<ExamRecord | null> {
-  const normalized = spokenText.toLowerCase().trim();
-  
-  if (matchesPhrase(normalized, 'general knowledge') || matchesPhrase(normalized, 'reasoning demo') || matchesPhrase(normalized, 'demo')) {
-    return SUPPORTED_EXAMS[0];
-  }
+  const requested = normalizeSpokenText(spokenText)
+    .replace(/^(please )?((i )?(want|would like) to )?(take|give|start|attempt) (an )?(exam|the exam) /, '')
+    .trim();
+
+  if (!requested) return null;
 
   try {
     const supabase = createClient();
-    const { data: exams } = await supabase.from('exams').select('id, title');
-    
-    if (exams) {
-      const sortedExams = [...exams].sort((a, b) => b.title.length - a.title.length);
-      for (const exam of sortedExams) {
-        if (matchesPhrase(normalized, exam.title.toLowerCase())) {
-          return { id: exam.id, title: exam.title };
-        }
+    const { data: exams, error } = await supabase.from('exams').select('id, title');
+    if (error) throw error;
+
+    const sortedExams = [...(exams || [])].sort((a, b) => b.title.length - a.title.length);
+    for (const exam of sortedExams) {
+      if (matchesPhrase(requested, exam.title)) {
+        return { id: exam.id, title: exam.title };
       }
+    }
+
+    const requestTokens = requested.split(' ').filter(Boolean);
+    if (requestTokens.length >= 2) {
+      const scored = sortedExams
+        .map(exam => {
+          const titleTokens = normalizeSpokenText(exam.title).split(' ').filter(Boolean);
+          const matched = requestTokens.filter(token => titleTokens.includes(token)).length;
+          return { exam, score: matched / requestTokens.length, matched };
+        })
+        .filter(item => item.matched >= 2 && item.score >= 0.7)
+        .sort((a, b) => b.score - a.score || b.matched - a.matched);
+      if (scored[0]) return { id: scored[0].exam.id, title: scored[0].exam.title };
     }
   } catch (e) {
     console.error('Failed to resolve exam dynamically', e);

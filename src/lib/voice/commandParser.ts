@@ -22,6 +22,7 @@ export type VoiceCommand =
   | { type: 'HISTORY' }
   | { type: 'LOGOUT' }
   | { type: 'DASHBOARD_EXAM' }
+  | { type: 'OPEN_DASHBOARD' }
   | { type: 'DASHBOARD_PRACTICE' }
   | { type: 'SET_LANGUAGE_ENGLISH' }
   | { type: 'SET_LANGUAGE_HINDI' }

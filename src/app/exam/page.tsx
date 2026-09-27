@@ -10,6 +10,9 @@ import { usePreferredMode, InteractionMode } from '@/lib/hooks/usePreferredMode'
 import { useVoice } from '@/lib/voice/VoiceProvider';
 import { VoiceCore } from '@/components/voice/VoiceCore';
 import { useAccessibility } from '@/lib/accessibility/AccessibilityProvider';
+import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
+import { SafeAction } from '@/lib/voice/safeActionRegistry';
+import { resolveExam } from '@/lib/catalog/examCatalog';
 
 function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onComplete: () => void, interactionMode: InteractionMode, setInteractionMode: (m: InteractionMode) => void }) {
   const [micStatus, setMicStatus] = useState<'pending' | 'success' | 'error'>('pending');
@@ -54,13 +57,14 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
     
     let msg = '';
     if (micStatus === 'success' && browserStatus === 'success') {
-      msg = 'Microphone and speech services are ready. You can start the exam.';
+      msg = 'Microphone and speech services are ready. You can start the exam by saying start exam, or use the button.';
+    } else if (browserStatus === 'error') {
+      msg = 'This browser does not provide speech recognition. Voice mode cannot be used here. You can continue with keyboard and screen reader mode.';
     } else {
-      msg = 'Microphone or speech services are not available. You can still take the exam using standard mode.';
-      setInteractionMode('standard');
+      msg = 'Microphone access is unavailable. Your voice-first preference is still kept. Allow microphone access and choose Retry, or continue with keyboard and screen reader mode.';
     }
     announce(msg, 'assertive');
-    if (interactionMode === 'voice-first') speak(msg);
+    speak(msg);
   }, [micStatus, browserStatus, announce, speak, interactionMode, setInteractionMode]);
 
   const allClear = micStatus === 'success' && browserStatus === 'success';
@@ -97,7 +101,26 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
            </div>
         )}
 
-        <div className="pt-16 border-t border-zinc-900 flex justify-end">
+        <div className="pt-16 border-t border-zinc-900 flex flex-wrap justify-end gap-4">
+          {!(micStatus === 'success' && browserStatus === 'success') && (
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              disabled={micStatus === 'pending' || browserStatus === 'pending'}
+              className="px-8 py-4 rounded-full border border-zinc-800 text-zinc-300 hover:border-zinc-500 hover:text-white disabled:opacity-50 transition-colors uppercase tracking-widest text-sm font-bold"
+            >
+              Retry Voice Check
+            </button>
+          )}
+          {!(micStatus === 'success' && browserStatus === 'success') && (
+            <button
+              type="button"
+              onClick={() => setInteractionMode('standard')}
+              className="px-8 py-4 rounded-full border border-zinc-800 text-zinc-300 hover:border-zinc-500 hover:text-white transition-colors uppercase tracking-widest text-sm font-bold"
+            >
+              Continue with Keyboard
+            </button>
+          )}
           <button
             onClick={onComplete}
             disabled={micStatus === 'pending' || browserStatus === 'pending'}
@@ -128,10 +151,12 @@ function ExamSelection({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedExam, setSelectedExam] = useState<AvailableExam | null>(null);
-  const { speak, isContinuous, startContinuousListening, transcript } = useVoice();
+  const { speak, isContinuous, startContinuousListening } = useVoice();
   const { announce } = useAccessibility();
   const hasSpokenWelcome = useRef(false);
-  const hasSpokenConfirmation = useRef(false);
+  const lastHandledTranscriptRef = useRef<string>('');
+  const router = useRouter();
+  const { useVoiceAction } = useGlobalVoice();
 
   useEffect(() => {
     async function load() {
@@ -163,40 +188,114 @@ function ExamSelection({
     }
   }, [loading, error, exams, speak, announce, isContinuous, startContinuousListening, selectedExam]);
 
-  useEffect(() => {
-    if (!transcript || transcript.length === 0) return;
-    const lastMessage = transcript[transcript.length - 1];
-    if (lastMessage.sender !== 'user') return;
-    const lower = lastMessage.text.toLowerCase();
-    
-    if (selectedExam && !hasSpokenConfirmation.current) {
-      if (lower.includes('yes') || lower.includes('start')) {
-        hasSpokenConfirmation.current = true;
+  useVoiceAction((action: SafeAction, _payload?: Record<string, unknown> | null, transcript?: string) => {
+    const raw = transcript?.trim() || '';
+    if (!raw) return false;
+
+    const normalized = raw
+      .toLowerCase()
+      .replace(/&/g, ' and ')
+      .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (lastHandledTranscriptRef.current === normalized) {
+      return true;
+    }
+
+    const isDashboardRequest =
+      /\b(dashboard|home)\b/.test(normalized) &&
+      /(back|return|take me|go to|open|show|bring me|send me)/.test(normalized);
+
+    if (isDashboardRequest || action === 'OPEN_DASHBOARD') {
+      lastHandledTranscriptRef.current = normalized;
+      speak("Taking you back to your dashboard.");
+      router.push('/dashboard');
+      return true;
+    }
+
+    if (selectedExam) {
+      const confirmed = /\b(yes|yeah|yep|confirm|start|okay|ok|haan|हाँ|అవును)\b/.test(normalized);
+      const rejected = /\b(no|nope|change|cancel|different|nah|नहीं|नही|కాదు|రద్దు)\b/.test(normalized);
+
+      if (confirmed || action === 'CONFIRM') {
+        lastHandledTranscriptRef.current = normalized;
         speak("Starting exam.");
         onSelect(selectedExam.id);
-      } else if (lower.includes('no') || lower.includes('change')) {
-        hasSpokenConfirmation.current = true; // prevent re-trigger
-        setTimeout(() => setSelectedExam(null), 0);
+        return true;
+      }
+
+      if (rejected || action === 'CHANGE') {
+        lastHandledTranscriptRef.current = normalized;
         hasSpokenWelcome.current = false;
-        speak("Which exam would you like instead?");
-        setTimeout(() => { hasSpokenConfirmation.current = false; }, 2000);
+        setSelectedExam(null);
+        speak("Okay. Which exam would you like instead?");
+        return true;
       }
-      return;
-    }
-    
-    if (!selectedExam) {
-      if (lower.includes('read available') || lower.includes('list exam')) {
-        const examNames = exams.map(e => e.title).join(', ');
-        speak(`Available exams are ${examNames}.`);
-      } else {
-        const matchedExam = exams.find(e => lower.includes(e.title.toLowerCase()));
-        if (matchedExam) {
-          setTimeout(() => setSelectedExam(matchedExam), 0);
-          speak(`${matchedExam.title} selected. You have ${matchedExam.question_count} questions and ${matchedExam.duration_minutes} minutes. Would you like to start?`);
+
+      // A new exam name while a selection is pending replaces the pending choice.
+      resolveExam(raw).then((matched) => {
+        if (!matched) return;
+        const availableMatch = exams.find(exam => exam.id === matched.id);
+        if (!availableMatch) return;
+
+        setSelectedExam(availableMatch);
+
+        const wantsImmediateStart =
+          /\b(start|begin|take|attempt|give)\b/.test(normalized) &&
+          /\b(exam|test)\b/.test(normalized);
+
+        speak(
+          wantsImmediateStart
+            ? "Starting " + availableMatch.title + "."
+            : availableMatch.title +
+              " selected. It has " +
+              availableMatch.question_count +
+              " questions and " +
+              availableMatch.duration_minutes +
+              " minutes. Say yes to start or say change to choose another."
+        );
+
+        if (wantsImmediateStart) {
+          onSelect(availableMatch.id);
         }
-      }
+      });
+      lastHandledTranscriptRef.current = normalized;
+      return true;
     }
-  }, [transcript, exams, selectedExam, onSelect, speak]);
+
+    if (
+      /\b(list|available|show|what|which)\b/.test(normalized) &&
+      /\b(exam|exams)\b/.test(normalized)
+    ) {
+      lastHandledTranscriptRef.current = normalized;
+      const examNames = exams.map((exam, index) => `Exam ${index + 1}: ${exam.title}. ${exam.question_count} questions, ${exam.duration_minutes} minutes.`).join(' ');
+      speak("Available exams are " + examNames);
+      return true;
+    }
+
+    const numberMatch = normalized.match(/\b(first|1|one|second|2|two|third|3|three|fourth|4|four)\b/);
+    const numericIndex = numberMatch
+      ? ({ first: 0, one: 0, '1': 0, second: 1, two: 1, '2': 1, third: 2, three: 2, '3': 2, fourth: 3, four: 3, '4': 3 } as Record<string, number>)[numberMatch[1]]
+      : undefined;
+
+    const selectByIndex = typeof numericIndex === 'number' ? exams[numericIndex] : null;
+    if (selectByIndex) {
+      lastHandledTranscriptRef.current = normalized;
+      setSelectedExam(selectByIndex);
+      speak(
+        selectByIndex.title +
+        " selected. It has " +
+        selectByIndex.question_count +
+        " questions. Say yes to start or say change to choose another."
+      );
+      return true;
+    }
+
+    return false;
+  });
+
+
 
   if (loading) return <div className="flex flex-col items-center justify-center min-h-screen bg-black text-zinc-500 font-light text-xl">Loading available exams...</div>;
   if (error) return <div className="flex flex-col items-center justify-center min-h-screen bg-black text-red-500 font-light text-xl">{error}</div>;

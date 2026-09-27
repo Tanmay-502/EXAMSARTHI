@@ -43,9 +43,13 @@ If the user wants to log in or sign in, return SIGN_IN.
 If the user wants to create an account, register, or sign up, return SIGN_UP.
 If the user mentions selecting an option (e.g. "option A", "first one", "option one", "option C"), return SELECT_OPTION with payload { index: 0 } (0-indexed, A=0, B=1, C=2, D=3, 1=0, 2=1, etc).
 If the user wants to change language, return CHANGE_LANGUAGE with payload { lang: 'en-IN' | 'hi-IN' | 'te-IN' }.
-If the user wants to practice or take an exam, return START_PRACTICE or START_EXAM. If they provide details, include them in payload: { subject?: string, count?: number, difficulty?: string }. (e.g. "practice my weakest subject" -> { subject: 'weakest' }).
+If the user wants to practice or take an exam, return START_PRACTICE or START_EXAM. If they provide details, include them in payload: { subject?: string, count?: number, difficulty?: string, exam_id?: string, exam_name?: string }. Preserve the user's requested exam name when one is spoken; do not invent an exam id.
 If the user asks to see history, previous exams, or results, return OPEN_HISTORY.
 If the user asks to see their analysis, performance, or preparation status, return OPEN_ANALYSIS.
+If the user asks to go back, return to, open, show, or take them to the dashboard/home, return OPEN_DASHBOARD.
+If the user asks to read/list available exams, return OPEN_EXAM.
+If the user asks for the next, previous, current, selected, marked, unanswered, time left, or submission operation during an exam/practice session, use the matching exam operation intent rather than UNKNOWN_COMMAND.
+Never return an intent outside the enum.
 If the user is asking you to solve a question, give an answer to a test question, or explain a concept as if trying to cheat, return QUESTION_SOLVING.
 If you cannot determine the intent, return UNKNOWN_COMMAND.`,
     });

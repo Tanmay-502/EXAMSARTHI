@@ -28,6 +28,12 @@ describe('Voice Command Parser', () => {
       assert.deepStrictEqual(parseCommand('no change it', 'en-IN'), { type: 'CHANGE' });
     });
 
+    test('should parse natural navigation phrases', () => {
+      assert.deepStrictEqual(parseCommand('take me back to dashboard', 'en-IN'), { type: 'OPEN_DASHBOARD' });
+      assert.deepStrictEqual(parseCommand('go to dashboard', 'en-IN'), { type: 'OPEN_DASHBOARD' });
+      assert.deepStrictEqual(parseCommand('I want to give exam', 'en-IN'), { type: 'DASHBOARD_EXAM' });
+    });
+
     test('should parse Review commands', () => {
       assert.deepStrictEqual(parseCommand('mark for review', 'en-IN'), { type: 'MARK_REVIEW' });
       assert.deepStrictEqual(parseCommand('unmark it', 'en-IN'), { type: 'REMOVE_REVIEW' });

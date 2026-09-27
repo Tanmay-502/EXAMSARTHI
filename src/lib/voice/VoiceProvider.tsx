@@ -48,6 +48,8 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const onResultRef = useRef<((text: string) => void) | null>(null);
   const micErrorRef = useRef<string | null>(null);
   const restartTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSpokenRef = useRef<{ text: string; at: number }>({ text: '', at: 0 });
+  const lastTranscriptRef = useRef<{ text: string; at: number }>({ text: '', at: 0 });
 
   const updateVoiceState = useCallback((state: VoiceState) => {
     setVoiceState(state);
@@ -142,6 +144,18 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
 
   const speak = useCallback((text: string) => {
     if (typeof window === 'undefined' || !window.speechSynthesis) return;
+
+    const normalizedText = text.trim().replace(/\s+/g, ' ');
+    if (!normalizedText) return;
+
+    const now = Date.now();
+    if (
+      lastSpokenRef.current.text === normalizedText &&
+      now - lastSpokenRef.current.at < 1500
+    ) {
+      return;
+    }
+    lastSpokenRef.current = { text: normalizedText, at: now };
     
     speechSessionIdRef.current += 1;
     const currentSession = speechSessionIdRef.current;
@@ -218,7 +232,20 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onresult = (event: any) => {
-      const resultTranscript = event.results[event.results.length - 1][0].transcript;
+      const resultTranscript = String(event.results[event.results.length - 1][0].transcript || '').trim();
+      if (!resultTranscript) return;
+
+      const normalizedTranscript = resultTranscript.toLowerCase().replace(/\s+/g, ' ');
+      const now = Date.now();
+      if (
+        lastTranscriptRef.current.text === normalizedTranscript &&
+        now - lastTranscriptRef.current.at < 1200
+      ) {
+        updateVoiceState('LISTENING');
+        return;
+      }
+      lastTranscriptRef.current = { text: normalizedTranscript, at: now };
+
       updateVoiceState('PROCESSING');
       
       setTranscript(prev => [...prev, {
