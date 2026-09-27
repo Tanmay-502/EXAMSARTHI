@@ -28,17 +28,17 @@
   - Tables:
     - `profiles` - Candidate metadata, accessibility settings, and preferred language.
     - `exams` - Exam metadata (title, duration, instructions).
-    - `questions` - Question text, options, marks, media URLs (`image_url`), and translations (`content_translations`, `options_translations`). Correct answers (`correct_answer_index`) are protected by RLS.
+    - `questions` - Question text, options, marks, media URLs (`image_url`), and translations (`content_translations`, `options_translations`). Correct answers (`correct_answer_index`) are isolated in `question_answers` with no authenticated read policy.
     - `exam_sessions` - Session lifecycle (`in_progress`, `submitted`), time tracking, score, and analytics.
     - `answers` - Candidate selected options, review flags (`is_marked_for_review`), and response timing.
     - `audit_logs` - Action logging for exam integrity monitoring.
-  - Migrations: Managed in `supabase/migrations/` (00000 through 00008).
+  - Migrations: Managed in `supabase/migrations/` (00000 through 00010).
 
 **Local Client Cache:**
 - IndexedDB via `idb-keyval` (v6.3.0) and `zustand/middleware` (`createJSONStorage`):
   - Purpose: High-resilience offline local storage for candidate answers and active exam session state (`useExamStore` in `src/lib/store/examStore.ts`).
   - Storage key: `exam-storage`.
-  - Guarantees zero data loss if network connection drops during an ongoing exam.
+  - Preserves the active client exam state locally; server answer persistence is replayed when connectivity returns.
 
 ## Authentication & Identity
 
