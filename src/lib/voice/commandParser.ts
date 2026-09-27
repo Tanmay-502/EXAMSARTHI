@@ -60,6 +60,23 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
   if (/\b(give me|show me|tell me|check|what is my)\b.*\b(progress|performance|score)\b/.test(normalized)) return { type: 'READ_PROGRESS' };
   if (/\b(i|i'd|i would|i want|i need|would like)\b.*\b(sign in|login|log in)\b/.test(normalized)) return { type: 'SIGN_IN' };
   if (/\b(i|i'd|i would|i want|i need|would like)\b.*\b(sign up|signup|register|create an account)\b/.test(normalized)) return { type: 'SIGN_UP' };
+  // Natural-language shortcuts for Hindi and Telugu voice flows.
+  if (lang === 'hi-IN') {
+    if (/(मैं|मुझे)\s+.*(परीक्षा|टेस्ट).*(देना|शुरू|लेना)/.test(normalized)) return { type: 'DASHBOARD_EXAM' };
+    if (/(मैं|मुझे)\s+.*(अभ्यास|प्रैक्टिस).*(करना|शुरू|चाहिए|है)/.test(normalized)) return { type: 'DASHBOARD_PRACTICE' };
+    if (/(मुझे|मैं).*(साइन इन|लॉग इन|लॉगिन)/.test(normalized)) return { type: 'SIGN_IN' };
+    if (/(मुझे|मैं).*(साइन अप|अकाउंट बनाना|खाता बनाना)/.test(normalized)) return { type: 'SIGN_UP' };
+    if (/(डैशबोर्ड|होम).*(जाएं|जाओ|खोलें|खोलो|वापस)/.test(normalized)) return { type: 'OPEN_DASHBOARD' };
+  }
+
+  if (lang === 'te-IN') {
+    if (/(నేను|నాకు).*(పరీక్ష|టెస్ట్).*(రాయ|ప్రారంభ|తీసుకో)/.test(normalized)) return { type: 'DASHBOARD_EXAM' };
+    if (/(నేను|నాకు).*(ప్రాక్టీస్).*(చేయ|ప్రారంభ)/.test(normalized)) return { type: 'DASHBOARD_PRACTICE' };
+    if (/(సైన్ ఇన్|లాగిన్).*/.test(normalized)) return { type: 'SIGN_IN' };
+    if (/(సైన్ అప్|ఖాతా సృష్టించ|అకౌంట్).*/.test(normalized)) return { type: 'SIGN_UP' };
+    if (/(డాష్‌బోర్డ్|డాష్బోర్డ్|హోమ్).*(వెళ్ల|తెర|తిరిగి)/.test(normalized)) return { type: 'OPEN_DASHBOARD' };
+  }
+
   // Hardcoded fallback for analysis
   if (matchesPhrase(normalized, 'analysis') || matchesPhrase(normalized, 'show analysis') || matchesPhrase(normalized, 'open analysis') || matchesPhrase(normalized, 'give me the analysis') || matchesPhrase(normalized, 'tell me my analysis') || matchesPhrase(normalized, 'tell me the analysis of me') || matchesPhrase(normalized, 'analyse my preparation') || matchesPhrase(normalized, 'analyze my preparation') || matchesPhrase(normalized, 'show my performance') || matchesPhrase(normalized, 'how am i performing') || matchesPhrase(normalized, 'how is my preparation') || matchesPhrase(normalized, 'analyze') || matchesPhrase(normalized, 'analyse') || matchesPhrase(normalized, 'విశ్లేషణ') || matchesPhrase(normalized, 'విశ్లేషణ చూపించు') || matchesPhrase(normalized, 'నా విశ్లేషణ') || matchesPhrase(normalized, 'నా పనితీరు ఎలా ఉంది') || matchesPhrase(normalized, 'నా తయారీ ఎలా ఉంది') || matchesPhrase(normalized, 'పనితీరు')) return { type: 'OPEN_ANALYSIS' };
 
