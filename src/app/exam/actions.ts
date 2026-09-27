@@ -295,18 +295,34 @@ export async function fetchPracticeQuestions(subject: string, difficulty: string
     throw new Error('Invalid practice question count')
   }
 
-  const { data: questions, error } = await supabase
+  const countQuery = await supabase
+    .from('questions')
+    .select('id', { count: 'exact', head: true })
+    .eq('subject', normalizedSubject)
+    .eq('difficulty', normalizedDifficulty)
+
+  if (countQuery.error) {
+    throw new Error(`Failed to count practice questions: ${countQuery.error.message}`)
+  }
+
+  const availableCount = countQuery.count || 0
+  const fetchCount = Math.min(normalizedCount, availableCount)
+  const maxOffset = Math.max(0, availableCount - fetchCount)
+  const offset = maxOffset > 0 ? Math.floor(Math.random() * (maxOffset + 1)) : 0
+
+  const questionsQuery = await supabase
     .from('questions')
     .select('id, exam_id, order_index, content_text, options, content_translations, options_translations, subject, difficulty, image_url, image_alt_text')
     .eq('subject', normalizedSubject)
     .eq('difficulty', normalizedDifficulty)
     .order('order_index', { ascending: true })
-    .limit(normalizedCount)
+    .range(offset, Math.max(offset - 1, offset + fetchCount - 1))
 
-  if (error) {
-    throw new Error(`Failed to fetch practice questions: ${error.message}`)
+  if (questionsQuery.error) {
+    throw new Error(`Failed to fetch practice questions: ${questionsQuery.error.message}`)
   }
 
+  const questions = questionsQuery.data || []
   const shuffledQuestions = [...questions]
   for (let i = shuffledQuestions.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1))
@@ -352,7 +368,7 @@ export async function fetchPracticeQuestions(subject: string, difficulty: string
         difficulty: q.difficulty
       };
     }) as Question[],
-    totalFound: questions.length
+    totalFound: availableCount
   };
 }
 
