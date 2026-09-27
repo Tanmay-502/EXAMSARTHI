@@ -222,7 +222,11 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
     if (action === 'LOGOUT') {
       speak(lang === 'hi-IN' ? 'लॉग आउट कर रहा हूँ।' : lang === 'te-IN' ? 'లాగ్ అవుట్ చేస్తున్నాను.' : 'Logging you out.');
       isNavigatingRef.current = true;
-      router.push('/auth/login');
+
+      const supabase = createClient();
+      supabase.auth.signOut().finally(() => {
+        router.push('/');
+      });
     }
 
   }, [getContextName, registry, router, setLang, speak, lang, pathname]);
