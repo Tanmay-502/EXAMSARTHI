@@ -2,74 +2,30 @@
 
 ## Overview
 
-EXAMSAARTHI V2 is a voice-first, highly accessible examination and practice platform for visually impaired candidates. The architectural mandate prioritizes independent operation via screen readers, keyboard, and voice above all else, while still offering a premium visual experience for low-vision or sighted users.
+EXAMSAARTHI V2 is a voice-first accessible examination and practice platform built with Next.js 16.3.6, React 19, Supabase, browser Web Speech APIs, Zustand/IndexedDB, and optional Gemini services.
 
-## Layers
+## Core layers
 
-1. **Accessibility Core**
-   - Headless state management for a11y preferences.
-   - ARIA live region announcer service.
-   - Focus trap and management utility.
+1. **Accessibility** — semantic HTML, live-region announcements, focus management, keyboard support, reduced motion.
+2. **Internationalisation** — English, Hindi, and Telugu dictionaries and speech locales.
+3. **Voice** — browser STT/TTS through VoiceProvider, deterministic parser, Gemini fallback, global action dispatcher, contextual SafeActionRegistry.
+4. **Exam & Practice** — shared ExamEngine with strict state transitions and voice confirmation.
+5. **Persistence** — Zustand + IndexedDB for immediate local recovery; incremental server autosave through saveAnswer.
+6. **Backend** — Next.js Server Actions + Supabase SSR/Admin clients.
+7. **Vision** — Gemini vision route for objective diagram descriptions, with database alt-text preferred when present.
+8. **Results & Analysis** — server-derived metrics, subject breakdown, history, and learning insights.
+9. **PWA** — manifest plus production service worker for static assets only.
 
-2. **Internationalization (i18n)**
-   - Context-based dictionary providing UI strings in English (`en-IN`) and Hindi (`hi-IN`).
-   - Ensures all text, including dynamic screen reader announcements and speech synthesis output, are properly translated.
+## Security
 
-3. **Voice Engine**
-   - Abstraction over the Web Speech API (SpeechRecognition and SpeechSynthesis).
-   - Pluggable interface for future migration to cloud-based speech services (e.g., Google Cloud Speech-to-Text).
-   - Global command listener for Voice Commands (Next, Back, Repeat, Mark, Time Left).
+Correct-answer data is isolated from the exam client. Client writes to exam_sessions and answers are restricted; privileged server actions validate candidate ownership and session/question boundaries before writing.
 
-4. **Keyboard Navigation**
-   - Global keyboard shortcuts mapping to application actions.
-   - Visible focus indicators.
-   - Skip-to-content links and landmarks (`<main>`, `<nav>`, `<aside>`).
+Real biometric/speaker verification is intentionally not faked.
 
-5. **Screen Reader Semantics**
-   - Strictly semantic HTML structure (correct heading hierarchy, semantic buttons/inputs).
-   - Minimal reliance on custom ARIA roles if native HTML elements suffice.
-   - Clear and concise `aria-labels` or visually hidden text for icon-only buttons or interactive graphs.
+## Authentication
 
-6. **Candidate UI**
-   - Built with React (Next.js App Router).
-   - Styled with Tailwind CSS and shadcn/ui components (accessible by default).
-   - Themeable (High Contrast, Dark, Light) and respectful of `prefers-reduced-motion`.
+Supabase Auth Magic Links are the implemented authentication method. Passkeys are not currently implemented.
 
-7. **Practice & Exam Engines**
-   - Practice Engine: Immediate feedback, voice-guided explanations.
-   - Exam Engine: Strict timing, auto-progression, lock-down features.
-   - Shared business logic for question presentation, navigation, and option selection.
+## Verification standard
 
-8. **Persistence/Recovery**
-   - `IndexedDB` (via idb or localforage) for offline support and auto-saving exam states.
-   - Ensures an exam can be resumed exactly where left off in case of network or browser failure.
-
-9. **Vision Accessibility**
-   - "Vision AI" service abstraction.
-   - Extracts descriptive text from images, graphs, and diagrams to be read aloud by the Voice Engine.
-
-10. **Results**
-    - Post-exam analysis presented in screen-reader-friendly data tables.
-    - Performance insights described structurally (not just visually in charts).
-
-11. **Authentication**
-    - Supabase Auth.
-    - Email/Password and optional Passkeys (WebAuthn).
-    - Authentication flow fully accessible via voice and keyboard.
-
-12. **Security/Audit**
-    - Server-side validation of all exam answers.
-    - Audit logs for significant candidate actions (started exam, answered, marked for review).
-
-## Directory Structure (Next.js App Router)
-
-```text
-src/
-├── app/                  # App Router pages and layouts
-├── components/           # UI Components (shadcn, composite widgets)
-├── lib/                  # Utilities, Supabase client
-├── services/             # Voice, Accessibility, Vision abstractions
-├── stores/               # State management (Zustand or Context)
-├── i18n/                 # Translation dictionaries
-└── types/                # TypeScript definitions
-```
+Automated accessibility checks target WCAG 2.1 AA. Full accessibility and production auth claims still require manual target-environment verification.
