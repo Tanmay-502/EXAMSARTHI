@@ -363,37 +363,85 @@ function ExamPageContent() {
 
   useEffect(() => {
     if (!examId) return;
-    
-    async function loadExam() {
+
+    let cancelled = false;
+
+    async function loadExamMetadata() {
       setLoading(true);
+      setError('');
       try {
         const exams = await fetchAvailableExams();
         const currentExam = exams.find(e => e.id === examId);
-        if (currentExam) {
-          setExamMeta({ title: currentExam.title, duration_minutes: currentExam.duration_minutes });
+
+        if (!currentExam) {
+          throw new Error('Exam not found or unavailable');
         }
-        
-        const sessionId = await startExamSession(examId!);
-        const questions = await fetchExamQuestions(examId!, sessionId, lang);
-        
-        initializeExam(sessionId, examId!, questions);
-        setExamStarted(true);
+
+        if (!cancelled) {
+          setExamMeta({
+            title: currentExam.title,
+            duration_minutes: currentExam.duration_minutes,
+          });
+        }
       } catch (err: unknown) {
-        if (err instanceof Error) {
-          if (err.message === 'Unauthorized') {
-            router.push('/auth/login?message=unauthenticated');
-            return;
-          }
-          setError(err.message || 'Failed to load exam');
-        } else {
-          setError('Failed to load exam');
+        if (cancelled) return;
+        if (err instanceof Error && err.message === 'Unauthorized') {
+          router.push('/auth/login?message=unauthenticated');
+          return;
         }
+        setError(err instanceof Error ? err.message : 'Failed to load exam');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
-    loadExam();
-  }, [examId, initializeExam, lang, router]);
+
+    void loadExamMetadata();
+    return () => {
+      cancelled = true;
+    };
+  }, [examId, router]);
+
+  useEffect(() => {
+    if (!examId || !examMeta || !deviceCheckComplete || examStarted) return;
+
+    let cancelled = false;
+
+    async function startExamAfterDeviceCheck() {
+      setLoading(true);
+      setError('');
+
+      try {
+        const sessionId = await startExamSession(examId);
+        const questions = await fetchExamQuestions(examId, sessionId, lang);
+
+        if (questions.length === 0) {
+          throw new Error('This exam currently has no available questions');
+        }
+
+        if (!cancelled) {
+          initializeExam(sessionId, examId, questions);
+          setExamStarted(true);
+        }
+      } catch (err: unknown) {
+        if (cancelled) return;
+
+        if (err instanceof Error && err.message === 'Unauthorized') {
+          router.push('/auth/login?message=unauthenticated');
+          return;
+        }
+
+        setError(err instanceof Error ? err.message : 'Failed to start exam');
+        speak('I could not start the exam. Please try again.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    void startExamAfterDeviceCheck();
+    return () => {
+      cancelled = true;
+    };
+  }, [examId, examMeta, deviceCheckComplete, examStarted, initializeExam, lang, router, speak]);
 
   if (!examId) {
     return <ExamSelection onSelect={(id) => {
@@ -403,7 +451,7 @@ function ExamPageContent() {
     }} />;
   }
 
-  if (loading) {
+  if (loading && !examMeta) {
     return <div className="flex flex-col items-center justify-center flex-1 p-6 text-xl">Loading Exam...</div>;
   }
 
@@ -411,16 +459,20 @@ function ExamPageContent() {
     return <div className="flex flex-col items-center justify-center flex-1 p-6 text-xl text-destructive">{error}</div>;
   }
 
-  if (!examStarted) {
-    return null;
+  if (!examMeta) {
+    return <div className="flex flex-col items-center justify-center flex-1 p-6 text-xl">Preparing exam...</div>;
   }
 
   if (!deviceCheckComplete) {
-    return <DeviceCheck 
-      onComplete={() => setDeviceCheckComplete(true)} 
+    return <DeviceCheck
+      onComplete={() => setDeviceCheckComplete(true)}
       interactionMode={interactionMode}
       setInteractionMode={setMode}
     />;
+  }
+
+  if (loading || !examStarted) {
+    return <div className="flex flex-col items-center justify-center flex-1 p-6 text-xl">Starting exam...</div>;
   }
 
   return (
