@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { buildSubjectStats } from '@/lib/analytics/subjectStats'
 
 export type SubjectStats = {
   subject: string;
@@ -73,69 +74,21 @@ export async function fetchAnalyticsData(): Promise<AnalyticsData> {
     avgDurationSeconds = Math.round(totalDuration / totalSessions / 1000);
   }
 
-  const subjectStatsMap: Record<string, SubjectStats> = {};
+  const adminClient = await createAdminClient();
+  const subjectStats = await buildSubjectStats(adminClient, completedSessions);
+  const subjectStatsMap: Record<string, SubjectStats> = Object.fromEntries(
+    Object.entries(subjectStats).map(([subject, stats]) => [subject, { ...stats }])
+  );
+
   const strongSubjects: string[] = [];
   const weakSubjects: string[] = [];
 
-  if (totalSessions > 0) {
-    const adminClient = await createAdminClient();
-    const { data: answers, error: answersError } = await adminClient
-      .from('answers')
-      .select(`
-        id,
-        session_id,
-        selected_option_index,
-        questions!inner (
-          subject,
-          question_answers (
-            correct_answer_index
-          )
-        )
-      `)
-      .in('session_id', completedSessions.map(s => s.id));
-
-    if (!answersError && answers && answers.length > 0) {
-      // Type assertion or robust handling
-      answers.forEach((ans: {
-        selected_option_index: number | null;
-        questions: {
-          subject: string | null;
-          question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
-        }[] | {
-          subject: string | null;
-          question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
-        } | null;
-      }) => {
-        const qList = Array.isArray(ans.questions) ? ans.questions : (ans.questions ? [ans.questions] : []);
-        const q = qList[0];
-        const subject = q?.subject || 'General';
-        const qa = q?.question_answers;
-        const correctIndex = Array.isArray(qa) ? qa[0]?.correct_answer_index : qa?.correct_answer_index;
-        
-        if (!subjectStatsMap[subject]) {
-          subjectStatsMap[subject] = { subject, correct: 0, incorrect: 0, unanswered: 0, total: 0, accuracy: 0 };
-        }
-        
-        subjectStatsMap[subject].total += 1;
-        
-        if (ans.selected_option_index === null) {
-          subjectStatsMap[subject].unanswered += 1;
-        } else if (ans.selected_option_index === correctIndex) {
-          subjectStatsMap[subject].correct += 1;
-        } else {
-          subjectStatsMap[subject].incorrect += 1;
-        }
-      });
-
-      Object.values(subjectStatsMap).forEach(stats => {
-        stats.accuracy = Math.round((stats.correct / stats.total) * 100);
-        if (stats.total >= 2) {
-          if (stats.accuracy >= 70) strongSubjects.push(stats.subject);
-          if (stats.accuracy <= 50) weakSubjects.push(stats.subject);
-        }
-      });
+  Object.values(subjectStatsMap).forEach(stats => {
+    if (stats.total >= 2) {
+      if (stats.accuracy >= 70) strongSubjects.push(stats.subject);
+      if (stats.accuracy < 50) weakSubjects.push(stats.subject);
     }
-  }
+  });
 
   return {
     overall: {
