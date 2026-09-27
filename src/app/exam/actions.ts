@@ -52,7 +52,7 @@ export async function fetchExamQuestions(examId: string, sessionId: string, lang
   // Bind question retrieval to the authenticated in-progress session.
   const { data: session, error: sessionError } = await supabase
     .from('exam_sessions')
-    .select('id, exam_id, status')
+    .select('id, exam_id, status, question_ids')
     .eq('id', sessionId)
     .eq('candidate_id', user.id)
     .single()
@@ -61,19 +61,31 @@ export async function fetchExamQuestions(examId: string, sessionId: string, lang
     throw new Error('Exam session not found, inactive, or unauthorized')
   }
 
-  // Fetch questions, explicitly EXCLUDING correct_answer_index
-  const { data: questions, error } = await supabase
+  const rosterIds = Array.isArray(session.question_ids)
+    ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+    : []
+
+  // Fetch questions, explicitly EXCLUDING correct_answer_index.
+  const baseQuery = supabase
     .from('questions')
     .select('id, exam_id, order_index, content_text, options, content_translations, options_translations, image_url, image_alt_text')
-    .eq('exam_id', examId)
-    .order('order_index', { ascending: true })
+
+  const { data: questions, error } = rosterIds.length > 0
+    ? await baseQuery.in('id', rosterIds)
+    : await baseQuery.eq('exam_id', examId).order('order_index', { ascending: true })
 
   if (error) {
     throw new Error(`Failed to fetch questions: ${error.message}`)
   }
 
   // Map to the frontend Question type
-  const mappedQuestions = questions.map((q: { id: string; exam_id: string; order_index: number; content_text: string; options: string[]; content_translations: Record<string, string>; options_translations: Record<string, string[]>; image_url: string | null; image_alt_text: string | null }) => {
+  const orderedQuestions = rosterIds.length > 0
+    ? rosterIds
+        .map(id => questions.find(question => question.id === id))
+        .filter((question): question is NonNullable<typeof questions[number]> => Boolean(question))
+    : questions
+
+  const mappedQuestions = orderedQuestions.map((q: { id: string; exam_id: string; order_index: number; content_text: string; options: string[]; content_translations: Record<string, string>; options_translations: Record<string, string[]>; image_url: string | null; image_alt_text: string | null }) => {
     let questionText = q.content_text;
     let optionsList = q.options;
 
@@ -155,12 +167,28 @@ export async function startExamSession(examId: string) {
   // Provision profile if it doesn't exist
   await ensureCandidateProfile(supabase, user)
 
+  const { data: rosterQuestions, error: rosterError } = await adminClient
+    .from('questions')
+    .select('id')
+    .eq('exam_id', examId)
+    .order('order_index', { ascending: true })
+
+  if (rosterError) {
+    throw new Error(`Failed to load exam question roster: ${rosterError.message}`)
+  }
+
+  const questionIds = (rosterQuestions || []).map(question => question.id)
+  if (questionIds.length === 0) {
+    throw new Error('This exam currently has no available questions')
+  }
+
   const { data, error } = await adminClient
     .from('exam_sessions')
     .insert({
       exam_id: examId,
       candidate_id: user.id,
       status: 'in_progress',
+      question_ids: questionIds,
     })
     .select('id')
     .single()
