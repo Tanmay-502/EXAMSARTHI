@@ -395,39 +395,75 @@ function ExamPageContent() {
   const [deviceCheckComplete, setDeviceCheckComplete] = useState(false);
   const [examMeta, setExamMeta] = useState<{ title: string; duration_minutes: number } | null>(null);
 
+  // First load only the selected exam metadata. Do not create an in-progress
+  // server session until the candidate has passed the device check.
   useEffect(() => {
     if (!examId) return;
-    
-    async function loadExam() {
+
+    async function loadExamMeta() {
       setLoading(true);
+      setError('');
       try {
         const exams = await fetchAvailableExams();
         const currentExam = exams.find(e => e.id === examId);
-        if (currentExam) {
-          setExamMeta({ title: currentExam.title, duration_minutes: currentExam.duration_minutes });
+
+        if (!currentExam) {
+          setError('The selected exam is no longer available.');
+          return;
         }
-        
-        const sessionId = await startExamSession(examId!);
-        const questions = await fetchExamQuestions(examId!, sessionId, lang);
-        
-        initializeExam(sessionId, examId!, questions);
-        setExamStarted(true);
+
+        setExamMeta({
+          title: currentExam.title,
+          duration_minutes: currentExam.duration_minutes
+        });
       } catch (err: unknown) {
-        if (err instanceof Error) {
-          if (err.message === 'Unauthorized') {
-            router.push('/auth/login?message=unauthenticated');
-            return;
-          }
-          setError(err.message || 'Failed to load exam');
-        } else {
-          setError('Failed to load exam');
+        if (err instanceof Error && err.message === 'Unauthorized') {
+          router.push('/auth/login?message=unauthenticated');
+          return;
         }
+
+        setError(err instanceof Error ? err.message : 'Failed to load exam');
       } finally {
         setLoading(false);
       }
     }
-    loadExam();
-  }, [examId, initializeExam, lang, router]);
+
+    loadExamMeta();
+  }, [examId, router]);
+
+  // Only create the server session after the device check is complete.
+  useEffect(() => {
+    if (!examId || !examMeta || !deviceCheckComplete || !preferenceLoaded || examStarted) {
+      return;
+    }
+
+    async function startSelectedExam() {
+      setLoading(true);
+      setError('');
+      try {
+        const sessionId = await startExamSession(examId);
+        const questions = await fetchExamQuestions(examId, sessionId, lang);
+
+        if (questions.length === 0) {
+          throw new Error('This exam has no available questions.');
+        }
+
+        initializeExam(sessionId, examId, questions);
+        setExamStarted(true);
+      } catch (err: unknown) {
+        if (err instanceof Error && err.message === 'Unauthorized') {
+          router.push('/auth/login?message=unauthenticated');
+          return;
+        }
+
+        setError(err instanceof Error ? err.message : 'Failed to start exam');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    startSelectedExam();
+  }, [examId, examMeta, deviceCheckComplete, preferenceLoaded, examStarted, initializeExam, lang, router]);
 
   if (!examId) {
     return <ExamSelection onSelect={(id) => {
@@ -437,16 +473,12 @@ function ExamPageContent() {
     }} />;
   }
 
-  if (loading) {
+  if (loading && !examMeta) {
     return <div className="flex flex-col items-center justify-center flex-1 p-6 text-xl">Loading Exam...</div>;
   }
 
   if (error) {
     return <div className="flex flex-col items-center justify-center flex-1 p-6 text-xl text-destructive">{error}</div>;
-  }
-
-  if (!examStarted) {
-    return null;
   }
 
   if (!preferenceLoaded) {
@@ -459,6 +491,10 @@ function ExamPageContent() {
       interactionMode={interactionMode}
       setInteractionMode={setMode}
     />;
+  }
+
+  if (loading || !examStarted) {
+    return <div className="flex flex-col items-center justify-center flex-1 p-6 text-xl">Starting exam...</div>;
   }
 
   return (
