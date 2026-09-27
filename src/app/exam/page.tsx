@@ -516,7 +516,8 @@ function ExamPageContent() {
 
   // Only create the server session after the device check is complete.
   useEffect(() => {
-    if (!hasHydrated || !examId || !examMeta || !deviceCheckComplete || !preferenceLoaded || examStarted) {
+    const selectedExamId = examId;
+    if (!hasHydrated || !selectedExamId || !examMeta || !deviceCheckComplete || !preferenceLoaded || examStarted) {
       return;
     }
 
@@ -524,8 +525,8 @@ function ExamPageContent() {
       setLoading(true);
       setError('');
       try {
-        const session = await startExamSession(examId);
-        const questions = await fetchExamQuestions(examId, session.id, lang);
+        const session = await startExamSession(selectedExamId);
+        const questions = await fetchExamQuestions(selectedExamId, session.id, lang);
 
         if (questions.length === 0) {
           throw new Error('This exam has no available questions.');
@@ -533,7 +534,7 @@ function ExamPageContent() {
 
         initializeExam(
           session.id,
-          examId,
+          selectedExamId,
           questions,
           new Date(session.startedAt).getTime()
         );
