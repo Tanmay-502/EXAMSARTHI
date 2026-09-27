@@ -20,16 +20,24 @@ export async function fetchAvailableExams() {
     throw new Error(`Failed to fetch exams: ${error.message}`)
   }
 
-  return data.map((exam: { id: string; title: string; description: string | null; duration_minutes: number; questions: unknown }) => {
-    const qs = exam.questions as { count: number }[] | null;
-    return {
-      id: exam.id,
-      title: exam.title,
-      description: exam.description,
-      duration_minutes: exam.duration_minutes,
-      question_count: Array.isArray(qs) && qs.length > 0 ? qs[0].count : 0
-    };
-  }) as { id: string; title: string; description: string | null; duration_minutes: number; question_count: number }[];
+  return data
+    .map((exam: { id: string; title: string; description: string | null; duration_minutes: number; questions: unknown }) => {
+      const qs = exam.questions as { count: number }[] | null;
+      return {
+        id: exam.id,
+        title: exam.title,
+        description: exam.description,
+        duration_minutes: exam.duration_minutes,
+        question_count: Array.isArray(qs) && qs.length > 0 ? qs[0].count : 0
+      };
+    })
+    .filter((exam) => exam.question_count > 0) as {
+      id: string;
+      title: string;
+      description: string | null;
+      duration_minutes: number;
+      question_count: number;
+    }[];
 }
 
 export async function fetchAvailablePracticeSubjects() {
