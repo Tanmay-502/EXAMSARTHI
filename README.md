@@ -22,7 +22,7 @@ ExamSaarthi V2 is an accessible, voice-first, multilingual examination and pract
 ## Getting Started
 
 1. Create .env.local and keep it out of Git.
-2. Apply Supabase migrations through 00008_lock_exam_session_inserts.sql.
+2. Apply Supabase migrations through 00010_lock_exam_session_inserts.sql.
 3. Start the server:
 
 ```bash
