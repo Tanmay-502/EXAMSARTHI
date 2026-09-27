@@ -6,7 +6,7 @@ import { useVoice } from '@/lib/voice/VoiceProvider';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 import { VoiceCore } from '@/components/voice/VoiceCore';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState, Suspense } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { motion } from 'framer-motion';
@@ -18,14 +18,14 @@ function DashboardContent() {
   const { announce } = useAccessibility();
   const { speak, isContinuous, startContinuousListening, transcript } = useVoice();
   const { useVoiceAction } = useGlobalVoice();
-  const router = useRouter();
-  const searchParams = useSearchParams();
+    const searchParams = useSearchParams();
   const redirected = searchParams.get('redirected');
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   
   const headingRef = useRef<HTMLHeadingElement>(null);
   const hasSpokenRef = useRef(false);
-  const [timeOfDay, setTimeOfDay] = useState<'morning' | 'afternoon' | 'evening'>('morning');
+  const currentHour = new Date().getHours();
+  const timeOfDay: 'morning' | 'afternoon' | 'evening' = currentHour < 12 ? 'morning' : currentHour < 17 ? 'afternoon' : 'evening';
   const [userName, setUserName] = useState<string | null>(null);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [insight, setInsight] = useState<string | null>(null);
@@ -36,9 +36,6 @@ function DashboardContent() {
   }, [transcript]);
 
   useEffect(() => {
-    const hour = new Date().getHours();
-    setTimeOfDay(hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening');
-
     const fetchUser = async () => {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
