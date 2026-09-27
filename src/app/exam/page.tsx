@@ -87,7 +87,7 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
   return (
     <div className="flex flex-col min-h-screen w-full max-w-4xl mx-auto pt-32 pb-24 px-6 bg-black text-white">
       <div className="mb-24 border-b border-zinc-900 pb-8">
-        <span className="text-zinc-500 tracking-[0.2em] text-xs uppercase">SYSTEM CHECK</span>
+        <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase">SYSTEM CHECK</span>
       </div>
 
       <div className="flex-1 flex flex-col justify-center space-y-16">
@@ -98,22 +98,22 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
         <div className="space-y-8 border-t border-zinc-900 pt-8">
           <div className="flex items-center justify-between">
             <span className="text-2xl font-light text-zinc-400">Browser Speech Services</span>
-            {browserStatus === 'pending' && <span className="text-zinc-600 uppercase tracking-widest text-sm animate-pulse">Checking</span>}
+            {browserStatus === 'pending' && <span className="text-zinc-400 uppercase tracking-widest text-sm animate-pulse">Checking</span>}
             {browserStatus === 'success' && <span className="text-white uppercase tracking-widest text-sm font-medium">Ready</span>}
-            {browserStatus === 'not-required' && <span className="text-zinc-500 uppercase tracking-widest text-sm font-medium">Not required</span>}
+            {browserStatus === 'not-required' && <span className="text-zinc-400 uppercase tracking-widest text-sm font-medium">Not required</span>}
             {browserStatus === 'error' && <span className="text-red-500 uppercase tracking-widest text-sm font-medium">Unavailable</span>}
           </div>
           <div className="flex items-center justify-between border-t border-zinc-900 pt-8">
             <span className="text-2xl font-light text-zinc-400">Microphone Access</span>
-            {micStatus === 'pending' && <span className="text-zinc-600 uppercase tracking-widest text-sm animate-pulse">Checking</span>}
+            {micStatus === 'pending' && <span className="text-zinc-400 uppercase tracking-widest text-sm animate-pulse">Checking</span>}
             {micStatus === 'success' && <span className="text-white uppercase tracking-widest text-sm font-medium">Granted</span>}
-            {micStatus === 'not-required' && <span className="text-zinc-500 uppercase tracking-widest text-sm font-medium">Not required</span>}
+            {micStatus === 'not-required' && <span className="text-zinc-400 uppercase tracking-widest text-sm font-medium">Not required</span>}
             {micStatus === 'error' && <span className="text-red-500 uppercase tracking-widest text-sm font-medium">Unavailable</span>}
           </div>
         </div>
         
         {!allClear && (micStatus !== 'pending' && browserStatus !== 'pending') && (
-           <div className="pt-8 text-zinc-500 font-light text-lg">
+           <div className="pt-8 text-zinc-400 font-light text-lg">
              Voice features are unavailable in this browser right now. You can retry voice access or explicitly continue with keyboard and screen reader mode.
            </div>
         )}
@@ -399,14 +399,14 @@ function ExamSelection({
 
 
 
-  if (loading) return <div className="flex flex-col items-center justify-center min-h-screen bg-black text-zinc-500 font-light text-xl">Loading available exams...</div>;
+  if (loading) return <div className="flex flex-col items-center justify-center min-h-screen bg-black text-zinc-400 font-light text-xl">Loading available exams...</div>;
   if (error) return <div className="flex flex-col items-center justify-center min-h-screen bg-black text-red-500 font-light text-xl">{error}</div>;
 
   return (
     <div className="relative flex flex-col min-h-screen w-full max-w-7xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
       <div className="mb-24 flex items-center justify-between border-b border-zinc-900 pb-8">
         <div className="flex flex-col">
-          <span className="text-zinc-500 tracking-[0.2em] text-xs uppercase mb-2">MODE</span>
+          <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">MODE</span>
           <span className="text-xl font-light tracking-wide">EXAMINATION</span>
         </div>
         <VoiceCore size="sm" />
@@ -415,7 +415,7 @@ function ExamSelection({
       <div className="flex-1 flex flex-col justify-center w-full max-w-4xl mx-auto">
         <div className="mb-16">
           <h2 className="text-[clamp(2.5rem,5vw,5rem)] font-light tracking-tighter leading-tight mb-4">Choose your exam</h2>
-          <p className="text-2xl text-zinc-500 font-light">&quot;Say the name of an available exam.&quot;</p>
+          <p className="text-2xl text-zinc-400 font-light">&quot;Say the name of an available exam.&quot;</p>
         </div>
 
         <div className="flex flex-col">
@@ -434,7 +434,7 @@ function ExamSelection({
                   " minutes. Say yes to start or say change to choose another."
                 );
               }}
-              className={`group flex w-full text-left flex-col md:flex-row md:items-center justify-between py-8 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-inset ${selectedExam?.id === exam.id ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+              className={`group flex w-full text-left flex-col md:flex-row md:items-center justify-between py-8 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-inset ${selectedExam?.id === exam.id ? 'text-white' : 'text-zinc-400 hover:text-zinc-300'}`}
               aria-pressed={selectedExam?.id === exam.id}
               aria-label={`${exam.title}, ${exam.question_count} questions, ${exam.duration_minutes} minutes`}
             >
@@ -454,7 +454,7 @@ function ExamSelection({
         {selectedExam && (
           <div className="mt-16 pt-8 border-t border-zinc-900 animate-in fade-in slide-in-from-bottom-4">
             <p className="text-2xl font-light text-zinc-300 mb-2">You selected <strong className="text-white font-medium">{selectedExam.title}</strong>.</p>
-            <p className="text-zinc-500 font-light">Say &quot;Yes&quot; to start or &quot;No&quot; to choose another.</p>
+            <p className="text-zinc-400 font-light">Say &quot;Yes&quot; to start or &quot;No&quot; to choose another.</p>
           </div>
         )}
       </div>
