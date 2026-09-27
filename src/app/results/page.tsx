@@ -24,11 +24,11 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
       .order('completed_at', { ascending: false })
       .limit(1)
       .single();
-      
+
     if (!latestSession) {
       redirect('/dashboard');
     }
-    
+
     redirect('/results?session_id=' + latestSession.id);
   }
 
@@ -50,23 +50,23 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
   const adminClient = await createAdminClient();
   const { data: answersWithQuestions } = await adminClient
     .from('answers')
-    .select('\
-      selected_option_index,\
-      questions!inner (\
-        id,\
-        subject,\
-        question_answers (\
-          correct_answer_index\
-        )\
-      )\
-    ')
+    .select(`
+      selected_option_index,
+      questions!inner (
+        id,
+        subject,
+        question_answers (
+          correct_answer_index
+        )
+      )
+    `)
     .eq('session_id', sessionId);
 
   // Compute Subject Breakdown
   const subjectStats: Record<string, { total: number; correct: number; incorrect: number; unanswered: number }> = {};
   let weakestSubject = '';
   let weakestSubjectPerc = 100;
-  
+
   if (answersWithQuestions) {
     type AnswerWithQuestion = {
       selected_option_index: number | null;
@@ -78,7 +78,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
         question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
       } | null;
     };
-    
+
     (answersWithQuestions as AnswerWithQuestion[]).forEach(answer => {
       const question = Array.isArray(answer.questions) ? answer.questions[0] : answer.questions;
       if (!question) return;
@@ -87,9 +87,9 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
       if (!subjectStats[subj]) {
         subjectStats[subj] = { total: 0, correct: 0, incorrect: 0, unanswered: 0 };
       }
-      
+
       subjectStats[subj].total += 1;
-      
+
       if (answer.selected_option_index === null) {
         subjectStats[subj].unanswered += 1;
       } else {
@@ -99,7 +99,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
         } else if (question.question_answers && !Array.isArray(question.question_answers)) {
           correctIdx = question.question_answers.correct_answer_index;
         }
-        
+
         if (answer.selected_option_index === correctIdx) {
           subjectStats[subj].correct += 1;
         } else {
@@ -107,7 +107,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
         }
       }
     });
-    
+
     // Find weakest subject
     Object.entries(subjectStats).forEach(([subj, stats]) => {
       if (stats.total > 0) {
@@ -124,7 +124,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <ResultsAnnouncer 
+      <ResultsAnnouncer
         score={score || 0}
         total={total_questions || 0}
         percentage={percentage || 0}
