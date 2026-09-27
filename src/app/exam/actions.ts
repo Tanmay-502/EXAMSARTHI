@@ -65,6 +65,7 @@ export async function fetchAvailablePracticeSubjects() {
 
 export async function fetchExamQuestions(examId: string, sessionId: string, lang: string = 'en-IN') {
   const supabase = await createClient()
+  const adminClient = await createAdminClient()
   
   // Verify user is authenticated
   const { data: { user } } = await supabase.auth.getUser()
@@ -75,13 +76,17 @@ export async function fetchExamQuestions(examId: string, sessionId: string, lang
   // Bind question retrieval to the authenticated in-progress session.
   const { data: session, error: sessionError } = await supabase
     .from('exam_sessions')
-    .select('id, exam_id, status')
+    .select('id, exam_id, status, started_at')
     .eq('id', sessionId)
     .eq('candidate_id', user.id)
     .single()
 
   if (sessionError || !session || session.status !== 'in_progress' || session.exam_id !== examId) {
     throw new Error('Exam session not found, inactive, or unauthorized')
+  }
+
+  if (await expireExamSessionIfNeeded(adminClient, session.id, session.exam_id, session.started_at, false)) {
+    throw new Error('Exam time has expired')
   }
 
   // Fetch questions, explicitly EXCLUDING correct_answer_index
@@ -143,6 +148,38 @@ export async function fetchExamQuestions(examId: string, sessionId: string, lang
   return mappedQuestions;
 }
 
+async function expireExamSessionIfNeeded(
+  adminClient: SupabaseClient,
+  sessionId: string,
+  examId: string | null,
+  startedAt: string | null,
+  isPractice: boolean
+) {
+  if (isPractice || !examId || !startedAt) return false;
+
+  const { data: exam } = await adminClient
+    .from('exams')
+    .select('duration_minutes')
+    .eq('id', examId)
+    .maybeSingle();
+
+  if (!exam?.duration_minutes || !Number.isFinite(Number(exam.duration_minutes))) return false;
+
+  const expiresAt = new Date(startedAt).getTime() + Number(exam.duration_minutes) * 60_000;
+  if (Date.now() < expiresAt) return false;
+
+  await adminClient
+    .from('exam_sessions')
+    .update({
+      status: 'abandoned',
+      completed_at: new Date().toISOString(),
+      time_remaining_seconds: 0,
+    })
+    .eq('id', sessionId)
+    .eq('status', 'in_progress');
+
+  return true;
+}
 async function ensureCandidateProfile(supabase: SupabaseClient, user: User) {
   const { data: profile } = await supabase
     .from('profiles')
@@ -466,7 +503,7 @@ export async function saveAnswer(
 
   const { data: session, error: sessionError } = await supabase
     .from('exam_sessions')
-    .select('id, exam_id, is_practice, status, question_ids')
+    .select('id, exam_id, is_practice, status, question_ids, started_at')
     .eq('id', sessionId)
     .eq('candidate_id', user.id)
     .single();
@@ -477,6 +514,16 @@ export async function saveAnswer(
 
   if (session.status !== 'in_progress') {
     throw new Error('Answers can only be saved while the session is in progress');
+  }
+
+  if (await expireExamSessionIfNeeded(
+    adminClient,
+    session.id,
+    session.exam_id,
+    session.started_at,
+    Boolean(session.is_practice)
+  )) {
+    throw new Error('Exam time has expired');
   }
 
   const { data: question, error: questionError } = await adminClient
