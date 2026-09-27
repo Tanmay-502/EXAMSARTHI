@@ -281,7 +281,7 @@ function PracticeContent() {
 
       if (setupState === 'ASK_COUNT') {
         const countVal = parseQuestionCount(raw);
-        const diff = /\b(easy|medium|hard)\b/.exec(lower)?.[1] || '';
+        const diff = parseDifficulty(lower) || '';
 
         if (!countVal) {
           handleVoiceFallback("Please say the number of questions, such as 10 or 20.", "How many questions would you like?");
@@ -297,7 +297,7 @@ function PracticeContent() {
       }
 
       if (setupState === 'ASK_DIFFICULTY') {
-        const diff = /\b(easy|medium|hard)\b/.exec(lower)?.[1] || '';
+        const diff = parseDifficulty(lower) || '';
 
         if (!diff) {
           handleVoiceFallback("Please say easy, medium, or hard.", "What difficulty?");
