@@ -10,6 +10,9 @@ import { usePreferredMode, InteractionMode } from '@/lib/hooks/usePreferredMode'
 import { useVoice } from '@/lib/voice/VoiceProvider';
 import { VoiceCore } from '@/components/voice/VoiceCore';
 import { useAccessibility } from '@/lib/accessibility/AccessibilityProvider';
+import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
+import { SafeAction } from '@/lib/voice/safeActionRegistry';
+import { resolveExam } from '@/lib/catalog/examCatalog';
 
 function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onComplete: () => void, interactionMode: InteractionMode, setInteractionMode: (m: InteractionMode) => void }) {
   const [micStatus, setMicStatus] = useState<'pending' | 'success' | 'error'>('pending');
@@ -128,10 +131,12 @@ function ExamSelection({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedExam, setSelectedExam] = useState<AvailableExam | null>(null);
-  const { speak, isContinuous, startContinuousListening, transcript } = useVoice();
+  const { speak, isContinuous, startContinuousListening } = useVoice();
   const { announce } = useAccessibility();
   const hasSpokenWelcome = useRef(false);
-  const hasSpokenConfirmation = useRef(false);
+  const lastHandledTranscriptRef = useRef<string>('');
+  const router = useRouter();
+  const { useVoiceAction } = useGlobalVoice();
 
   useEffect(() => {
     async function load() {
@@ -163,40 +168,99 @@ function ExamSelection({
     }
   }, [loading, error, exams, speak, announce, isContinuous, startContinuousListening, selectedExam]);
 
-  useEffect(() => {
-    if (!transcript || transcript.length === 0) return;
-    const lastMessage = transcript[transcript.length - 1];
-    if (lastMessage.sender !== 'user') return;
-    const lower = lastMessage.text.toLowerCase();
-    
-    if (selectedExam && !hasSpokenConfirmation.current) {
-      if (lower.includes('yes') || lower.includes('start')) {
-        hasSpokenConfirmation.current = true;
+  useVoiceAction((action: SafeAction, _payload?: Record<string, unknown> | null, transcript?: string) => {
+    const raw = transcript?.trim() || '';
+    if (!raw) return false;
+
+    const normalized = raw
+      .toLowerCase()
+      .replace(/&/g, ' and ')
+      .replace(/[^\\p{L}\\p{N}\\s]/gu, ' ')
+      .replace(/\\s+/g, ' ')
+      .trim();
+
+    if (lastHandledTranscriptRef.current === normalized) {
+      return true;
+    }
+
+    const isDashboardRequest =
+      /\\b(dashboard|home)\\b/.test(normalized) &&
+      /(back|return|take me|go to|open|show|bring me|send me)/.test(normalized);
+
+    if (isDashboardRequest || action === 'OPEN_DASHBOARD') {
+      lastHandledTranscriptRef.current = normalized;
+      speak("Taking you back to your dashboard.");
+      router.push('/dashboard');
+      return true;
+    }
+
+    if (selectedExam) {
+      const confirmed = /\\b(yes|yeah|yep|confirm|start|okay|ok|haan|हाँ|అవును)\\b/.test(normalized);
+      const rejected = /\\b(no|nope|change|cancel|different|nah|नहीं|नही|కాదు|రద్దు)\\b/.test(normalized);
+
+      if (confirmed || action === 'CONFIRM') {
+        lastHandledTranscriptRef.current = normalized;
         speak("Starting exam.");
         onSelect(selectedExam.id);
-      } else if (lower.includes('no') || lower.includes('change')) {
-        hasSpokenConfirmation.current = true; // prevent re-trigger
-        setTimeout(() => setSelectedExam(null), 0);
+        return true;
+      }
+
+      if (rejected || action === 'CHANGE') {
+        lastHandledTranscriptRef.current = normalized;
         hasSpokenWelcome.current = false;
-        speak("Which exam would you like instead?");
-        setTimeout(() => { hasSpokenConfirmation.current = false; }, 2000);
+        setSelectedExam(null);
+        speak("Okay. Which exam would you like instead?");
+        return true;
       }
-      return;
+
+      // A new exam name while a selection is pending replaces the pending choice.
+      resolveExam(raw).then((matched) => {
+        if (!matched) return;
+        setSelectedExam(matched as AvailableExam);
+        hasSpokenConfirmation.current = false;
+        speak(
+          matched.title +
+          " selected. It has " +
+          String((matched as AvailableExam).question_count || 0) +
+          " questions. Say yes to start or say change to choose another."
+        );
+      });
+      lastHandledTranscriptRef.current = normalized;
+      return true;
     }
-    
-    if (!selectedExam) {
-      if (lower.includes('read available') || lower.includes('list exam')) {
-        const examNames = exams.map(e => e.title).join(', ');
-        speak(`Available exams are ${examNames}.`);
-      } else {
-        const matchedExam = exams.find(e => lower.includes(e.title.toLowerCase()));
-        if (matchedExam) {
-          setTimeout(() => setSelectedExam(matchedExam), 0);
-          speak(`${matchedExam.title} selected. You have ${matchedExam.question_count} questions and ${matchedExam.duration_minutes} minutes. Would you like to start?`);
-        }
-      }
+
+    if (
+      /\\b(list|available|show|what|which)\\b/.test(normalized) &&
+      /\\b(exam|exams)\\b/.test(normalized)
+    ) {
+      lastHandledTranscriptRef.current = normalized;
+      const examNames = exams.map((exam, index) => `Exam ${index + 1}: ${exam.title}. ${exam.question_count} questions, ${exam.duration_minutes} minutes.`).join(' ');
+      speak("Available exams are " + examNames);
+      return true;
     }
-  }, [transcript, exams, selectedExam, onSelect, speak]);
+
+    const numberMatch = normalized.match(/\\b(first|1|one|second|2|two|third|3|three|fourth|4|fourth|4|four)\\b/);
+    const numericIndex = numberMatch
+      ? ({ first: 0, one: 0, '1': 0, second: 1, two: 1, '2': 1, third: 2, three: 2, '3': 2, fourth: 3, four: 3, '4': 3 } as Record<string, number>)[numberMatch[1]]
+      : undefined;
+
+    const selectByIndex = typeof numericIndex === 'number' ? exams[numericIndex] : null;
+    if (selectByIndex) {
+      lastHandledTranscriptRef.current = normalized;
+      setSelectedExam(selectByIndex);
+      speak(
+        selectByIndex.title +
+        " selected. It has " +
+        selectByIndex.question_count +
+        " questions. Say yes to start or say change to choose another."
+      );
+      return true;
+    }
+
+    return false;
+  });
+
+
 
   if (loading) return <div className="flex flex-col items-center justify-center min-h-screen bg-black text-zinc-500 font-light text-xl">Loading available exams...</div>;
   if (error) return <div className="flex flex-col items-center justify-center min-h-screen bg-black text-red-500 font-light text-xl">{error}</div>;
