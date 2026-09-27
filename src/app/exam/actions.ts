@@ -392,7 +392,7 @@ export async function startPracticeSession(questionIds: string[] = [], practiceS
     if (error.code === '23505') {
       const { data: raced } = await adminClient
         .from('exam_sessions')
-        .select('id')
+        .select('id, question_ids, practice_subject')
         .eq('candidate_id', user.id)
         .eq('status', 'in_progress')
         .eq('is_practice', true)
@@ -400,7 +400,19 @@ export async function startPracticeSession(questionIds: string[] = [], practiceS
         .limit(1)
         .maybeSingle();
 
-      if (raced) return raced.id;
+      const racedQuestionIds = Array.isArray(raced?.question_ids)
+        ? raced.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+        : [];
+
+      const sameRacedRoster =
+        Boolean(raced) &&
+        raced?.practice_subject === normalizedSubject &&
+        racedQuestionIds.length === uniqueQuestionIds.length &&
+        uniqueQuestionIds.every(id => racedQuestionIds.includes(id));
+
+      if (raced && sameRacedRoster) return raced.id;
+
+      throw new Error('A different practice session is already active. Please finish it before starting another.');
     }
 
     throw new Error(`Failed to start practice session: ${error.message}`)
