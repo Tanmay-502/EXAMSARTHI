@@ -23,8 +23,8 @@ test.describe('Accessibility & Keyboard Navigation', () => {
     // Press Enter to submit
     await page.keyboard.press('Enter');
     
-    // Should show some message (either success or failure depending on test environment config)
-    await expect(page.locator('.bg-primary\\/10')).toBeVisible();
+    // The auth action should return an accessible success/error message.
+    await expect(page.getByTestId('auth-message')).toBeVisible();
   });
 
   /* 
