@@ -22,6 +22,7 @@ function LoginForm() {
   const emailRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const lastVoiceEmailRef = useRef<string>('');
+  const orientationSpokenRef = useRef(false);
   const [voiceStep, setVoiceStep] = useState<'idle' | 'awaiting_email' | 'confirming_email' | 'sending'>('idle');
   const [voiceEmail, setVoiceEmail] = useState('');
   const [voiceStatus, setVoiceStatus] = useState('');
@@ -47,7 +48,10 @@ function LoginForm() {
           ? 'సైన్ ఇన్ లేదా కొత్త ఖాతా కోసం మీ ఇమెయిల్ చెప్పండి. కొత్త ఇమెయిల్ అయితే ఖాతా ఆటోమేటిక్‌గా సృష్టించబడుతుంది.'
           : 'This page handles both sign in and new account creation. Tell me your email address; a new email will automatically create an account.';
 
-    speak(msg);
+    if (!orientationSpokenRef.current) {
+      orientationSpokenRef.current = true;
+      speak(msg);
+    }
     setVoiceStep('awaiting_email');
     setVoiceStatus('');
   }, [message, lang, modeLoaded, preferredMode, isContinuous, startContinuousListening, speak]);
