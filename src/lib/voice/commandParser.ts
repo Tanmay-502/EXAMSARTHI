@@ -35,7 +35,7 @@ export type VoiceCommand =
   | { type: 'OPEN_ANALYSIS' }
   | { type: 'UNKNOWN' };
 
-export function parseCommand(transcript: string, lang: Locale): VoiceCommand {
+export function parseCommand(transcript: string, lang: Locale, context?: string): VoiceCommand {
   const normalized = transcript.trim().toLowerCase().replace(/[.,!?।\-]/g, '');
   const langDef = LANGUAGE_REGISTRY[lang];
   
@@ -88,15 +88,24 @@ export function parseCommand(transcript: string, lang: Locale): VoiceCommand {
 
   // Check option selection
   const values = langDef.optionValues;
-  const matchA = values.a.some(v => matchesPhrase(normalized, v));
-  const matchB = values.b.some(v => matchesPhrase(normalized, v));
-  const matchC = values.c.some(v => matchesPhrase(normalized, v));
-  const matchD = values.d.some(v => matchesPhrase(normalized, v));
+  const isExamContext = context === 'exam' || context === 'practice';
+  const hasExplicitOptionKeyword =
+    langDef.optionKeywords.some(keyword => matchesPhrase(normalized, keyword));
 
-  if (matchA) return { type: 'SELECT_OPTION', index: 0 };
-  if (matchB) return { type: 'SELECT_OPTION', index: 1 };
-  if (matchC) return { type: 'SELECT_OPTION', index: 2 };
-  if (matchD) return { type: 'SELECT_OPTION', index: 3 };
+  // Bare words such as "first" are only answer selections inside the
+  // exam/practice context. This prevents ordinary speech like "who is first"
+  // from becoming SELECT_OPTION and then being rejected as an unavailable action.
+  if (isExamContext || hasExplicitOptionKeyword) {
+    const matchA = values.a.some(v => matchesPhrase(normalized, v));
+    const matchB = values.b.some(v => matchesPhrase(normalized, v));
+    const matchC = values.c.some(v => matchesPhrase(normalized, v));
+    const matchD = values.d.some(v => matchesPhrase(normalized, v));
+
+    if (matchA) return { type: 'SELECT_OPTION', index: 0 };
+    if (matchB) return { type: 'SELECT_OPTION', index: 1 };
+    if (matchC) return { type: 'SELECT_OPTION', index: 2 };
+    if (matchD) return { type: 'SELECT_OPTION', index: 3 };
+  }
 
   return { type: 'UNKNOWN' };
 }
