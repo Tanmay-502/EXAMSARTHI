@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "playwright test",
+    "test:unit": "node --experimental-strip-types --test src/lib/voice/__tests__/commandParser.test.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.82",
