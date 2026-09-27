@@ -26,7 +26,7 @@ export function VoiceStatusIndicator({ className }: { className?: string }) {
       case 'ERROR':
         return { icon: AlertCircle, label: micError === 'denied' ? 'Microphone Blocked' : 'Voice Error', color: 'text-red-500', bg: 'bg-red-500/10' };
       default:
-        return { icon: Mic, label: 'Voice Assistant', color: 'text-gray-500', bg: 'bg-gray-500/10' };
+        return { icon: Mic, label: 'Voice Assistant', color: 'text-gray-400', bg: 'bg-gray-500/10' };
     }
   };
 
