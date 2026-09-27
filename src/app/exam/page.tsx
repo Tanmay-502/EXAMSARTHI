@@ -271,6 +271,12 @@ function ExamSelection({
       return true;
     }
 
+    if (!selectedExam && (action === 'START_EXAM' || action === 'OPEN_EXAM')) {
+      lastHandledTranscriptRef.current = normalized;
+      speak("Please say the name of an available exam first.");
+      return true;
+    }
+
     if (
       /\b(list|available|show|what|which)\b/.test(normalized) &&
       /\b(exam|exams)\b/.test(normalized)
