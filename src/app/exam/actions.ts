@@ -438,8 +438,12 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     throw new Error('Exam session not found or unauthorized')
   }
 
-  if (session.status === 'submitted') {
-    throw new Error('Exam session already submitted')
+  if (session.status !== 'in_progress') {
+    throw new Error(
+      session.status === 'submitted'
+        ? 'Exam session already submitted'
+        : 'Exam session is no longer active'
+    )
   }
 
   // Extract question IDs from answers
@@ -530,9 +534,9 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
   }
 
   // 5. Complete session with comprehensive analytics using adminClient to bypass disabled UPDATE policy
-  const { error: sessionError } = await adminClient
+  const { data: completedSession, error: sessionError } = await adminClient
     .from('exam_sessions')
-    .update({ 
+    .update({
       status: 'submitted',
       completed_at: new Date().toISOString(),
       score: correct_questions,
@@ -546,9 +550,15 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     .eq('id', sessionId)
     .eq('candidate_id', user.id)
     .eq('status', 'in_progress')
+    .select('id')
+    .maybeSingle()
 
   if (sessionError) {
     throw new Error(`Failed to complete session: ${sessionError.message}`)
+  }
+
+  if (!completedSession) {
+    throw new Error('Exam session could not be submitted because it is no longer active')
   }
 
   await supabase.from('audit_logs').insert({
