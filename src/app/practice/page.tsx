@@ -16,6 +16,11 @@ import { SafeAction } from '@/lib/voice/safeActionRegistry';
 
 function PracticeContent() {
   const initializeExam = useExamStore(state => state.initializeExam);
+  const persistedSessionId = useExamStore(state => state.sessionId);
+  const persistedExamId = useExamStore(state => state.examId);
+  const persistedStatus = useExamStore(state => state.status);
+  const persistedQuestions = useExamStore(state => state.questions);
+  const hasHydrated = useExamStore(state => state.hasHydrated);
   const { t, lang } = useI18n();
   const searchParams = useSearchParams();
   const { speak, startContinuousListening, isContinuous } = useVoice();
@@ -87,6 +92,26 @@ function PracticeContent() {
   }, [isContinuous, startContinuousListening]);
 
   useEffect(() => {
+    if (!hasHydrated) return;
+
+    // Resume a real in-progress practice session after a browser refresh.
+    if (
+      persistedStatus === 'IN_PROGRESS' &&
+      persistedExamId === 'practice-exam' &&
+      persistedSessionId &&
+      persistedQuestions.length > 0
+    ) {
+      setSetupState('READY');
+    }
+  }, [
+    hasHydrated,
+    persistedStatus,
+    persistedExamId,
+    persistedSessionId,
+    persistedQuestions.length,
+  ]);
+
+  useEffect(() => {
     if (setupState === 'FETCHING') {
       const qCount = parseInt(count, 10) || 5;
       fetchPracticeQuestions(subject, difficulty, qCount, lang)
@@ -105,7 +130,9 @@ function PracticeContent() {
         })
         .catch(err => {
           console.error(err);
-          speak("Sorry, there was an error loading practice questions.");
+          speak("Sorry, there was an error loading practice questions. Please try again.");
+          setFetchedQuestions([]);
+          setSetupState('ASK_SUBJECT');
         });
     }
   }, [setupState, subject, count, difficulty, lang, speak]);
@@ -125,7 +152,8 @@ function PracticeContent() {
         setSetupState('READY');
       }).catch(err => {
         console.error(err);
-        speak("Failed to create practice session.");
+        speak("Failed to create the practice session. Please try again.");
+        setSetupState('ASK_SUBJECT');
       });
     }
   }, [setupState, fetchedQuestions, subject, difficulty, lang, initializeExam, speak]);
@@ -213,16 +241,24 @@ function PracticeContent() {
     
     // Explicit global START_PRACTICE inside practice context restarts the flow
     if (action === 'START_PRACTICE' || action === 'OPEN_PRACTICE') {
-      if (payload?.subject) setSubject(payload.subject as string);
-      else setSubject('');
-      
-      if (payload?.count) setCount(String(payload.count));
-      else setCount('');
+      const nextSubject = typeof payload?.subject === 'string' ? payload.subject.trim() : '';
+      const nextCount = payload?.count != null ? String(payload.count) : '';
+      const nextDifficulty = typeof payload?.difficulty === 'string'
+        ? payload.difficulty.trim().toLowerCase()
+        : '';
 
-      if (payload?.difficulty) setDifficulty(payload.difficulty as string);
-      else setDifficulty('');
+      setSubject(nextSubject);
+      setCount(nextCount);
+      setDifficulty(nextDifficulty);
+      setConfirmedShortfall(false);
 
-      setSetupState('ASK_SUBJECT'); // will autoprogress if all 3 are set via useEffect
+      if (nextSubject && nextCount && ['easy', 'medium', 'hard'].includes(nextDifficulty)) {
+        setSetupState('FETCHING');
+      } else if (nextSubject) {
+        setSetupState('ASK_COUNT');
+      } else {
+        setSetupState('ASK_SUBJECT');
+      }
       return true;
     }
 
