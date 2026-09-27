@@ -175,8 +175,8 @@ function ExamSelection({
     const normalized = raw
       .toLowerCase()
       .replace(/&/g, ' and ')
-      .replace(/[^\\p{L}\\p{N}\\s]/gu, ' ')
-      .replace(/\\s+/g, ' ')
+      .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+      .replace(/\s+/g, ' ')
       .trim();
 
     if (lastHandledTranscriptRef.current === normalized) {
@@ -184,7 +184,7 @@ function ExamSelection({
     }
 
     const isDashboardRequest =
-      /\\b(dashboard|home)\\b/.test(normalized) &&
+      /\b(dashboard|home)\b/.test(normalized) &&
       /(back|return|take me|go to|open|show|bring me|send me)/.test(normalized);
 
     if (isDashboardRequest || action === 'OPEN_DASHBOARD') {
@@ -195,8 +195,8 @@ function ExamSelection({
     }
 
     if (selectedExam) {
-      const confirmed = /\\b(yes|yeah|yep|confirm|start|okay|ok|haan|हाँ|అవును)\\b/.test(normalized);
-      const rejected = /\\b(no|nope|change|cancel|different|nah|नहीं|नही|కాదు|రద్దు)\\b/.test(normalized);
+      const confirmed = /\b(yes|yeah|yep|confirm|start|okay|ok|haan|हाँ|అవును)\b/.test(normalized);
+      const rejected = /\b(no|nope|change|cancel|different|nah|नहीं|नही|కాదు|రద్దు)\b/.test(normalized);
 
       if (confirmed || action === 'CONFIRM') {
         lastHandledTranscriptRef.current = normalized;
@@ -217,7 +217,6 @@ function ExamSelection({
       resolveExam(raw).then((matched) => {
         if (!matched) return;
         setSelectedExam(matched as AvailableExam);
-        hasSpokenConfirmation.current = false;
         speak(
           matched.title +
           " selected. It has " +
@@ -230,8 +229,8 @@ function ExamSelection({
     }
 
     if (
-      /\\b(list|available|show|what|which)\\b/.test(normalized) &&
-      /\\b(exam|exams)\\b/.test(normalized)
+      /\b(list|available|show|what|which)\b/.test(normalized) &&
+      /\b(exam|exams)\b/.test(normalized)
     ) {
       lastHandledTranscriptRef.current = normalized;
       const examNames = exams.map((exam, index) => `Exam ${index + 1}: ${exam.title}. ${exam.question_count} questions, ${exam.duration_minutes} minutes.`).join(' ');
@@ -239,7 +238,7 @@ function ExamSelection({
       return true;
     }
 
-    const numberMatch = normalized.match(/\\b(first|1|one|second|2|two|third|3|three|fourth|4|fourth|4|four)\\b/);
+    const numberMatch = normalized.match(/\b(first|1|one|second|2|two|third|3|three|fourth|4|four)\b/);
     const numericIndex = numberMatch
       ? ({ first: 0, one: 0, '1': 0, second: 1, two: 1, '2': 1, third: 2, three: 2, '3': 2, fourth: 3, four: 3, '4': 3 } as Record<string, number>)[numberMatch[1]]
       : undefined;
