@@ -20,7 +20,7 @@ export async function POST(req: Request) {
 
     try {
       const parsedUrl = new URL(imageUrl);
-      if (parsedUrl.protocol !== 'https:' && parsedUrl.protocol !== 'http:') {
+      if (parsedUrl.protocol !== 'https:') {
         return NextResponse.json({ error: 'Unsupported image URL protocol' }, { status: 400 });
       }
     } catch {
