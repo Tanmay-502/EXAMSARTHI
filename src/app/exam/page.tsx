@@ -516,10 +516,10 @@ function ExamPageContent() {
 
   // Only create the server session after the device check is complete.
   useEffect(() => {
-    const selectedExamId = examId;
-    if (!hasHydrated || !selectedExamId || !examMeta || !deviceCheckComplete || !preferenceLoaded || examStarted) {
+    if (!hasHydrated || !examId || !examMeta || !deviceCheckComplete || !preferenceLoaded || examStarted) {
       return;
     }
+    const selectedExamId: string = examId;
 
     async function startSelectedExam() {
       setLoading(true);
