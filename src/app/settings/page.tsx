@@ -151,7 +151,6 @@ export default function SettingsPage() {
           </div>
           </div>
         </motion.div>
-      </div>
     </main>
   );
 }
