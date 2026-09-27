@@ -3,8 +3,9 @@
 import { useEffect, useRef } from 'react';
 import { useVoice } from '@/lib/voice/VoiceProvider';
 import { useI18n } from '@/lib/i18n/I18nProvider';
+import { AnalyticsData } from './actions';
 
-export default function AnalysisVoiceHandler({ data }: { data: any }) {
+export default function AnalysisVoiceHandler({ data }: { data: AnalyticsData }) {
   const { speak, isContinuous } = useVoice();
   const { lang } = useI18n();
   const hasSpoken = useRef(false);

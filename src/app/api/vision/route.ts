@@ -2,6 +2,7 @@ import { google } from '@ai-sdk/google';
 import { generateText } from 'ai';
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { getGeminiKey } from '@/lib/ai/getGeminiKey';
 
 export async function POST(req: Request) {
   try {
@@ -17,7 +18,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing image URL' }, { status: 400 });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    if (!getGeminiKey()) {
       return NextResponse.json({ 
         description: "This question contains an image or diagram, but the vision accessibility service is not currently configured. I cannot describe it for you at this time." 
       });

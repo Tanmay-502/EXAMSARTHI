@@ -32,7 +32,7 @@ export async function fetchAvailableExams() {
   }) as { id: string; title: string; description: string | null; duration_minutes: number; question_count: number }[];
 }
 
-export async function fetchExamQuestions(examId: string, lang: string = 'en-IN') {
+export async function fetchExamQuestions(examId: string, sessionId: string, lang: string = 'en-IN') {
   const supabase = await createClient()
   
   // Verify user is authenticated
@@ -53,7 +53,7 @@ export async function fetchExamQuestions(examId: string, lang: string = 'en-IN')
   }
 
   // Map to the frontend Question type
-  return questions.map((q: { id: string; exam_id: string; order_index: number; content_text: string; options: string[]; content_translations: Record<string, string>; options_translations: Record<string, string[]>; image_url: string | null; image_alt_text: string | null }) => {
+  const mappedQuestions = questions.map((q: { id: string; exam_id: string; order_index: number; content_text: string; options: string[]; content_translations: Record<string, string>; options_translations: Record<string, string[]>; image_url: string | null; image_alt_text: string | null }) => {
     let questionText = q.content_text;
     let optionsList = q.options;
 
@@ -78,7 +78,26 @@ export async function fetchExamQuestions(examId: string, lang: string = 'en-IN')
       image_alt_text: q.image_alt_text || undefined,
       order_num: q.order_index
     };
-  }) as Question[]
+  }) as Question[];
+
+  let seed = Array.from(`${examId}:${user.id}`).reduce(
+    (hash, char) => ((hash << 5) - hash + char.charCodeAt(0)) | 0,
+    0
+  ) >>> 0;
+  const random = () => {
+    seed += 0x6D2B79F5;
+    let value = seed;
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+
+  for (let i = mappedQuestions.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(random() * (i + 1));
+    [mappedQuestions[i], mappedQuestions[j]] = [mappedQuestions[j], mappedQuestions[i]];
+  }
+
+  return mappedQuestions;
 }
 
 async function ensureCandidateProfile(supabase: SupabaseClient, user: User) {
@@ -106,6 +125,7 @@ async function ensureCandidateProfile(supabase: SupabaseClient, user: User) {
 
 export async function startExamSession(examId: string) {
   const supabase = await createClient()
+  const adminClient = await createAdminClient()
   
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
@@ -115,7 +135,7 @@ export async function startExamSession(examId: string) {
   // Provision profile if it doesn't exist
   await ensureCandidateProfile(supabase, user)
 
-  const { data, error } = await supabase
+  const { data, error } = await adminClient
     .from('exam_sessions')
     .insert({
       exam_id: examId,
@@ -140,6 +160,7 @@ export async function startExamSession(examId: string) {
 
 export async function startPracticeSession() {
   const supabase = await createClient()
+  const adminClient = await createAdminClient()
   
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
@@ -148,7 +169,7 @@ export async function startPracticeSession() {
 
   await ensureCandidateProfile(supabase, user)
 
-  const { data, error } = await supabase
+  const { data, error } = await adminClient
     .from('exam_sessions')
     .insert({
       exam_id: null, // No specific exam for practice
@@ -369,6 +390,7 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     })
     .eq('id', sessionId)
     .eq('candidate_id', user.id)
+    .eq('status', 'in_progress')
 
   if (sessionError) {
     throw new Error(`Failed to complete session: ${sessionError.message}`)

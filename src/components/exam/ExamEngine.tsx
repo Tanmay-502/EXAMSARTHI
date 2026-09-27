@@ -357,11 +357,17 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
       case 'NEXT_QUESTION':
         if (engineState === 'EXAM') {
           handleNext();
+        } else {
+          speak(t('say_start_exam'));
         }
         return true;
         
       case 'PREVIOUS_QUESTION':
-        if (engineState === 'EXAM') handlePrev();
+        if (engineState === 'EXAM') {
+          handlePrev();
+        } else {
+          speak(t('say_start_exam'));
+        }
         return true;
         
       case 'REPEAT':
@@ -405,7 +411,11 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         return true;
         
       case 'MARK_REVIEW':
-        if (engineState === 'EXAM') handleToggleMarkForReview();
+        if (engineState === 'EXAM') {
+          handleToggleMarkForReview();
+        } else {
+          speak(t('say_start_exam'));
+        }
         return true;
         
       case 'REVIEW_UNANSWERED':
@@ -423,7 +433,11 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         return true;
         
       case 'SUBMIT_EXAM':
-        if (engineState === 'EXAM') confirmSubmitFlow();
+        if (engineState === 'EXAM') {
+          confirmSubmitFlow();
+        } else {
+          speak(t('say_start_exam'));
+        }
         return true;
         
       case 'TIME_LEFT':

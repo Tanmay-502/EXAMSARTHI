@@ -7,6 +7,8 @@ import { useSearchParams } from 'next/navigation';
 
 import { useVoice } from '@/lib/voice/VoiceProvider';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
+import { VoiceCore } from '@/components/voice/VoiceCore';
+import { motion } from 'framer-motion';
 
 function LoginForm() {
   const { t, lang } = useI18n();
@@ -43,40 +45,52 @@ function LoginForm() {
 
   return (
     <>
-      <div className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight">{t('login')}</h1>
-        <p className="text-muted-foreground mt-2">{t('magic_link_desc')}</p>
-      </div>
-
-      {message && (
-        <div data-testid="auth-message" aria-live="polite" className="p-4 bg-primary/10 text-primary border border-primary/20 rounded-md text-center">
-          {message === 'unauthenticated' ? (lang === 'hi-IN' ? 'परीक्षा देने के लिए आपको पहले लॉगिन करना होगा।' : lang === 'te-IN' ? 'పరీక్ష రాయడానికి మీరు ముందుగా లాగిన్ అవ్వాలి.' : 'You need to login first to take an exam.') : message}
-        </div>
-      )}
-
-      <form action={loginWithMagicLink} className="space-y-6">
-        <div className="space-y-2">
-          <label htmlFor="email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            {t('email')}
-          </label>
-          <input 
-            ref={emailRef}
-            id="email" 
-            name="email"
-            type="email" 
-            required
-            className="flex h-12 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-            aria-label={t('email')}
-          />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="space-y-16"
+      >
+        <div className="flex items-center justify-between border-b border-zinc-900 pb-8">
+          <div>
+            <p className="text-zinc-500 tracking-[0.2em] text-xs uppercase mb-2">EXAMSAARTHI</p>
+            <h1 className="text-[clamp(3rem,6vw,6rem)] leading-[0.9] font-light tracking-tighter text-zinc-100">{t('login')}</h1>
+          </div>
+          <VoiceCore size="sm" />
         </div>
 
-        <button 
-          type="submit"
-          className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-12 px-8 w-full"
-        >
-          {t('send_magic_link')}
-        </button>
-      </form>
+        <p className="text-2xl md:text-3xl font-light text-zinc-500 max-w-xl">{t('magic_link_desc')}</p>
+
+        {message && (
+          <div data-testid="auth-message" aria-live="polite" className="border-t border-zinc-900 py-6 text-zinc-300">
+            {message === 'unauthenticated' ? (lang === 'hi-IN' ? 'परीक्षा देने के लिए आपको पहले लॉगిన్ करना होगा।' : lang === 'te-IN' ? 'పరీక్ష రాయడానికి మీరు ముందుగా లాగిన్ అవ్వాలి.' : 'You need to login first to take an exam.') : message}
+          </div>
+        )}
+
+        <form action={loginWithMagicLink} className="space-y-10">
+          <div className="space-y-4 border-t border-zinc-900 pt-8">
+            <label htmlFor="email" className="text-zinc-500 tracking-[0.2em] text-xs uppercase font-bold peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              {t('email')}
+            </label>
+            <input
+              ref={emailRef}
+              id="email"
+              name="email"
+              type="email"
+              required
+              className="flex h-14 w-full rounded-none border-0 border-b border-zinc-800 bg-transparent px-0 py-1 text-xl font-light text-white shadow-none transition-colors placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-zinc-400 disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label={t('email')}
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="inline-flex items-center justify-center whitespace-nowrap rounded-full bg-white text-black uppercase tracking-widest text-xs font-bold transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:pointer-events-none disabled:opacity-50 h-14 px-8 w-full"
+          >
+            {t('send_magic_link')} ↗
+          </button>
+        </form>
+      </motion.div>
     </>
   );
 }
@@ -84,8 +98,8 @@ function LoginForm() {
 export default function LoginPage() {
   const { t } = useI18n();
   return (
-    <main id="main-content" className="flex flex-col items-center justify-center flex-1 p-6">
-      <div className="w-full max-w-md p-8 space-y-8 bg-card text-card-foreground rounded-xl shadow-lg border">
+    <main id="main-content" className="flex flex-col flex-1 min-h-screen w-full bg-black text-white">
+      <div className="relative flex flex-col min-h-screen w-full max-w-3xl mx-auto pt-32 pb-24 px-6 md:px-12">
         <Suspense fallback={<div>{t('loading')}</div>}>
           <LoginForm />
         </Suspense>

@@ -1,10 +1,13 @@
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { VoiceCore } from '@/components/voice/VoiceCore';
 import HistoryVoiceHandler from './HistoryVoiceHandler';
 
-export default async function HistoryPage({ searchParams }: { searchParams: { filter?: string } }) {
+export default async function HistoryPage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
   const supabase = await createClient();
+  const { filter = 'all' } = await searchParams;
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
@@ -30,8 +33,6 @@ export default async function HistoryPage({ searchParams }: { searchParams: { fi
     .eq('candidate_id', user.id)
     .order('completed_at', { ascending: false });
 
-  const filter = searchParams.filter || 'all';
-  
   let displayedSessions = sessions || [];
   if (filter === 'exam') {
     displayedSessions = displayedSessions.filter(s => !s.is_practice);
@@ -47,30 +48,40 @@ export default async function HistoryPage({ searchParams }: { searchParams: { fi
   };
 
   return (
-    <main id="main-content" className="flex flex-col flex-1 p-6 items-center justify-start max-w-5xl mx-auto w-full space-y-8">
+    <main id="main-content" className="flex flex-col flex-1 min-h-screen w-full max-w-7xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
       <HistoryVoiceHandler totalSessions={displayedSessions.length} />
-      <div className="w-full">
-        <h1 className="text-4xl font-bold mb-2" tabIndex={-1}>Exam History</h1>
-        <p className="text-xl text-muted-foreground mb-8">Review your past attempts</p>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="w-full"
+      >
+        <div className="mb-24 flex items-end justify-between gap-8 border-b border-zinc-900 pb-8">
+          <div>
+            <h1 className="text-[clamp(3rem,6vw,7rem)] leading-[0.9] font-light tracking-tighter mb-4 text-zinc-100" tabIndex={-1}>Exam History</h1>
+            <p className="text-2xl md:text-4xl font-light text-zinc-500">Review your past attempts.</p>
+          </div>
+          <VoiceCore size="sm" />
+        </div>
 
-        <div className="flex gap-4 mb-6" role="group" aria-label="Filter history">
+        <div className="flex flex-wrap gap-4 mb-16" role="group" aria-label="Filter history">
           <Link 
             href="/history?filter=all" 
-            className={`px-4 py-2 rounded-lg border ${filter === 'all' ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-card-foreground hover:bg-accent'}`}
+            className={`px-6 py-3 rounded-full border uppercase tracking-widest text-xs font-bold transition-colors ${filter === 'all' ? 'bg-white text-black border-white' : 'border-zinc-800 text-zinc-400 hover:border-zinc-500 hover:text-white'}`}
             aria-pressed={filter === 'all'}
           >
             All Sessions
           </Link>
           <Link 
             href="/history?filter=exam" 
-            className={`px-4 py-2 rounded-lg border ${filter === 'exam' ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-card-foreground hover:bg-accent'}`}
+            className={`px-6 py-3 rounded-full border uppercase tracking-widest text-xs font-bold transition-colors ${filter === 'exam' ? 'bg-white text-black border-white' : 'border-zinc-800 text-zinc-400 hover:border-zinc-500 hover:text-white'}`}
             aria-pressed={filter === 'exam'}
           >
             Exams
           </Link>
           <Link 
             href="/history?filter=practice" 
-            className={`px-4 py-2 rounded-lg border ${filter === 'practice' ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-card-foreground hover:bg-accent'}`}
+            className={`px-6 py-3 rounded-full border uppercase tracking-widest text-xs font-bold transition-colors ${filter === 'practice' ? 'bg-white text-black border-white' : 'border-zinc-800 text-zinc-400 hover:border-zinc-500 hover:text-white'}`}
             aria-pressed={filter === 'practice'}
           >
             Practice
@@ -78,52 +89,52 @@ export default async function HistoryPage({ searchParams }: { searchParams: { fi
         </div>
 
         {(!displayedSessions || displayedSessions.length === 0) ? (
-          <div className="bg-card shadow border rounded-xl p-8 text-center text-muted-foreground">
-            <p className="text-lg">No {filter !== 'all' ? filter : ''} sessions found.</p>
+          <div className="border border-zinc-900 p-12 text-center text-zinc-500">
+            <p className="text-xl font-light">No {filter !== 'all' ? filter : ''} sessions found.</p>
           </div>
         ) : (
-          <div className="bg-card shadow border rounded-xl overflow-x-auto">
+          <div className="border-t border-zinc-900 overflow-x-auto">
             <table className="w-full border-collapse text-left" aria-label="Exam History">
               <thead>
-                <tr className="border-b bg-muted/50">
-                  <th scope="col" className="p-4 font-semibold">Date</th>
-                  <th scope="col" className="p-4 font-semibold">Type</th>
-                  <th scope="col" className="p-4 font-semibold">Exam Title</th>
-                  <th scope="col" className="p-4 font-semibold">Duration</th>
-                  <th scope="col" className="p-4 font-semibold">Score</th>
-                  <th scope="col" className="p-4 font-semibold text-center">Percentage</th>
-                  <th scope="col" className="p-4 font-semibold text-right">Action</th>
+                <tr className="border-b border-zinc-900 text-zinc-500">
+                  <th scope="col" className="p-6 font-bold tracking-[0.2em] text-xs uppercase">Date</th>
+                  <th scope="col" className="p-6 font-bold tracking-[0.2em] text-xs uppercase">Type</th>
+                  <th scope="col" className="p-6 font-bold tracking-[0.2em] text-xs uppercase">Exam Title</th>
+                  <th scope="col" className="p-6 font-bold tracking-[0.2em] text-xs uppercase">Duration</th>
+                  <th scope="col" className="p-6 font-bold tracking-[0.2em] text-xs uppercase">Score</th>
+                  <th scope="col" className="p-6 font-bold tracking-[0.2em] text-xs uppercase text-center">Percentage</th>
+                  <th scope="col" className="p-6 font-bold tracking-[0.2em] text-xs uppercase text-right">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {displayedSessions.map((session) => (
-                  <tr key={session.id} className="border-b hover:bg-muted/50 transition-colors">
-                    <td className="p-4 whitespace-nowrap">
+                  <tr key={session.id} className="border-b border-zinc-900 hover:bg-zinc-950 transition-colors">
+                    <td className="p-6 whitespace-nowrap text-zinc-400 font-light">
                       {session.completed_at ? new Date(session.completed_at).toLocaleDateString() : '-'}
                     </td>
-                    <td className="p-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs rounded-md ${session.is_practice ? 'bg-blue-500/20 text-blue-300' : 'bg-purple-500/20 text-purple-300'}`}>
+                    <td className="p-6 whitespace-nowrap">
+                      <span className="text-xs uppercase tracking-widest font-bold text-zinc-400">
                         {session.is_practice ? 'Practice' : 'Exam'}
                       </span>
                     </td>
-                    <td className="p-4">
+                    <td className="p-6 font-light text-lg">
                       {/* @ts-expect-error supabase types nested object */}
                       {session.exams?.title || 'Unknown Exam'}
                     </td>
-                    <td className="p-4 text-muted-foreground">
+                    <td className="p-6 text-zinc-500 font-light">
                       {session.started_at && session.completed_at ? formatDuration(session.started_at, session.completed_at) : '-'}
                     </td>
-                    <td className="p-4 font-medium">
+                    <td className="p-6 font-light">
                       {session.score !== null ? `${session.score} / ${session.total_questions}` : '-'}
                     </td>
-                    <td className="p-4 text-center font-bold text-primary">
+                    <td className="p-6 text-center font-light text-2xl">
                       {session.percentage !== null ? `${session.percentage}%` : '-'}
                     </td>
-                    <td className="p-4 text-right">
+                    <td className="p-6 text-right">
                       {session.status === 'submitted' && (
                         <Link
                           href={`/results?session_id=${session.id}`}
-                          className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4"
+                          className="inline-flex items-center justify-center rounded-full text-xs font-bold uppercase tracking-widest border border-zinc-800 text-zinc-300 hover:border-zinc-500 hover:text-white h-10 px-5 transition-colors"
                           aria-label={`View detailed results for ${session.completed_at}`}
                         >
                           View Results
@@ -136,12 +147,12 @@ export default async function HistoryPage({ searchParams }: { searchParams: { fi
             </table>
           </div>
         )}
-      </div>
+      </motion.div>
 
-      <div className="pt-4 w-full">
+      <div className="pt-16 w-full">
         <Link
           href="/dashboard"
-          className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring border border-input bg-background hover:bg-accent h-12 px-6"
+          className="inline-flex items-center justify-center whitespace-nowrap rounded-full text-xs font-bold uppercase tracking-widest transition-colors border border-zinc-800 text-zinc-300 hover:border-zinc-500 hover:text-white h-12 px-6"
         >
           Return to Dashboard
         </Link>
