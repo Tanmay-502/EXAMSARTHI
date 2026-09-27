@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { generateText } from 'ai';
-import { google } from '@ai-sdk/google';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { getGeminiKey } from '@/lib/ai/getGeminiKey';
 import { createClient } from '@/lib/supabase/server';
 import { buildLearningProfile } from '@/app/exam/actions';
 
@@ -25,11 +26,12 @@ export async function POST() {
       return NextResponse.json({ error: 'Insights disabled during an active exam.' }, { status: 403 });
     }
 
-    if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+    const apiKey = getGeminiKey();
+    if (!apiKey) {
       return NextResponse.json({ error: 'AI API Key not configured' }, { status: 500 });
     }
 
-    const profile = await buildLearningProfile(user.id);
+    const profile = await buildLearningProfile();
 
     if ('error' in profile) {
       return NextResponse.json({ error: profile.error }, { status: 400 });
@@ -45,6 +47,8 @@ Profile context:
 - Recent accuracy trend: ${profile.recentAccuracy.join('%, ')}%
 - Total sessions completed: ${profile.totalSessions} (Practice: ${profile.practiceSessions}, Exam: ${profile.examSessions})
 `;
+
+    const google = createGoogleGenerativeAI({ apiKey });
 
     const { text } = await generateText({
       model: google('gemini-3.8-flash'),
