@@ -16,7 +16,7 @@ Automated accessibility checks target WCAG 2.1 AA. NVDA and/or VoiceOver walkthr
 The application now has incremental server-backed answer persistence plus IndexedDB recovery/replay. A real browser network drop/reconnect test is still required.
 
 ### Supabase migration
-Migration 00008_lock_exam_session_inserts.sql must be applied to the target Supabase project. It removes the client-side exam_sessions INSERT policy because session creation is performed by authenticated server actions.
+All migrations through 00010 must be applied to the target Supabase project. It removes the client-side exam_sessions INSERT policy because session creation is performed by authenticated server actions.
 
 ### PWA verification
 The manifest and production static-asset service worker are implemented. Browser installability and update behavior still need target-deployment verification. Authenticated pages, API routes, and navigation responses are intentionally not cached.
