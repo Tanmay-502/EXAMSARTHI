@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { ResultsAnnouncer } from '@/components/exam/ResultsAnnouncer';
 import ResultsPageContent from './ResultsPageContent';
+import { buildSubjectStats } from '@/lib/analytics/subjectStats';
 
 export default async function ResultsPage({ searchParams }: { searchParams: Promise<{ session_id?: string }> }) {
   const supabase = await createClient();
@@ -46,80 +47,19 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
 
   const { score, total_questions, attempted_questions, correct_questions, incorrect_questions, unanswered_questions, percentage } = session;
 
-  // Fetch the session answers with their questions and correct answers.
   const { createAdminClient } = await import('@/lib/supabase/server');
   const adminClient = await createAdminClient();
-  const { data: answersWithQuestions } = await adminClient
-    .from('answers')
-    .select(`
-      selected_option_index,
-      questions!inner (
-        id,
-        subject,
-        question_answers (
-          correct_answer_index
-        )
-      )
-    `)
-    .eq('session_id', sessionId);
+  const subjectStats = await buildSubjectStats(adminClient, [session]);
 
-  // Compute Subject Breakdown
-  const subjectStats: Record<string, { total: number; correct: number; incorrect: number; unanswered: number }> = {};
   let weakestSubject = '';
-  let weakestSubjectPerc = 100;
+  let weakestSubjectPerc = 101;
+  Object.values(subjectStats).forEach((stats) => {
+    if (stats.total > 0 && stats.accuracy < weakestSubjectPerc) {
+      weakestSubjectPerc = stats.accuracy;
+      weakestSubject = stats.subject;
+    }
+  });
 
-  if (answersWithQuestions) {
-    type AnswerWithQuestion = {
-      selected_option_index: number | null;
-      questions: {
-        subject: string | null;
-        question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
-      }[] | {
-        subject: string | null;
-        question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
-      } | null;
-    };
-
-    (answersWithQuestions as AnswerWithQuestion[]).forEach(answer => {
-      const question = Array.isArray(answer.questions) ? answer.questions[0] : answer.questions;
-      if (!question) return;
-
-      const subj = question.subject || 'General';
-      if (!subjectStats[subj]) {
-        subjectStats[subj] = { total: 0, correct: 0, incorrect: 0, unanswered: 0 };
-      }
-
-      subjectStats[subj].total += 1;
-
-      if (answer.selected_option_index === null) {
-        subjectStats[subj].unanswered += 1;
-      } else {
-        let correctIdx = -1;
-        if (Array.isArray(question.question_answers) && question.question_answers.length > 0) {
-          correctIdx = question.question_answers[0].correct_answer_index;
-        } else if (question.question_answers && !Array.isArray(question.question_answers)) {
-          correctIdx = question.question_answers.correct_answer_index;
-        }
-
-        if (answer.selected_option_index === correctIdx) {
-          subjectStats[subj].correct += 1;
-        } else {
-          subjectStats[subj].incorrect += 1;
-        }
-      }
-    });
-
-    // Find weakest subject
-    Object.entries(subjectStats).forEach(([subj, stats]) => {
-      if (stats.total > 0) {
-        const perc = Math.round((stats.correct / stats.total) * 100);
-        if (perc < weakestSubjectPerc) {
-          weakestSubjectPerc = perc;
-          weakestSubject = subj;
-        }
-      }
-    });
-  }
 
   return (
     <>
