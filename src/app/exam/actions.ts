@@ -221,6 +221,30 @@ export async function startPracticeSession(questionIds: string[] = []) {
   return data.id
 }
 
+export async function fetchAvailablePracticeSubjects() {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    throw new Error('Unauthorized')
+  }
+
+  const { data, error } = await supabase
+    .from('questions')
+    .select('subject')
+    .not('subject', 'is', null)
+
+  if (error) {
+    throw new Error(`Failed to fetch practice subjects: ${error.message}`)
+  }
+
+  return [...new Set(
+    (data || [])
+      .map(row => row.subject?.trim())
+      .filter((subject): subject is string => Boolean(subject))
+  )].sort((a, b) => a.localeCompare(b))
+}
+
 export async function fetchPracticeQuestions(subject: string, difficulty: string, count: number, lang: string = 'en-IN') {
   const supabase = await createClient()
   
