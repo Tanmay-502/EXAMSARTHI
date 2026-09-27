@@ -29,6 +29,7 @@ function DashboardContent() {
   const [userName, setUserName] = useState<string | null>(null);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [insight, setInsight] = useState<string | null>(null);
+  const [learningProfileConsent, setLearningProfileConsent] = useState(false);
   const { mode: interactionMode, isLoaded: preferenceLoaded } = usePreferredMode();
   // Auto-scroll transcript
   useEffect(() => {
@@ -49,10 +50,15 @@ function DashboardContent() {
       
       let name = user.user_metadata?.full_name || user.user_metadata?.name;
       if (!name) {
-        const { data } = await supabase.from('profiles').select('full_name').eq('id', user.id).single();
+        const { data } = await supabase
+          .from('profiles')
+          .select('full_name, learning_profile_consent')
+          .eq('id', user.id)
+          .single();
         if (data?.full_name) {
           name = data.full_name;
         }
+        setLearningProfileConsent(Boolean(data?.learning_profile_consent));
       }
 
       // If the name is just the email or the local part of the email, reject it
@@ -75,6 +81,20 @@ function DashboardContent() {
     };
     const fetchInsight = async () => {
       try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('learning_profile_consent')
+          .eq('id', user.id)
+          .single();
+
+        if (!profile?.learning_profile_consent) return;
+
+        setLearningProfileConsent(true);
+
         const res = await fetch('/api/insights', { method: 'POST' });
         if (res.ok) {
           const data = await res.json();
