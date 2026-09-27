@@ -41,6 +41,18 @@ export async function fetchExamQuestions(examId: string, sessionId: string, lang
     throw new Error('Unauthorized')
   }
 
+  // Bind question retrieval to the authenticated in-progress session.
+  const { data: session, error: sessionError } = await supabase
+    .from('exam_sessions')
+    .select('id, exam_id, status')
+    .eq('id', sessionId)
+    .eq('candidate_id', user.id)
+    .single()
+
+  if (sessionError || !session || session.status !== 'in_progress' || session.exam_id !== examId) {
+    throw new Error('Exam session not found, inactive, or unauthorized')
+  }
+
   // Fetch questions, explicitly EXCLUDING correct_answer_index
   const { data: questions, error } = await supabase
     .from('questions')
@@ -80,7 +92,7 @@ export async function fetchExamQuestions(examId: string, sessionId: string, lang
     };
   }) as Question[];
 
-  let seed = Array.from(`${examId}:${user.id}`).reduce(
+  let seed = Array.from(`${examId}:${sessionId}:${user.id}`).reduce(
     (hash, char) => ((hash << 5) - hash + char.charCodeAt(0)) | 0,
     0
   ) >>> 0;
