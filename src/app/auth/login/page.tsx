@@ -1,7 +1,7 @@
 'use client'
 
 import { useI18n } from '@/lib/i18n/I18nProvider';
-import { useEffect, useRef, Suspense } from 'react';
+import { useEffect, useRef, useState, Suspense, type FormEvent } from 'react';
 import { loginWithMagicLink } from '../actions';
 import { useSearchParams } from 'next/navigation';
 
@@ -9,37 +9,132 @@ import { useVoice } from '@/lib/voice/VoiceProvider';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 import { VoiceCore } from '@/components/voice/VoiceCore';
 import { motion } from 'framer-motion';
+import { normalizeSpokenEmail } from '@/lib/voice/emailParser';
+import { usePreferredMode } from '@/lib/hooks/usePreferredMode';
 
 function LoginForm() {
   const { t, lang } = useI18n();
   const searchParams = useSearchParams();
   const message = searchParams.get('message');
-  const { speak, isContinuous } = useVoice();
+  const { speak, isContinuous, startContinuousListening } = useVoice();
   const { useVoiceAction } = useGlobalVoice();
-  
+  const { mode: preferredMode, isLoaded: modeLoaded } = usePreferredMode();
   const emailRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const lastVoiceEmailRef = useRef<string>('');
+  const [voiceStep, setVoiceStep] = useState<'idle' | 'awaiting_email' | 'confirming_email' | 'sending'>('idle');
+  const [voiceEmail, setVoiceEmail] = useState('');
+  const [voiceAuthIntent, setVoiceAuthIntent] = useState<'signin' | 'signup'>('signin');
+  const [voiceStatus, setVoiceStatus] = useState('');
 
   useEffect(() => {
     emailRef.current?.focus();
-    
-    // Only speak orientation if continuous voice is already active
-    if (isContinuous) {
-      if (message === 'unauthenticated') {
-        const msg = lang === 'hi-IN' ? 'परीक्षा देने के लिए आपको पहले लॉगिन करना होगा।' : lang === 'te-IN' ? 'పరీక్ష రాయడానికి మీరు ముందుగా లాగిన్ అవ్వాలి.' : 'You need to login first to take an exam.';
-        speak(msg);
-      } else {
-        speak(t('login_orientation'));
-      }
-    }
-  }, [speak, t, isContinuous, message, lang]);
 
-  useVoiceAction((action) => {
-    if (!isContinuous) return false;
+    if (!modeLoaded) return;
+
+    if (preferredMode === 'voice-first' && !isContinuous) {
+      startContinuousListening();
+    }
+
+    const msg = message === 'unauthenticated'
+      ? (lang === 'hi-IN'
+          ? 'परीक्षा देने के लिए आपको पहले लॉगिन करना होगा।'
+          : lang === 'te-IN'
+            ? 'పరీక్ష రాయడానికి మీరు ముందుగా లాగిన్ అవ్వాలి.'
+            : 'You need to sign in before continuing.')
+      : lang === 'hi-IN'
+        ? 'साइन इन या नया अकाउंट बनाने के लिए अपना ईमेल बताएं। नया ईमेल होने पर अकाउंट अपने आप बन जाएगा।'
+        : lang === 'te-IN'
+          ? 'సైన్ ఇన్ లేదా కొత్త ఖాతా కోసం మీ ఇమెయిల్ చెప్పండి. కొత్త ఇమెయిల్ అయితే ఖాతా ఆటోమేటిక్‌గా సృష్టించబడుతుంది.'
+          : 'This page handles both sign in and new account creation. Tell me your email address; a new email will automatically create an account.';
+
+    speak(msg);
+    setVoiceStep('awaiting_email');
+    setVoiceStatus('');
+  }, [message, lang, modeLoaded, preferredMode, isContinuous, startContinuousListening, speak]);
+
+  useVoiceAction((action, _payload, transcript) => {
+    const raw = transcript?.trim() || '';
 
     if (action === 'HELP') {
-      speak(t('login_orientation'));
+      speak(lang === 'hi-IN'
+        ? 'ईमेल बताएं। मैं उसे भरकर पहले आपसे पुष्टि करूँगा, फिर मैजिक लिंक भेजूँगा।'
+        : lang === 'te-IN'
+          ? 'మీ ఇమెయిల్ చెప్పండి. నేను దాన్ని నింపి, ముందుగా మీకు చదివి నిర్ధారించుకుని, తరువాత మ్యాజిక్ లింక్ పంపుతాను.'
+          : 'Tell me your email. I will fill it in, read it back for confirmation, and then send the Magic Link.');
+      setVoiceStep('awaiting_email');
       return true;
     }
+
+    if (action === 'SIGN_IN' || action === 'SIGN_UP') {
+      setVoiceAuthIntent(action === 'SIGN_UP' ? 'signup' : 'signin');
+      setVoiceStep('awaiting_email');
+      speak(action === 'SIGN_UP'
+        ? 'Create Account selected. Please say your email address.'
+        : 'Sign in selected. Please say your email address.');
+      emailRef.current?.focus();
+      return true;
+    }
+
+    const parsedEmail = raw ? normalizeSpokenEmail(raw) : null;
+
+    if (parsedEmail && voiceStep !== 'sending') {
+      lastVoiceEmailRef.current = parsedEmail;
+      setVoiceEmail(parsedEmail);
+      setVoiceStep('confirming_email');
+      setVoiceStatus(
+        lang === 'hi-IN'
+          ? `मैंने ${parsedEmail} सुना। भेजने के लिए हाँ कहें, बदलने के लिए नहीं कहें।`
+          : lang === 'te-IN'
+            ? `${parsedEmail} అని నేను విన్నాను. పంపడానికి అవును, మార్చడానికి కాదు అని చెప్పండి.`
+            : `I heard ${parsedEmail}. Say yes to send the Magic Link, or say no to change it.`
+      );
+      emailRef.current?.focus();
+      speak(
+        lang === 'hi-IN'
+          ? `मैंने ${parsedEmail} सुना। सही है तो हाँ कहें, बदलना है तो नहीं कहें।`
+          : lang === 'te-IN'
+            ? `${parsedEmail} అని విన్నాను. సరైతే అవును అని, మార్చాలంటే కాదు అని చెప్పండి.`
+            : `I heard ${parsedEmail}. Say yes to confirm, or say no to change it.`
+      );
+      return true;
+    }
+
+    if (voiceStep === 'confirming_email') {
+      const normalized = raw.toLowerCase();
+      const yes = /\b(yes|yeah|yep|confirm|send|send it|okay|ok|haan|हाँ|అవును)\b/.test(normalized) || action === 'CONFIRM';
+      const no = /\b(no|nope|change|wrong|different|नहीं|नही|కాదు|మార్చు)\b/.test(normalized) || action === 'CHANGE';
+
+      if (yes && lastVoiceEmailRef.current) {
+        setVoiceStep('sending');
+        setVoiceStatus('Sending Magic Link...');
+        requestAnimationFrame(() => formRef.current?.requestSubmit());
+        return true;
+      }
+
+      if (no) {
+        setVoiceStep('awaiting_email');
+        setVoiceEmail('');
+        lastVoiceEmailRef.current = '';
+        setVoiceStatus('');
+        speak('Okay. Please say your email address again.');
+        emailRef.current?.focus();
+        return true;
+      }
+
+      if (raw) {
+        speak('Please say yes to confirm the email, or no to change it.');
+        return true;
+      }
+    }
+
+    if (voiceStep === 'awaiting_email') {
+      if (raw) {
+        speak('Please say your email address. You can say it normally, or say at, dot, underscore, and gmail.');
+        return true;
+      }
+    }
+
     return false;
   });
 
@@ -61,13 +156,25 @@ function LoginForm() {
 
         <p className="text-2xl md:text-3xl font-light text-zinc-500 max-w-xl">{t('magic_link_desc')}</p>
 
+        <p className="text-base md:text-lg text-zinc-500 max-w-xl" aria-live="polite">
+          {voiceStatus || 'New email addresses can create an account automatically through the same Magic Link flow.'}
+        </p>
+
         {message && (
           <div data-testid="auth-message" aria-live="polite" className="border-t border-zinc-900 py-6 text-zinc-300">
             {message === 'unauthenticated' ? (lang === 'hi-IN' ? 'परीक्षा देने के लिए आपको पहले लॉगిన్ करना होगा।' : lang === 'te-IN' ? 'పరీక్ష రాయడానికి మీరు ముందుగా లాగిన్ అవ్వాలి.' : 'You need to login first to take an exam.') : message}
           </div>
         )}
 
-        <form action={loginWithMagicLink} className="space-y-10">
+        <form
+          ref={formRef}
+          action={loginWithMagicLink}
+          className="space-y-10"
+          onSubmit={(_event: FormEvent<HTMLFormElement>) => {
+            setVoiceStep('sending');
+            setVoiceStatus('Sending Magic Link...');
+          }}
+        >
           <div className="space-y-4 border-t border-zinc-900 pt-8">
             <label htmlFor="email" className="text-zinc-500 tracking-[0.2em] text-xs uppercase font-bold peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               {t('email')}
@@ -77,7 +184,13 @@ function LoginForm() {
               id="email"
               name="email"
               type="email"
+              value={voiceEmail}
+              onChange={(event) => {
+                setVoiceEmail(event.target.value);
+                lastVoiceEmailRef.current = event.target.value;
+              }}
               required
+              autoComplete="email"
               className="flex h-14 w-full rounded-none border-0 border-b border-zinc-800 bg-transparent px-0 py-1 text-xl font-light text-white shadow-none transition-colors placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-zinc-400 disabled:cursor-not-allowed disabled:opacity-50"
               aria-label={t('email')}
             />
