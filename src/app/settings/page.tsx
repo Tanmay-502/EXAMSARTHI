@@ -111,7 +111,7 @@ export default function SettingsPage() {
       >
         <div className="mb-20 flex items-center justify-between border-b border-zinc-900 pb-8">
           <div className="flex flex-col">
-            <span className="text-zinc-500 tracking-[0.2em] text-xs uppercase mb-2">PREFERENCES</span>
+            <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">PREFERENCES</span>
             <span className="text-xl font-light tracking-wide">SETTINGS</span>
           </div>
           <VoiceCore size="sm" />
@@ -243,7 +243,7 @@ export default function SettingsPage() {
 
           <div className="space-y-8 border-t border-zinc-900 pt-10">
           <h2 className="text-2xl md:text-3xl font-light tracking-tight">Personal Learning Profile</h2>
-          <p className="text-zinc-500 text-lg font-light leading-relaxed max-w-2xl">
+          <p className="text-zinc-400 text-lg font-light leading-relaxed max-w-2xl">
             Allow ExamSaarthi to analyze your exam history to provide personalized recommendations. 
             This does not store raw audio, and is disabled during active exams.
           </p>
