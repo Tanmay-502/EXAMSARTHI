@@ -34,7 +34,7 @@ The landing page speaks its gateway welcome on mount and starts continuous liste
 ## Security boundary
 
 - Client question payloads omit correct_answer_index.
-- exam_sessions client INSERT and UPDATE policies are removed/disabled; session creation and final updates are server-side.
+- exam_sessions client INSERT and UPDATE policies are removed/disabled; session creation and final updates are server-side. Practice sessions additionally store their exact question roster and practice subject.
 - answers client write policy is removed; server actions use the privileged client after validating the signed-in candidate.
 - Active exam voice navigation is restricted by SafeActionRegistry.
 - Audit events are written for significant session actions.
