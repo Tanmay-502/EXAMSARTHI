@@ -216,6 +216,8 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     if (!recognition) {
       setMicError('not-supported');
       micErrorRef.current = 'not-supported';
+      isContinuousRef.current = false;
+      setIsContinuous(false);
       updateVoiceState('ERROR');
       speak(t('mic_check_fail'));
       return;
@@ -330,7 +332,11 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const stopListening = useCallback(() => {
     const recognition = recognitionRef.current;
     if (recognition) {
-      recognition.stop();
+      try {
+        recognition.stop();
+      } catch {
+        // Recognition may already be stopped.
+      }
       if (voiceStateRef.current === 'LISTENING') {
         updateVoiceState('IDLE');
       }
