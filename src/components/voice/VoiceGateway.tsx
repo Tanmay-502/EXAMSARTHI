@@ -1,47 +1,51 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useVoice } from '@/lib/voice/VoiceProvider';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 import { VoiceCore } from '@/components/voice/VoiceCore';
 import { motion } from 'framer-motion';
 
+const RobotVisual = () => (
+  <motion.div
+    initial={{ y: 0 }}
+    animate={{ y: [-5, 5, -5] }}
+    transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+    className="inline-block mr-3 align-middle"
+  >
+    <svg 
+      width="32" 
+      height="32" 
+      viewBox="0 0 100 100" 
+      fill="none" 
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label="ExamSaarthi voice assistant"
+    >
+      <rect x="25" y="35" width="50" height="35" rx="8" fill="#27272a" stroke="#e4e4e7" strokeWidth="4" />
+      <circle cx="40" cy="52" r="5" fill="#a855f7" />
+      <circle cx="60" cy="52" r="5" fill="#a855f7" />
+      <path d="M45 65 Q 50 68 55 65" stroke="#e4e4e7" strokeWidth="3" strokeLinecap="round" />
+      <line x1="50" y1="35" x2="50" y2="20" stroke="#e4e4e7" strokeWidth="4" strokeLinecap="round" />
+      <circle cx="50" cy="15" r="5" fill="#3b82f6" />
+      <path d="M15 52 L 25 52" stroke="#e4e4e7" strokeWidth="4" strokeLinecap="round" />
+      <path d="M75 52 L 85 52" stroke="#e4e4e7" strokeWidth="4" strokeLinecap="round" />
+    </svg>
+  </motion.div>
+);
+
 export function VoiceGateway() {
   const router = useRouter();
-  const { speak, startContinuousListening } = useVoice();
+
+  const { speak } = useVoice();
   const { useVoiceAction } = useGlobalVoice();
   const primaryButtonRef = useRef<HTMLButtonElement>(null);
-  const [bootstrapped, setBootstrapped] = useState(false);
-
-  useEffect(() => {
-    if (primaryButtonRef.current) {
-      primaryButtonRef.current.focus();
-    }
-  }, []);
-
   useVoiceAction((action) => {
-    if (!bootstrapped) return;
     if (action === 'HELP') {
-      speak("Welcome to ExamSaarthi. Would you like to sign in or create an account?");
+      speak("Welcome to ExamSaarthi. Let's get started.");
     }
   });
-
-  const handleEnableVoice = () => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      const utterance = new SpeechSynthesisUtterance('');
-      window.speechSynthesis.speak(utterance);
-    }
-    
-    setBootstrapped(true);
-    const greeting = "Welcome to ExamSaarthi. I am your voice companion. Would you like to sign in or create an account?";
-    speak(greeting);
-    startContinuousListening();
-  };
-
-  const handleContinueKeyboard = () => {
-    router.push('/auth/login');
-  };
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen w-full overflow-hidden bg-zinc-950 text-zinc-100">
@@ -70,7 +74,10 @@ export function VoiceGateway() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="space-y-6"
         >
-          <h2 className="text-sm md:text-base font-medium tracking-[0.2em] text-zinc-500 mb-6 uppercase">ExamSaarthi</h2>
+          <h2 className="text-sm md:text-base font-medium tracking-[0.2em] text-zinc-500 mb-6 uppercase flex items-center justify-center">
+            <RobotVisual />
+            ExamSaarthi
+          </h2>
           <h1 className="text-4xl md:text-7xl font-light tracking-tight mb-6 text-zinc-100 drop-shadow-sm">
             Intelligent.<br className="hidden md:block" /> Accessible.<br className="hidden md:block" /> Independent.
           </h1>
@@ -79,51 +86,22 @@ export function VoiceGateway() {
           </p>
         </motion.div>
         
-        {!bootstrapped && (
-          <motion.div 
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="flex flex-col md:flex-row gap-6 w-full max-w-2xl justify-center"
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="flex flex-col md:flex-row gap-6 w-full max-w-2xl justify-center"
+        >
+          <button
+            ref={primaryButtonRef}
+            onClick={() => router.push('/onboarding/mode')}
+            className="group relative inline-flex items-center justify-center rounded-full text-base font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 overflow-hidden bg-white text-black h-14 px-10 hover:bg-zinc-200 active:scale-[0.98] shadow-sm"
+            aria-label="Get Started with ExamSaarthi"
           >
-            <button
-              ref={primaryButtonRef}
-              onClick={handleEnableVoice}
-              className="group relative inline-flex items-center justify-center rounded-full text-base font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 overflow-hidden bg-white text-black h-14 px-10 hover:bg-zinc-200 active:scale-[0.98] shadow-sm"
-              aria-label="Enable Voice Companion"
-            >
-              Enable Voice Companion
-            </button>
-            
-            <button
-              onClick={handleContinueKeyboard}
-              className="inline-flex items-center justify-center rounded-full text-base font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 bg-zinc-900 text-zinc-300 border border-zinc-800 hover:bg-zinc-800 hover:text-white h-14 px-10 active:scale-[0.98]"
-              aria-label="Continue with Keyboard"
-            >
-              Continue with Keyboard
-            </button>
-          </motion.div>
-        )}
-        
-        {bootstrapped && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex flex-col items-center justify-center gap-6 mt-4"
-          >
-            <div className="px-6 py-3 rounded-full bg-zinc-900 border border-zinc-800 backdrop-blur-sm">
-              <p className="text-sm md:text-base font-medium text-zinc-400 tracking-wide">
-                Listening for <span className="text-zinc-100 font-bold">&quot;Sign In&quot;</span> or <span className="text-zinc-100 font-bold">&quot;Sign Up&quot;</span>
-              </p>
-            </div>
-            <button
-              onClick={handleContinueKeyboard}
-              className="text-sm underline underline-offset-4 text-zinc-500 hover:text-zinc-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 rounded px-3 py-2 transition-colors"
-            >
-              Skip and continue with keyboard
-            </button>
-          </motion.div>
-        )}
+            Get Started
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 -mr-1 transition-transform group-hover:translate-x-1"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+          </button>
+        </motion.div>
       </div>
     </div>
   );

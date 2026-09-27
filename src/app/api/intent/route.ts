@@ -2,9 +2,16 @@ import { NextResponse } from 'next/server';
 import { generateObject } from 'ai';
 import { google } from '@ai-sdk/google';
 import { z } from 'zod';
+import { createClient } from '@/lib/supabase/server';
 
 export async function POST(req: Request) {
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ intent: 'UNKNOWN', error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { transcript, lang, context } = await req.json();
 
     if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {

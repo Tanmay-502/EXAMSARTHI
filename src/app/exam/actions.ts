@@ -129,6 +129,12 @@ export async function startExamSession(examId: string) {
     throw new Error(`Failed to start session: ${error.message}`)
   }
 
+  await supabase.from('audit_logs').insert({
+    session_id: data.id,
+    candidate_id: user.id,
+    action: 'started_exam',
+  })
+
   return data.id
 }
 
@@ -156,6 +162,13 @@ export async function startPracticeSession() {
   if (error) {
     throw new Error(`Failed to start practice session: ${error.message}`)
   }
+
+  await supabase.from('audit_logs').insert({
+    session_id: data.id,
+    candidate_id: user.id,
+    action: 'started_exam',
+    metadata: { is_practice: true }
+  })
 
   return data.id
 }
@@ -242,10 +255,11 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     .from('exam_sessions')
     .select('exam_id, status, is_practice')
     .eq('id', sessionId)
+    .eq('candidate_id', user.id)
     .single()
     
   if (sessionErr || !session) {
-    throw new Error('Exam session not found')
+    throw new Error('Exam session not found or unauthorized')
   }
 
   if (session.status === 'submitted') {
@@ -328,9 +342,9 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
   const unanswered_questions = total_questions - attempted_questions;
   const percentage = total_questions > 0 ? (correct_questions / total_questions) * 100 : 0;
 
-  // 4. Upsert answers
+  // 4. Upsert answers using adminClient to bypass disabled UPDATE/INSERT policy for clients
   if (answersToInsert.length > 0) {
-    const { error: ansError } = await supabase
+    const { error: ansError } = await adminClient
       .from('answers')
       .upsert(answersToInsert, { onConflict: 'session_id, question_id' })
       
@@ -339,8 +353,8 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     }
   }
 
-  // 5. Complete session with comprehensive analytics
-  const { error: sessionError } = await supabase
+  // 5. Complete session with comprehensive analytics using adminClient to bypass disabled UPDATE policy
+  const { error: sessionError } = await adminClient
     .from('exam_sessions')
     .update({ 
       status: 'submitted',
@@ -360,5 +374,183 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     throw new Error(`Failed to complete session: ${sessionError.message}`)
   }
 
+  await supabase.from('audit_logs').insert({
+    session_id: sessionId,
+    candidate_id: user.id,
+    action: 'submitted_exam',
+    metadata: { score: correct_questions, percentage }
+  })
+
   return { success: true, score: correct_questions }
+}
+
+export async function recordAnswerEvent(sessionId: string, questionId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false }
+
+  // Verify ownership
+  const { data: session } = await supabase
+    .from('exam_sessions')
+    .select('id')
+    .eq('id', sessionId)
+    .eq('candidate_id', user.id)
+    .single()
+
+  if (!session) return { success: false }
+
+  await supabase.from('audit_logs').insert({
+    session_id: sessionId,
+    candidate_id: user.id,
+    action: 'answered_question',
+    metadata: { question_id: questionId }
+  })
+
+  return { success: true }
+}
+
+export async function updatePreferences(prefs: { preferred_mode?: string; preferred_lang?: string }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  // Fetch current preferences first since we need to merge
+  const { data: profile, error: fetchError } = await supabase
+    .from('profiles')
+    .select('accessibility_prefs')
+    .eq('id', user.id)
+    .single()
+
+  if (fetchError) throw new Error(`Failed to fetch profile: ${fetchError.message}`)
+
+  // JSONB merge logic
+  const currentPrefs = (profile.accessibility_prefs as Record<string, unknown>) || {}
+  
+  const updatedPrefs = {
+    ...currentPrefs,
+    ...prefs
+  }
+
+  // Update profile
+  const adminClient = await createAdminClient()
+  const { error: updateError } = await adminClient
+    .from('profiles')
+    .update({ accessibility_prefs: updatedPrefs })
+    .eq('id', user.id)
+
+  if (updateError) throw new Error(`Failed to update preferences: ${updateError.message}`)
+
+  return { success: true }
+}
+
+export async function updateLearningProfileConsent(consent: boolean) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Unauthorized');
+
+  const adminClient = await createAdminClient();
+  const { error } = await adminClient
+    .from('profiles')
+    .update({ learning_profile_consent: consent })
+    .eq('id', user.id);
+
+  if (error) throw new Error(`Failed to update consent: ${error.message}`);
+  return { success: true };
+}
+
+export async function buildLearningProfile(userId: string) {
+  const adminClient = await createAdminClient();
+  
+  const { data: profile } = await adminClient
+    .from('profiles')
+    .select('accessibility_prefs, learning_profile_consent')
+    .eq('id', userId)
+    .single();
+
+  if (!profile || !profile.learning_profile_consent) {
+    throw new Error('Consent not granted or profile not found');
+  }
+
+  // Fetch all submitted sessions
+  const { data: sessions } = await adminClient
+    .from('exam_sessions')
+    .select('id, is_practice, percentage, started_at, completed_at, score, total_questions')
+    .eq('candidate_id', userId)
+    .eq('status', 'submitted')
+    .order('completed_at', { ascending: false });
+
+  if (!sessions || sessions.length === 0) {
+    return { error: 'Not enough data to build profile.' };
+  }
+
+  const totalSessions = sessions.length;
+  const practiceSessions = sessions.filter((s: { is_practice: boolean }) => s.is_practice).length;
+  const examSessions = totalSessions - practiceSessions;
+  const recentAccuracy = sessions.slice(0, 5).map((s: { percentage: number }) => s.percentage);
+
+  // Fetch answers to get subject-wise accuracy
+  const sessionIds = sessions.map((s: { id: string }) => s.id);
+  const { data: answersData } = await adminClient
+    .from('answers')
+    .select(`
+      session_id,
+      selected_option_index,
+      questions (
+        subject,
+        question_answers (
+          correct_answer_index
+        )
+      )
+    `)
+    .in('session_id', sessionIds);
+
+  const subjectStats = new Map<string, { correct: number; total: number }>();
+
+  if (answersData) {
+    answersData.forEach((ans: {
+      selected_option_index: number | null;
+      questions: {
+        subject: string | null;
+        question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
+      }[] | {
+        subject: string | null;
+        question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
+      } | null;
+    }) => {
+      const qList = Array.isArray(ans.questions) ? ans.questions : (ans.questions ? [ans.questions] : []);
+      const q = qList[0];
+      if (!q) return;
+      const subject = q.subject || 'General';
+      const qa = q.question_answers;
+      const correctIndex = Array.isArray(qa) 
+        ? (qa.length > 0 ? qa[0].correct_answer_index : -1)
+        : qa?.correct_answer_index;
+      
+      const isCorrect = ans.selected_option_index !== null && ans.selected_option_index === correctIndex;
+      
+      const stat = subjectStats.get(subject) || { correct: 0, total: 0 };
+      stat.total += 1;
+      if (isCorrect) stat.correct += 1;
+      subjectStats.set(subject, stat);
+    });
+  }
+
+  const subjects = Array.from(subjectStats.entries()).map(([sub, stat]) => ({
+    subject: sub,
+    accuracy: Math.round((stat.correct / stat.total) * 100)
+  }));
+
+  const strongSubjects = subjects.filter(s => s.accuracy >= 70).map(s => s.subject);
+  const weakSubjects = subjects.filter(s => s.accuracy < 50).map(s => s.subject);
+
+  return {
+    totalSessions,
+    practiceSessions,
+    examSessions,
+    recentAccuracy,
+    strongSubjects,
+    weakSubjects,
+    preferredLanguage: (profile.accessibility_prefs as { preferred_lang?: string })?.preferred_lang || 'en-IN',
+    preferredMode: (profile.accessibility_prefs as { preferred_mode?: string })?.preferred_mode || 'standard'
+  };
 }

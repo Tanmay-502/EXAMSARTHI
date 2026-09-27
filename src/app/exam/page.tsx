@@ -6,9 +6,99 @@ import { useEffect, useState, Suspense, useRef } from 'react';
 import { fetchExamQuestions, startExamSession, fetchAvailableExams } from './actions';
 import { useI18n } from '@/lib/i18n/I18nProvider';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { usePreferredMode, InteractionMode } from '@/lib/hooks/usePreferredMode';
 import { useVoice } from '@/lib/voice/VoiceProvider';
 import { VoiceCore } from '@/components/voice/VoiceCore';
 import { useAccessibility } from '@/lib/accessibility/AccessibilityProvider';
+
+function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onComplete: () => void, interactionMode: InteractionMode, setInteractionMode: (m: InteractionMode) => void }) {
+  const [micStatus, setMicStatus] = useState<'pending' | 'success' | 'error'>('pending');
+  const [browserStatus, setBrowserStatus] = useState<'pending' | 'success' | 'error'>('pending');
+  const { announce } = useAccessibility();
+  const { speak } = useVoice();
+  const hasSpoken = useRef(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const checkDevices = async () => {
+      // Browser speech check
+      interface WindowWithSpeech extends Window {
+        SpeechRecognition?: unknown;
+        webkitSpeechRecognition?: unknown;
+      }
+      const win = window as unknown as WindowWithSpeech;
+      const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        setBrowserStatus('success');
+      } else {
+        setBrowserStatus('error');
+      }
+
+      // Mic check
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        if (isMounted) setMicStatus('success');
+        stream.getTracks().forEach(track => track.stop());
+      } catch (err) {
+        console.error('Microphone access denied or error:', err);
+        if (isMounted) setMicStatus('error');
+      }
+    };
+    checkDevices();
+    return () => { isMounted = false; };
+  }, []);
+
+  useEffect(() => {
+    if (micStatus === 'pending' || browserStatus === 'pending' || hasSpoken.current) return;
+    hasSpoken.current = true;
+    
+    let msg = '';
+    if (micStatus === 'success' && browserStatus === 'success') {
+      msg = 'Microphone and speech services are ready. You can start the exam.';
+    } else {
+      msg = 'Microphone or speech services are not available. You can still take the exam using standard mode.';
+      setInteractionMode('standard');
+    }
+    announce(msg, 'assertive');
+    if (interactionMode === 'voice-first') speak(msg);
+  }, [micStatus, browserStatus, announce, speak, interactionMode, setInteractionMode]);
+
+  const allClear = micStatus === 'success' && browserStatus === 'success';
+
+  return (
+    <div className="flex flex-col items-center justify-center flex-1 p-6 max-w-xl mx-auto space-y-6 text-center">
+      <h2 className="text-3xl font-bold">Device Readiness Check</h2>
+      <div className="w-full space-y-4 text-left border rounded-xl p-6 bg-card text-card-foreground shadow-sm">
+        <div className="flex items-center justify-between">
+          <span className="text-lg font-medium">Browser Speech Services</span>
+          {browserStatus === 'pending' && <span className="text-muted-foreground animate-pulse">Checking...</span>}
+          {browserStatus === 'success' && <span className="text-green-500 font-bold">✅ Available</span>}
+          {browserStatus === 'error' && <span className="text-destructive font-bold">❌ Unavailable</span>}
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-lg font-medium">Microphone Access</span>
+          {micStatus === 'pending' && <span className="text-muted-foreground animate-pulse">Checking...</span>}
+          {micStatus === 'success' && <span className="text-green-500 font-bold">✅ Granted</span>}
+          {micStatus === 'error' && <span className="text-destructive font-bold">❌ Denied</span>}
+        </div>
+      </div>
+      
+      {!allClear && (micStatus !== 'pending' && browserStatus !== 'pending') && (
+         <div className="p-4 bg-destructive/10 text-destructive rounded-lg border border-destructive/20 w-full text-sm">
+           Voice features are currently unavailable. The exam will start in Standard mode.
+         </div>
+      )}
+
+      <button
+        onClick={onComplete}
+        disabled={micStatus === 'pending' || browserStatus === 'pending'}
+        className="w-full py-4 text-lg font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-all focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+      >
+        Start Exam
+      </button>
+    </div>
+  );
+}
 
 type AvailableExam = {
   id: string;
@@ -140,11 +230,13 @@ function ExamPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const examIdParam = searchParams.get('exam_id');
+  const { mode: interactionMode, setMode } = usePreferredMode();
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [examId, setExamId] = useState<string | null>(examIdParam);
   const [examStarted, setExamStarted] = useState(false);
+  const [deviceCheckComplete, setDeviceCheckComplete] = useState(false);
   const [examMeta, setExamMeta] = useState<{ title: string; duration_minutes: number } | null>(null);
 
   useEffect(() => {
@@ -201,13 +293,22 @@ function ExamPageContent() {
     return null;
   }
 
+  if (!deviceCheckComplete) {
+    return <DeviceCheck 
+      onComplete={() => setDeviceCheckComplete(true)} 
+      interactionMode={interactionMode}
+      setInteractionMode={setMode}
+    />;
+  }
+
   return (
     <main className="flex flex-col flex-1 p-6">
       <div className="sr-only">Exam Mode</div>
       <ExamEngine 
         mode="exam" 
         examTitle={examMeta?.title} 
-        durationMinutes={examMeta?.duration_minutes} 
+        durationMinutes={examMeta?.duration_minutes}
+        interactionMode={interactionMode}
       />
     </main>
   );

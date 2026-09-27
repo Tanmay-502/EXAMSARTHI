@@ -99,6 +99,34 @@ const nodes: SystemNode[] = [
   }
 ];
 
+const RobotVisual = () => (
+  <motion.div
+    initial={{ y: 0 }}
+    animate={{ y: [-5, 5, -5] }}
+    transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+    className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-2xl mb-4 mr-4"
+  >
+    <svg 
+      width="40" 
+      height="40" 
+      viewBox="0 0 100 100" 
+      fill="none" 
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label="ExamSaarthi voice assistant"
+    >
+      <rect x="25" y="35" width="50" height="35" rx="8" fill="#27272a" stroke="#e4e4e7" strokeWidth="4" />
+      <circle cx="40" cy="52" r="5" fill="#a855f7" />
+      <circle cx="60" cy="52" r="5" fill="#a855f7" />
+      <path d="M45 65 Q 50 68 55 65" stroke="#e4e4e7" strokeWidth="3" strokeLinecap="round" />
+      <line x1="50" y1="35" x2="50" y2="20" stroke="#e4e4e7" strokeWidth="4" strokeLinecap="round" />
+      <circle cx="50" cy="15" r="5" fill="#3b82f6" />
+      <path d="M15 52 L 25 52" stroke="#e4e4e7" strokeWidth="4" strokeLinecap="round" />
+      <path d="M75 52 L 85 52" stroke="#e4e4e7" strokeWidth="4" strokeLinecap="round" />
+    </svg>
+  </motion.div>
+);
+
 export default function ArchitecturePage() {
   const [activeNode, setActiveNode] = useState<string | null>(null);
 
@@ -111,8 +139,11 @@ export default function ArchitecturePage() {
       
       <div className="w-full max-w-6xl z-10 space-y-16">
         <header className="text-center space-y-6">
-          <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-2xl mb-4">
-            <Server className="w-10 h-10 text-primary" />
+          <div className="flex justify-center items-center">
+            <RobotVisual />
+            <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-2xl mb-4">
+              <Server className="w-10 h-10 text-primary" />
+            </div>
           </div>
           <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-foreground">
             System Architecture

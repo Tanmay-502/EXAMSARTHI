@@ -111,7 +111,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
           speak(msg);
           isNavigatingRef.current = true;
           setTimeout(() => {
-            router.push('/auth/login');
+            router.push('/onboarding/mode');
           }, 500);
         }
       } catch (err) {

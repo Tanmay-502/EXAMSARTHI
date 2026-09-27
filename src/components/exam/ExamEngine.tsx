@@ -16,12 +16,13 @@ type ExamEngineProps = {
   mode: 'practice' | 'exam';
   examTitle?: string;
   durationMinutes?: number;
+  interactionMode?: 'standard' | 'voice-first';
 };
 
 type EngineState = 'MIC_TEST' | 'READY' | 'EXAM' | 'CONFIRM_ANSWER' | 'CONFIRM_SUBMIT' | 'PROCESSING';
 
 
-export function ExamEngine({ mode, examTitle, durationMinutes }: ExamEngineProps) {
+export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode = 'voice-first' }: ExamEngineProps) {
   const { t, tParams, lang } = useI18n();
   const { announce } = useAccessibility();
   const { speak, stopSpeaking, startContinuousListening, pauseListening, isContinuous, micError, voiceState } = useVoice();
@@ -35,17 +36,17 @@ export function ExamEngine({ mode, examTitle, durationMinutes }: ExamEngineProps
     setCurrentQuestionIndex,
     setAnswer,
     toggleMarkForReview,
-    submitExam,
     sessionId
   } = useExamStore();
 
   const headingRef = useRef<HTMLHeadingElement>(null);
   const currentQuestion = questions[currentQuestionIndex];
   
-  const [engineState, setEngineState] = useState<EngineState>('MIC_TEST');
+  const [engineState, setEngineState] = useState<EngineState>(interactionMode === 'standard' ? 'READY' : 'MIC_TEST');
   const [pendingAnswer, setPendingAnswer] = useState<number | null>(null);
   const [timeRemainingStr, setTimeRemainingStr] = useState<string>('60:00');
   const micTestStateRef = useRef<'INIT' | 'SPEAKING' | 'LISTENING'>('INIT');
+  const hasTriggeredExpiry = useRef(false);
 
   useEffect(() => {
     let timer: ReturnType<typeof setInterval>;
@@ -54,15 +55,40 @@ export function ExamEngine({ mode, examTitle, durationMinutes }: ExamEngineProps
         const state = useExamStore.getState();
         if (state.startTime) {
           const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
-          const remain = Math.max(0, (60 * 60) - elapsed);
+          const maxSeconds = (durationMinutes ?? 60) * 60;
+          const remain = Math.max(0, maxSeconds - elapsed);
           const m = Math.floor(remain / 60).toString().padStart(2, '0');
           const s = (remain % 60).toString().padStart(2, '0');
           setTimeRemainingStr(`${m}:${s}`);
+
+          if (remain <= 0 && !hasTriggeredExpiry.current) {
+            hasTriggeredExpiry.current = true;
+            setEngineState('PROCESSING');
+            const msg = "Time is up. Submitting your exam.";
+            announce(msg, 'assertive');
+            if (interactionMode === 'voice-first') speak(msg);
+            
+            // Auto submit reusing existing logic
+            import('@/app/exam/actions').then(({ submitExamAnswers }) => {
+              const latestState = useExamStore.getState();
+              if (latestState.sessionId) {
+                const questionIds = latestState.questions.map(q => q.id);
+                submitExamAnswers(latestState.sessionId, latestState.answers, questionIds).then(() => {
+                  latestState.submitExam();
+                  router.push(`/results?session_id=${latestState.sessionId}`);
+                }).catch(err => {
+                  console.error('Failed to auto-submit exam:', err);
+                  latestState.submitExam();
+                  router.push('/results');
+                });
+              }
+            });
+          }
         }
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [engineState, mode]);
+  }, [engineState, mode, durationMinutes, announce, speak, router, interactionMode]);
 
 
 
@@ -127,7 +153,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes }: ExamEngineProps
         language: lang === 'en-IN' ? 'English' : lang === 'hi-IN' ? 'Hindi' : 'Telugu'
       }) + ' ' + t('say_start_exam');
       announce(announcement, 'assertive');
-      if (isContinuous) speak(announcement);
+      if (interactionMode === 'voice-first' || isContinuous) speak(announcement);
     } else if (engineState === 'EXAM') {
       // Focus the question heading on mount and index change
       headingRef.current?.focus();
@@ -158,10 +184,20 @@ export function ExamEngine({ mode, examTitle, durationMinutes }: ExamEngineProps
         };
 
         if (imageUrl) {
-          const fetchVision = async () => {
+          const fetchVisionOrReadAlt = async () => {
+            if (currentQuestion.image_alt_text) {
+              const fullAnnouncement = announcement + ' Diagram description: ' + currentQuestion.image_alt_text + buildOptionsText();
+              const currentKey = engineState === 'EXAM' ? `${engineState}-${currentQuestionIndex}` : engineState;
+              if (spokenStateKey.current === currentKey) {
+                announce(fullAnnouncement, 'assertive');
+                if (interactionMode === 'voice-first' || isContinuous) speak(fullAnnouncement);
+              }
+              return;
+            }
+
             const analysisMsg = "This question contains a diagram. Analyzing...";
             announce(analysisMsg, 'assertive');
-            if (isContinuous) speak(analysisMsg);
+            if (interactionMode === 'voice-first' || isContinuous) speak(analysisMsg);
 
             try {
               const res = await fetch('/api/vision', {
@@ -171,33 +207,32 @@ export function ExamEngine({ mode, examTitle, durationMinutes }: ExamEngineProps
               });
               const data = await res.json();
               
-              const fullAnnouncement = announcement + ' Diagram description: ' + data.description + buildOptionsText();
+              const fullAnnouncement = announcement + ' Diagram description: ' + (data.description || 'Unavailable.') + buildOptionsText();
               
-              // Only speak if we are still on this question
               const currentKey = engineState === 'EXAM' ? `${engineState}-${currentQuestionIndex}` : engineState;
               if (spokenStateKey.current === currentKey) {
                 announce(fullAnnouncement, 'assertive');
-                if (isContinuous) speak(fullAnnouncement);
+                if (interactionMode === 'voice-first' || isContinuous) speak(fullAnnouncement);
               }
             } catch (err) {
               console.error('Vision fetch failed', err);
               const fallback = announcement + ' The diagram could not be analyzed. ' + buildOptionsText();
               announce(fallback, 'assertive');
-              if (isContinuous) speak(fallback);
+              if (interactionMode === 'voice-first' || isContinuous) speak(fallback);
             }
           };
-          fetchVision();
+          fetchVisionOrReadAlt();
         } else {
           announcement += buildOptionsText();
           announce(announcement, 'assertive');
-          if (isContinuous) speak(announcement);
+          if (interactionMode === 'voice-first' || isContinuous) speak(announcement);
         }
       }
     }
   }, [
     engineState, currentQuestionIndex, currentQuestion, mode, questions.length, 
     lang, t, tParams, announce, speak, stopSpeaking, isContinuous, 
-    startContinuousListening, durationMinutes, examTitle, pauseListening
+    startContinuousListening, durationMinutes, examTitle, pauseListening, interactionMode
   ]);
 
   useEffect(() => {
@@ -216,6 +251,11 @@ export function ExamEngine({ mode, examTitle, durationMinutes }: ExamEngineProps
   const handleOptionSelect = (optionIndex: number) => {
     if (!currentQuestion) return;
     setAnswer(currentQuestion.id, optionIndex);
+    if (sessionId) {
+      import('@/app/exam/actions').then(({ recordAnswerEvent }) => {
+        recordAnswerEvent(sessionId, currentQuestion.id).catch(console.error);
+      });
+    }
   };
 
   const handleNext = () => {
@@ -223,7 +263,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes }: ExamEngineProps
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
       announce(t('end_of_questions'));
-      speak(t('end_of_questions'));
+      if (interactionMode === 'voice-first' || isContinuous) speak(t('end_of_questions'));
     }
   };
 
@@ -232,7 +272,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes }: ExamEngineProps
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     } else {
       announce(t('first_question'));
-      speak(t('first_question'));
+      if (interactionMode === 'voice-first' || isContinuous) speak(t('first_question'));
     }
   };
 
@@ -242,10 +282,10 @@ export function ExamEngine({ mode, examTitle, durationMinutes }: ExamEngineProps
     const isMarked = answers[currentQuestion.id]?.is_marked_for_review;
     if (isMarked) {
       announce(t('removed_mark'));
-      speak(t('removed_mark'));
+      if (interactionMode === 'voice-first' || isContinuous) speak(t('removed_mark'));
     } else {
       announce(t('marked_for_review'));
-      speak(t('marked_for_review'));
+      if (interactionMode === 'voice-first' || isContinuous) speak(t('marked_for_review'));
     }
   };
 
@@ -301,17 +341,18 @@ export function ExamEngine({ mode, examTitle, durationMinutes }: ExamEngineProps
     speak(lang === 'hi-IN' ? 'जमा किया जा रहा है...' : lang === 'te-IN' ? 'సమర్పిస్తున్నాము...' : 'Processing submission...');
     try {
       const { submitExamAnswers } = await import('@/app/exam/actions');
-      if (sessionId) {
-        const questionIds = questions.map(q => q.id);
-        await submitExamAnswers(sessionId, answers, questionIds);
-        submitExam();
-        router.push(`/results?session_id=${sessionId}`);
+      const state = useExamStore.getState();
+      if (state.sessionId) {
+        const questionIds = state.questions.map(q => q.id);
+        await submitExamAnswers(state.sessionId, state.answers, questionIds);
+        state.submitExam();
+        router.push(`/results?session_id=${state.sessionId}`);
         return;
       }
     } catch (err) {
       console.error('Failed to submit exam:', err);
     }
-    submitExam();
+    useExamStore.getState().submitExam();
     router.push('/results');
   };
 
@@ -481,11 +522,11 @@ export function ExamEngine({ mode, examTitle, durationMinutes }: ExamEngineProps
           const state = useExamStore.getState();
           if (state.startTime) {
             const elapsedSeconds = Math.floor((Date.now() - state.startTime) / 1000);
-            const remainingSeconds = Math.max(0, (60 * 60) - elapsedSeconds);
+            const remainingSeconds = Math.max(0, ((durationMinutes ?? 60) * 60) - elapsedSeconds);
             const minutesLeft = Math.ceil(remainingSeconds / 60);
             speak(tParams('time_remaining', { time: `${minutesLeft} ${t('minutes')}` }));
           } else {
-            speak(tParams('time_remaining', { time: '60 minutes' }));
+            speak(tParams('time_remaining', { time: `${durationMinutes ?? 60} ${t('minutes')}` }));
           }
         }
         break;
@@ -568,7 +609,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes }: ExamEngineProps
                 const announcement = tParams('exam_orientation', { 
                   examName: mode === 'exam' ? 'Mock Exam' : 'Practice', 
                   total: questions.length, 
-                  duration: 60,
+                  duration: durationMinutes ?? 60,
                   language: lang === 'en-IN' ? 'English' : lang === 'hi-IN' ? 'Hindi' : 'Telugu'
                 }) + ' ' + t('say_start_exam');
                 
@@ -780,7 +821,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes }: ExamEngineProps
                 {imgUrl && (
                   <div className="mb-8">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={imgUrl} alt={altText} className="max-w-full h-auto rounded-lg border shadow-sm" />
+                    <img src={imgUrl} alt={currentQuestion.image_alt_text || altText} className="max-w-full h-auto rounded-lg border shadow-sm" />
                   </div>
                 )}
               </>

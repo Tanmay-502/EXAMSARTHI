@@ -4,8 +4,10 @@ import { useI18n } from '@/lib/i18n/I18nProvider';
 import { useAccessibility } from '@/lib/accessibility/AccessibilityProvider';
 import { useVoice } from '@/lib/voice/VoiceProvider';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Lang } from '@/lib/i18n/dictionaries';
+import { createClient } from '@/lib/supabase/client';
+import { updateLearningProfileConsent } from '@/app/exam/actions';
 
 export default function SettingsPage() {
   const { lang, setLang, t } = useI18n();
@@ -14,11 +16,31 @@ export default function SettingsPage() {
   const router = useRouter();
   
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const [consent, setConsent] = useState<boolean>(false);
+  const [loadingConsent, setLoadingConsent] = useState<boolean>(true);
 
   useEffect(() => {
     headingRef.current?.focus();
     announce('Settings page. Please choose your language.');
-    // speak('Welcome to Settings. Please select your language.');
+    
+    // Fetch initial consent
+    const fetchConsent = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data } = await supabase.from('profiles').select('learning_profile_consent').eq('id', user.id).single();
+          if (data) {
+            setConsent(data.learning_profile_consent || false);
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoadingConsent(false);
+      }
+    };
+    fetchConsent();
   }, [announce, speak]);
 
   const handleLanguageChange = (newLang: Lang) => {
@@ -37,6 +59,16 @@ export default function SettingsPage() {
 
   const handleContinue = () => {
     router.push('/dashboard');
+  };
+
+  const handleConsentToggle = async (newConsent: boolean) => {
+    setConsent(newConsent);
+    announce(newConsent ? 'Learning Profile enabled' : 'Learning Profile disabled');
+    try {
+      await updateLearningProfileConsent(newConsent);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return (
@@ -75,6 +107,25 @@ export default function SettingsPage() {
         </div>
 
         {/* More settings could be added here (e.g. voice speed, font size) */}
+        <div className="space-y-4 pt-6 border-t border-border">
+          <h2 className="text-xl font-semibold">Personal Learning Profile</h2>
+          <p className="text-muted-foreground text-sm">
+            Allow ExamSaarthi to analyze your exam history to provide personalized recommendations. 
+            This does not store raw audio, and is disabled during active exams.
+          </p>
+          {!loadingConsent && (
+            <label className="flex items-center space-x-3 cursor-pointer p-4 border rounded-lg bg-background hover:bg-accent transition-colors">
+              <input
+                type="checkbox"
+                className="w-6 h-6 rounded border-gray-300 text-primary focus:ring-primary"
+                checked={consent}
+                onChange={(e) => handleConsentToggle(e.target.checked)}
+                aria-label="Enable Personal Learning Profile"
+              />
+              <span className="text-lg font-medium">Enable AI Insights</span>
+            </label>
+          )}
+        </div>
 
         <div className="pt-6">
           <button

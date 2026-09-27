@@ -43,6 +43,11 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith('/auth') &&
     request.nextUrl.pathname !== '/'
   ) {
+    // Return 401 for API routes instead of redirecting
+    if (request.nextUrl.pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     // If no user and not on an auth route or root, redirect to login
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
