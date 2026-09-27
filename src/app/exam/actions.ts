@@ -132,11 +132,11 @@ export async function fetchExamQuestions(examId: string, sessionId: string, lang
   return mappedQuestions;
 }
 
-async function ensureExamAnswerWindow(
+async function getExamAnswerDeadline(
   adminClient: SupabaseClient,
   session: { is_practice: boolean | null; exam_id: string | null; started_at: string }
 ) {
-  if (session.is_practice || !session.exam_id) return;
+  if (session.is_practice || !session.exam_id) return null;
 
   const { data: exam, error } = await adminClient
     .from('exams')
@@ -155,10 +155,15 @@ async function ensureExamAnswerWindow(
     throw new Error('Exam timing configuration is invalid');
   }
 
-  // Five seconds of transport/browser scheduling tolerance prevents a valid
-  // answer at the boundary from being rejected solely because the request
-  // arrived a few milliseconds late.
-  if (Date.now() > startedAt + (durationSeconds + 5) * 1000) {
+  return startedAt + (durationSeconds + 5) * 1000;
+}
+
+async function ensureExamAnswerWindow(
+  adminClient: SupabaseClient,
+  session: { is_practice: boolean | null; exam_id: string | null; started_at: string }
+) {
+  const deadline = await getExamAnswerDeadline(adminClient, session);
+  if (deadline !== null && Date.now() > deadline) {
     throw new Error('Exam time has expired');
   }
 }
@@ -535,7 +540,7 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
   // 1. Fetch the exam session to get exam_id and check if practice
   const { data: session, error: sessionErr } = await supabase
     .from('exam_sessions')
-    .select('exam_id, status, is_practice, question_ids')
+    .select('exam_id, status, is_practice, question_ids, started_at')
     .eq('id', sessionId)
     .eq('candidate_id', user.id)
     .single()
@@ -548,9 +553,13 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     throw new Error('Exam session is not active')
   }
 
-  // Extract question IDs from answers
-  const answerKeys = Object.values(answers).map((a: unknown) => (a as { question_id: string }).question_id);
-  
+  const serverDeadline = await getExamAnswerDeadline(adminClient, {
+    is_practice: session.is_practice,
+    exam_id: session.exam_id,
+    started_at: session.started_at
+  });
+  const acceptingNewClientAnswers = serverDeadline === null || Date.now() <= serverDeadline;
+
   // 2. Fetch correct answers via admin client (bypasses RLS)
   let query = adminClient
     .from('questions')
@@ -601,10 +610,11 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
 
   const validQuestionIds = new Set(questions.map((q) => q.id));
 
-  const answersToInsert = Object.values(answers)
-    .map((ans: unknown) => ans as { question_id: string; answer_data: unknown; is_marked_for_review: boolean; })
-    .filter((ansTyped) => validQuestionIds.has(ansTyped.question_id))
-    .map((ansTyped) => {
+  const answersToInsert = acceptingNewClientAnswers
+    ? Object.values(answers)
+        .map((ans: unknown) => ans as { question_id: string; answer_data: unknown; is_marked_for_review: boolean; })
+        .filter((ansTyped) => validQuestionIds.has(ansTyped.question_id))
+        .map((ansTyped) => {
     
     const isAttempted = typeof ansTyped.answer_data === 'number'
       && Number.isInteger(ansTyped.answer_data)
@@ -626,20 +636,61 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
       marked_for_review: ansTyped.is_marked_for_review
     };
   })
+    : [];
+
+  if (acceptingNewClientAnswers && answersToInsert.length > 0) {
+    const { error: ansError } = await adminClient
+      .from('answers')
+      .upsert(answersToInsert, { onConflict: 'session_id, question_id' });
+
+    if (ansError) {
+      throw new Error(`Failed to save answers: ${ansError.message}`);
+    }
+  }
+
+  // Always calculate the final score from server-persisted answers. If the
+  // exam deadline has already passed, no new client answers are accepted.
+  const { data: persistedAnswers, error: persistedAnswersError } = await adminClient
+    .from('answers')
+    .select('question_id, selected_option_index')
+    .eq('session_id', sessionId);
+
+  if (persistedAnswersError) {
+    throw new Error(`Failed to load persisted answers: ${persistedAnswersError.message}`);
+  }
+
+  const serverAnswerMap = new Map(
+    (persistedAnswers || []).map(answer => [answer.question_id, answer.selected_option_index])
+  );
+
+  correct_questions = 0;
+  attempted_questions = 0;
+  incorrect_questions = 0;
+
+  for (const question of questions) {
+    const selectedIndex = serverAnswerMap.get(question.id) ?? null;
+    const optionCount = optionCountMap.get(question.id) || 0;
+
+    if (
+      typeof selectedIndex !== 'number' ||
+      !Number.isInteger(selectedIndex) ||
+      selectedIndex < 0 ||
+      selectedIndex >= optionCount
+    ) {
+      continue;
+    }
+
+    attempted_questions += 1;
+
+    if (questionMap.get(question.id) === selectedIndex) {
+      correct_questions += 1;
+    } else {
+      incorrect_questions += 1;
+    }
+  }
 
   const unanswered_questions = total_questions - attempted_questions;
   const percentage = total_questions > 0 ? (correct_questions / total_questions) * 100 : 0;
-
-  // 4. Upsert answers using adminClient to bypass disabled UPDATE/INSERT policy for clients
-  if (answersToInsert.length > 0) {
-    const { error: ansError } = await adminClient
-      .from('answers')
-      .upsert(answersToInsert, { onConflict: 'session_id, question_id' })
-      
-    if (ansError) {
-      throw new Error(`Failed to save answers: ${ansError.message}`)
-    }
-  }
 
   // 5. Complete session with comprehensive analytics using adminClient to bypass disabled UPDATE policy
   const { data: updatedSession, error: sessionError } = await adminClient
