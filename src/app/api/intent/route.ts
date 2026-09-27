@@ -13,7 +13,28 @@ export async function POST(req: Request) {
       return NextResponse.json({ intent: 'UNKNOWN_COMMAND', error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { transcript, lang, context } = await req.json();
+    const body = await req.json();
+    const transcript = typeof body?.transcript === 'string' ? body.transcript.trim() : '';
+    const lang = body?.lang;
+    const context = body?.context;
+
+    if (!transcript || transcript.length > 2000) {
+      return NextResponse.json({ intent: 'UNKNOWN_COMMAND' }, { status: 400 });
+    }
+
+    if (!['en-IN', 'hi-IN', 'te-IN'].includes(lang)) {
+      return NextResponse.json({ intent: 'UNKNOWN_COMMAND' }, { status: 400 });
+    }
+
+    const safeContext =
+      context && typeof context === 'object'
+        ? Object.fromEntries(
+            Object.entries(context).slice(0, 12).map(([key, value]) => [
+              key,
+              typeof value === 'string' ? value.slice(0, 200) : value,
+            ])
+          )
+        : {};
 
     const apiKey = getGeminiKey();
     if (!apiKey) {
