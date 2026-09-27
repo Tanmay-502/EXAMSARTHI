@@ -24,7 +24,6 @@ function LoginForm() {
   const lastVoiceEmailRef = useRef<string>('');
   const [voiceStep, setVoiceStep] = useState<'idle' | 'awaiting_email' | 'confirming_email' | 'sending'>('idle');
   const [voiceEmail, setVoiceEmail] = useState('');
-  const [voiceAuthIntent, setVoiceAuthIntent] = useState<'signin' | 'signup'>('signin');
   const [voiceStatus, setVoiceStatus] = useState('');
 
   useEffect(() => {
@@ -48,7 +47,9 @@ function LoginForm() {
           ? 'సైన్ ఇన్ లేదా కొత్త ఖాతా కోసం మీ ఇమెయిల్ చెప్పండి. కొత్త ఇమెయిల్ అయితే ఖాతా ఆటోమేటిక్‌గా సృష్టించబడుతుంది.'
           : 'This page handles both sign in and new account creation. Tell me your email address; a new email will automatically create an account.';
 
-    speak(msg);
+    if (preferredMode === 'voice-first') {
+      speak(msg);
+    }
     setVoiceStep('awaiting_email');
     setVoiceStatus('');
   }, [message, lang, modeLoaded, preferredMode, isContinuous, startContinuousListening, speak]);
@@ -67,7 +68,6 @@ function LoginForm() {
     }
 
     if (action === 'SIGN_IN' || action === 'SIGN_UP') {
-      setVoiceAuthIntent(action === 'SIGN_UP' ? 'signup' : 'signin');
       setVoiceStep('awaiting_email');
       speak(action === 'SIGN_UP'
         ? 'Create Account selected. Please say your email address.'
