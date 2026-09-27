@@ -521,7 +521,7 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
   // 2. Fetch correct answers via admin client (bypasses RLS)
   let query = adminClient
     .from('questions')
-    .select('id, question_answers(correct_answer_index)');
+    .select('id, options, question_answers(correct_answer_index)');
 
   const rosterIds = Array.isArray(session.question_ids)
     ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
@@ -549,13 +549,16 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
   let incorrect_questions = 0;
   const total_questions = questions.length;
   const questionMap = new Map<string, number>();
+  const optionCountMap = new Map<string, number>();
   
   type QuestionWithAnswer = {
     id: string;
+    options: unknown;
     question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
   };
   
   (questions as QuestionWithAnswer[]).forEach((q) => {
+    optionCountMap.set(q.id, Array.isArray(q.options) ? q.options.length : 0);
     if (Array.isArray(q.question_answers) && q.question_answers.length > 0) {
       questionMap.set(q.id, q.question_answers[0].correct_answer_index);
     } else if (q.question_answers && !Array.isArray(q.question_answers)) {
@@ -573,7 +576,7 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     const isAttempted = typeof ansTyped.answer_data === 'number'
       && Number.isInteger(ansTyped.answer_data)
       && ansTyped.answer_data >= 0
-      && ansTyped.answer_data <= 3;
+      && ansTyped.answer_data < (optionCountMap.get(ansTyped.question_id) || 0);
     if (isAttempted) {
       attempted_questions += 1;
       if (questionMap.get(ansTyped.question_id) === ansTyped.answer_data) {
@@ -586,7 +589,7 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     return {
       session_id: sessionId,
       question_id: ansTyped.question_id,
-      selected_option_index: (typeof ansTyped.answer_data === 'number' && Number.isInteger(ansTyped.answer_data) && ansTyped.answer_data >= 0 && ansTyped.answer_data <= 3) ? ansTyped.answer_data : null,
+      selected_option_index: (typeof ansTyped.answer_data === 'number' && Number.isInteger(ansTyped.answer_data) && ansTyped.answer_data >= 0 && ansTyped.answer_data < (optionCountMap.get(ansTyped.question_id) || 0)) ? ansTyped.answer_data : null,
       marked_for_review: ansTyped.is_marked_for_review
     };
   })
