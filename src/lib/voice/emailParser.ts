@@ -25,12 +25,6 @@ const DOMAIN_ALIASES: Array<[RegExp, string]> = [
   [/(proton\s*mail|protonmail)/gi, 'protonmail'],
 ];
 
-const TLD_ALIASES: Array<[RegExp, string]> = [
-  [/(dot\s*com|com)/gi, '.com'],
-  [/(dot\s*in|in)/gi, '.in'],
-  [/(dot\s*org|org)/gi, '.org'],
-  [/(dot\s*net|net)/gi, '.net'],
-];
 
 function normalizeNumberWords(text: string): string {
   return text.replace(/\b(zero|oh|one|two|three|four|five|six|seven|eight|nine)\b/gi, word => NUMBER_WORDS[word.toLowerCase()]);
@@ -49,9 +43,13 @@ function normalizeDomain(text: string): string {
   for (const [pattern, replacement] of DOMAIN_ALIASES) {
     result = result.replace(pattern, replacement);
   }
-  for (const [pattern, replacement] of TLD_ALIASES) {
-    result = result.replace(pattern, replacement);
-  }
+
+  // Only normalize a TLD when it follows a known email domain so ordinary
+  // words such as "in" in a person's name are never changed.
+  result = result.replace(
+    /\b(gmail|yahoo|outlook|hotmail|protonmail)\s+(com|in|org|net)\b/gi,
+    '$1.$2'
+  );
   return result;
 }
 
