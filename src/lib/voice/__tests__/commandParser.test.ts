@@ -1,6 +1,7 @@
 import { test, describe } from 'node:test';
 import * as assert from 'node:assert';
 import { parseCommand } from '../commandParser';
+import { normalizeSpokenEmail } from '../emailParser';
 
 describe('Voice Command Parser', () => {
   describe('English (en-IN)', () => {
@@ -75,6 +76,25 @@ describe('Voice Command Parser', () => {
       assert.deepStrictEqual(parseCommand('స్టాండర్డ్', 'te-IN'), { type: 'SELECT_MODE_STANDARD' });
       assert.deepStrictEqual(parseCommand('విశ్లేషణ', 'te-IN'), { type: 'OPEN_ANALYSIS' });
       assert.deepStrictEqual(parseCommand('నా పనితీరు ఎలా ఉంది', 'te-IN'), { type: 'OPEN_ANALYSIS' });
+    });
+  });
+  describe('Spoken email parsing', () => {
+    test('normalizes natural spoken Gmail addresses', () => {
+      assert.strictEqual(
+        normalizeSpokenEmail('my email is tanmay at gmail dot com'),
+        'tanmay@gmail.com'
+      );
+    });
+
+    test('normalizes number words without corrupting names', () => {
+      assert.strictEqual(
+        normalizeSpokenEmail('jain dharm mein 502 83 at gmail dot com'),
+        'jaindharmmein50283@gmail.com'
+      );
+    });
+
+    test('does not return an invalid email for ordinary speech', () => {
+      assert.strictEqual(normalizeSpokenEmail('I want to login'), null);
     });
   });
 });
