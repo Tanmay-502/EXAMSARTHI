@@ -3,6 +3,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { useVoice } from '@/lib/voice/VoiceProvider';
+import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 
 type LanguageCode = 'en-IN' | 'hi-IN' | 'te-IN';
 
@@ -10,12 +12,19 @@ export default function LanguageSelectionPage() {
   const router = useRouter();
   const firstButtonRef = useRef<HTMLButtonElement>(null);
   const [isSaving, setIsSaving] = useState(false);
+  
+  const { speak, startContinuousListening } = useVoice();
+  const { useVoiceAction } = useGlobalVoice();
 
   useEffect(() => {
     if (firstButtonRef.current) {
       firstButtonRef.current.focus();
     }
-  }, []);
+    
+    // Voice activation
+    speak("Choose your language. Say English, Hindi, or Telugu.");
+    startContinuousListening();
+  }, [speak, startContinuousListening]);
 
   const handleSelectLanguage = (langCode: LanguageCode) => {
     setIsSaving(true);
@@ -24,6 +33,13 @@ export default function LanguageSelectionPage() {
     localStorage.setItem('examsarthi_lang', langCode);
     router.push('/auth/login');
   };
+
+  useVoiceAction((action, payload) => {
+    if (action === 'CHANGE_LANGUAGE' && payload?.lang) {
+       // VoiceAssistant already speaks the language confirmation internally, so we just handle routing
+       handleSelectLanguage(payload.lang as LanguageCode);
+    }
+  });
 
   const languages = [
     { code: 'en-IN' as LanguageCode, label: 'English', native: 'English' },

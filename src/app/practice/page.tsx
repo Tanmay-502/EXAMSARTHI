@@ -9,8 +9,8 @@ import { useVoice } from '@/lib/voice/VoiceProvider';
 import { VoiceCore } from '@/components/voice/VoiceCore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchPracticeQuestions, startPracticeSession } from '@/app/exam/actions';
-
-// Removed MOCK_PRACTICE_POOL
+import { usePreferredMode } from '@/lib/hooks/usePreferredMode';
+import { SUPPORTED_SUBJECTS, resolveSubject } from '@/lib/catalog/examCatalog';
 
 function PracticeContent() {
   const initializeExam = useExamStore(state => state.initializeExam);
@@ -21,6 +21,8 @@ function PracticeContent() {
   const initialSubject = searchParams.get('subject') || '';
   const initialCount = searchParams.get('count') || '';
   const initialDifficulty = searchParams.get('difficulty') || '';
+  
+  const { mode: interactionMode } = usePreferredMode();
 
   const [setupState, setSetupState] = useState<'ASK_SUBJECT' | 'ASK_COUNT' | 'ASK_DIFFICULTY' | 'FETCHING' | 'CONFIRM_SHORTFALL' | 'STARTING' | 'READY'>(() => {
     if (initialSubject && initialCount && initialDifficulty) {
@@ -110,14 +112,15 @@ function PracticeContent() {
     if (setupState === 'ASK_SUBJECT') {
       if (!subject) {
         speak("What subject would you like to practice?");
-        setOnResult((text) => {
+        setOnResult(async (text) => {
           if (active) {
             const trimmed = text.trim();
-            if (trimmed.length < 2) {
+            const resolved = await resolveSubject(trimmed);
+            if (!resolved) {
                handleVoiceFallback("I didn't quite catch that.", "What subject would you like to practice?");
                return;
             }
-            setSubject(trimmed);
+            setSubject(resolved);
             setSetupState('ASK_COUNT');
           }
         });
@@ -217,27 +220,74 @@ function PracticeContent() {
               className="absolute inset-0 flex flex-col items-center justify-center"
             >
               {setupState === 'ASK_SUBJECT' && (
-                <div className="space-y-6">
+                <div className="space-y-6 w-full max-w-md mx-auto">
                   <h2 className="text-4xl md:text-7xl font-extrabold tracking-tighter mb-4 text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-cyan-400 drop-shadow-sm">Practice Subject</h2>
                   <p className="text-2xl md:text-3xl font-light text-white/80">&quot;What subject would you like to practice?&quot;</p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                    {SUPPORTED_SUBJECTS.map(subj => (
+                      <button 
+                        key={subj}
+                        onClick={() => { setSubject(subj); setSetupState('ASK_COUNT'); }}
+                        className="p-4 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium transition-colors text-sm md:text-base"
+                      >
+                        {subj}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
               {setupState === 'ASK_COUNT' && (
-                <div className="space-y-6">
+                <div className="space-y-6 w-full max-w-md mx-auto">
                   <h2 className="text-4xl md:text-7xl font-extrabold tracking-tighter mb-4 text-transparent bg-clip-text bg-linear-to-r from-purple-400 to-pink-400 drop-shadow-sm">Question Count</h2>
                   <p className="text-2xl md:text-3xl font-light text-white/80">&quot;How many questions would you like?&quot;</p>
+                  <div className="flex justify-center gap-4 mt-8">
+                    {['5', '10', '15'].map(num => (
+                      <button 
+                        key={num}
+                        onClick={() => { setCount(num); setSetupState('ASK_DIFFICULTY'); }}
+                        className="p-4 px-8 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium text-xl transition-colors"
+                      >
+                        {num}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
               {setupState === 'ASK_DIFFICULTY' && (
-                <div className="space-y-6">
+                <div className="space-y-6 w-full max-w-md mx-auto">
                   <h2 className="text-4xl md:text-7xl font-extrabold tracking-tighter mb-4 text-transparent bg-clip-text bg-linear-to-r from-emerald-400 to-teal-400 drop-shadow-sm">Difficulty Level</h2>
                   <p className="text-2xl md:text-3xl font-light text-white/80">&quot;What difficulty? Easy, medium, or hard?&quot;</p>
+                  <div className="grid grid-cols-3 gap-4 mt-8">
+                    {['easy', 'medium', 'hard'].map(diff => (
+                      <button 
+                        key={diff}
+                        onClick={() => { setDifficulty(diff); setSetupState('FETCHING'); }}
+                        className="p-4 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium capitalize transition-colors"
+                      >
+                        {diff}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
               {setupState === 'CONFIRM_SHORTFALL' && (
-                <div className="space-y-6">
+                <div className="space-y-6 w-full max-w-md mx-auto">
                   <h2 className="text-4xl md:text-7xl font-extrabold tracking-tighter mb-4 text-transparent bg-clip-text bg-linear-to-r from-amber-400 to-orange-400 drop-shadow-sm">Insufficient Questions</h2>
                   <p className="text-2xl md:text-3xl font-light text-white/80">&quot;Would you like me to start with the available questions?&quot;</p>
+                  <div className="flex justify-center gap-4 mt-8">
+                    <button 
+                      onClick={() => { setCount(''); setSetupState('ASK_COUNT'); }}
+                      className="p-4 px-8 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      onClick={() => { setConfirmedShortfall(true); setSetupState('STARTING'); }}
+                      className="p-4 px-8 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-medium transition-colors shadow-[0_0_20px_rgba(245,158,11,0.4)]"
+                    >
+                      Start
+                    </button>
+                  </div>
                 </div>
               )}
             </motion.div>
@@ -272,7 +322,7 @@ function PracticeContent() {
   return (
     <>
       <div className="sr-only">{t('practice')} Mode</div>
-      <ExamEngine mode="practice" />
+      <ExamEngine mode="practice" interactionMode={interactionMode} />
     </>
   );
 }

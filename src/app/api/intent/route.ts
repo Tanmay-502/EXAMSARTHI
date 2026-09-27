@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       prompt: `Parse the following voice transcript into an intent.
 Transcript: "${transcript}"
 Language: ${lang}
-Context: ${context}
+Context: ${JSON.stringify(context)}
 
 If the user wants to log in or sign in, return SIGN_IN.
 If the user wants to create an account, register, or sign up, return SIGN_UP.

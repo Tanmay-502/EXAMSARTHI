@@ -27,12 +27,15 @@ export type SafeAction =
   | 'READ_OPTIONS'
   | 'SIGN_IN'
   | 'SIGN_UP'
+  | 'SELECT_MODE_STANDARD'
+  | 'SELECT_MODE_VOICE'
   | 'UNKNOWN_COMMAND'
   | 'LOGOUT';
 
 export class SafeActionRegistry {
   private allowedActionsByContext: Record<string, SafeAction[]> = {
     landing: ['SIGN_IN', 'SIGN_UP', 'CHANGE_LANGUAGE', 'HELP'],
+    onboarding: ['SELECT_MODE_STANDARD', 'SELECT_MODE_VOICE', 'CHANGE_LANGUAGE', 'SIGN_IN', 'SIGN_UP', 'HELP'],
     auth: ['SIGN_IN', 'SIGN_UP', 'HELP', 'CHANGE_LANGUAGE'],
     dashboard: ['OPEN_DASHBOARD', 'OPEN_HISTORY', 'OPEN_SETTINGS', 'OPEN_PRACTICE', 'OPEN_EXAM', 'START_PRACTICE', 'START_EXAM', 'CHANGE_LANGUAGE', 'HELP', 'LOGOUT', 'READ_PROGRESS', 'SIGN_IN', 'SIGN_UP'],
     exam: ['START_EXAM', 'NEXT_QUESTION', 'PREVIOUS_QUESTION', 'SELECT_OPTION', 'MARK_REVIEW', 'CONFIRM', 'CHANGE', 'SUBMIT_EXAM', 'HELP', 'REPEAT', 'TIME_LEFT', 'JUMP_TO_QUESTION', 'REVIEW_UNANSWERED', 'REVIEW_MARKED', 'READ_QUESTION', 'READ_OPTIONS', 'UNKNOWN_COMMAND'],
@@ -77,6 +80,8 @@ export class SafeActionRegistry {
       'REMOVE_REVIEW': 'MARK_REVIEW', // toggle
       'SIGN_IN': 'SIGN_IN',
       'SIGN_UP': 'SIGN_UP',
+      'SELECT_MODE_STANDARD': 'SELECT_MODE_STANDARD',
+      'SELECT_MODE_VOICE': 'SELECT_MODE_VOICE',
     };
     return map[commandType] || null;
   }

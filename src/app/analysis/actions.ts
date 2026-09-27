@@ -1,95 +1,153 @@
-'use server';
+'use server'
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 
-export interface AnalyticsData {
-  totalSessions: number;
-  practiceSessions: number;
-  examSessions: number;
-  averagePracticeScore: number;
-  averageExamScore: number;
-  examPerformance: { title: string; averageScore: number; count: number }[];
-  recentScores: { date: string; percentage: number; isPractice: boolean }[];
-}
+export type SubjectStats = {
+  subject: string;
+  correct: number;
+  incorrect: number;
+  unanswered: number;
+  total: number;
+  accuracy: number;
+};
 
-export async function fetchAnalyticsData(): Promise<AnalyticsData | null> {
+export type AnalyticsData = {
+  overall: {
+    totalSessions: number;
+    avgPercentage: number;
+    improvementTrend: 'improving' | 'declining' | 'stable' | 'insufficient_data';
+  };
+  timeEfficiency: {
+    avgDurationSeconds: number;
+  };
+  subjectAccuracy: SubjectStats[];
+  strongSubjects: string[];
+  weakSubjects: string[];
+};
+
+export async function fetchAnalyticsData(): Promise<AnalyticsData> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Unauthorized');
 
-  if (!user) {
-    return null;
-  }
-
-  const { data: sessions, error } = await supabase
+  const { data: sessions, error: sessionsError } = await supabase
     .from('exam_sessions')
-    .select(`
-      id,
-      status,
-      started_at,
-      completed_at,
-      score,
-      total_questions,
-      percentage,
-      is_practice,
-      exams (
-        title
-      )
-    `)
+    .select('*')
     .eq('candidate_id', user.id)
     .eq('status', 'submitted')
-    .order('completed_at', { ascending: true });
+    .order('started_at', { ascending: true }); // Chronological for trend analysis
 
-  if (error || !sessions) {
-    console.error('Error fetching analytics data:', error);
-    return null;
-  }
+  if (sessionsError) throw new Error(sessionsError.message);
 
-  let practiceSessions = 0;
-  let examSessions = 0;
-  let practiceScoreSum = 0;
-  let examScoreSum = 0;
+  const completedSessions = sessions || [];
+  const totalSessions = completedSessions.length;
 
-  const examStatsMap = new Map<string, { sum: number; count: number }>();
-  const recentScores: { date: string; percentage: number; isPractice: boolean }[] = [];
+  let avgPercentage = 0;
+  let improvementTrend: 'improving' | 'declining' | 'stable' | 'insufficient_data' = 'insufficient_data';
+  let avgDurationSeconds = 0;
 
-  for (const session of sessions) {
-    const percentage = session.percentage || 0;
-    
-    if (session.is_practice) {
-      practiceSessions++;
-      practiceScoreSum += percentage;
-    } else {
-      examSessions++;
-      examScoreSum += percentage;
+  if (totalSessions > 0) {
+    const sumPercentage = completedSessions.reduce((acc, s) => acc + (s.percentage || 0), 0);
+    avgPercentage = Math.round(sumPercentage / totalSessions);
+
+    // Trend analysis (first half vs second half)
+    if (totalSessions >= 4) {
+      const mid = Math.floor(totalSessions / 2);
+      const firstHalf = completedSessions.slice(0, mid);
+      const secondHalf = completedSessions.slice(mid);
+      
+      const firstHalfAvg = firstHalf.reduce((acc, s) => acc + (s.percentage || 0), 0) / firstHalf.length;
+      const secondHalfAvg = secondHalf.reduce((acc, s) => acc + (s.percentage || 0), 0) / secondHalf.length;
+      
+      if (secondHalfAvg > firstHalfAvg + 5) improvementTrend = 'improving';
+      else if (secondHalfAvg < firstHalfAvg - 5) improvementTrend = 'declining';
+      else improvementTrend = 'stable';
     }
 
-    // @ts-expect-error nested typing
-    const title = session.exams?.title || 'Unknown Exam';
-    const currentStat = examStatsMap.get(title) || { sum: 0, count: 0 };
-    examStatsMap.set(title, { sum: currentStat.sum + percentage, count: currentStat.count + 1 });
+    // Time efficiency
+    const totalDuration = completedSessions.reduce((acc, s) => {
+      const start = new Date(s.started_at).getTime();
+      const end = new Date(s.completed_at || s.started_at).getTime();
+      return acc + (end - start);
+    }, 0);
+    avgDurationSeconds = Math.round(totalDuration / totalSessions / 1000);
+  }
 
-    if (session.completed_at) {
-      recentScores.push({
-        date: new Date(session.completed_at).toLocaleDateString(),
-        percentage,
-        isPractice: session.is_practice || false
+  const subjectStatsMap: Record<string, SubjectStats> = {};
+  const strongSubjects: string[] = [];
+  const weakSubjects: string[] = [];
+
+  if (totalSessions > 0) {
+    const adminClient = await createAdminClient();
+    const { data: answers, error: answersError } = await adminClient
+      .from('answers')
+      .select(`
+        id,
+        session_id,
+        selected_option_index,
+        questions!inner (
+          subject,
+          question_answers (
+            correct_answer_index
+          )
+        )
+      `)
+      .in('session_id', completedSessions.map(s => s.id));
+
+    if (!answersError && answers && answers.length > 0) {
+      // Type assertion or robust handling
+      answers.forEach((ans: {
+        selected_option_index: number | null;
+        questions: {
+          subject: string | null;
+          question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
+        }[] | {
+          subject: string | null;
+          question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
+        } | null;
+      }) => {
+        const qList = Array.isArray(ans.questions) ? ans.questions : (ans.questions ? [ans.questions] : []);
+        const q = qList[0];
+        const subject = q?.subject || 'General';
+        const qa = q?.question_answers;
+        const correctIndex = Array.isArray(qa) ? qa[0]?.correct_answer_index : qa?.correct_answer_index;
+        
+        if (!subjectStatsMap[subject]) {
+          subjectStatsMap[subject] = { subject, correct: 0, incorrect: 0, unanswered: 0, total: 0, accuracy: 0 };
+        }
+        
+        subjectStatsMap[subject].total += 1;
+        
+        if (ans.selected_option_index === null) {
+          subjectStatsMap[subject].unanswered += 1;
+        } else if (ans.selected_option_index === correctIndex) {
+          subjectStatsMap[subject].correct += 1;
+        } else {
+          subjectStatsMap[subject].incorrect += 1;
+        }
+      });
+
+      Object.values(subjectStatsMap).forEach(stats => {
+        stats.accuracy = Math.round((stats.correct / stats.total) * 100);
+        if (stats.total >= 2) {
+          if (stats.accuracy >= 70) strongSubjects.push(stats.subject);
+          if (stats.accuracy <= 50) weakSubjects.push(stats.subject);
+        }
       });
     }
   }
 
-  const examPerformance = Array.from(examStatsMap.entries()).map(([title, stats]) => ({
-    title,
-    averageScore: Math.round(stats.sum / stats.count),
-    count: stats.count
-  })).sort((a, b) => b.averageScore - a.averageScore);
-
   return {
-    totalSessions: sessions.length,
-    practiceSessions,
-    examSessions,
-    averagePracticeScore: practiceSessions > 0 ? Math.round(practiceScoreSum / practiceSessions) : 0,
-    averageExamScore: examSessions > 0 ? Math.round(examScoreSum / examSessions) : 0,
-    examPerformance,
-    recentScores: recentScores.slice(-10) // Last 10 sessions
+    overall: {
+      totalSessions,
+      avgPercentage,
+      improvementTrend
+    },
+    timeEfficiency: {
+      avgDurationSeconds
+    },
+    subjectAccuracy: Object.values(subjectStatsMap).sort((a, b) => b.total - a.total),
+    strongSubjects,
+    weakSubjects
   };
 }

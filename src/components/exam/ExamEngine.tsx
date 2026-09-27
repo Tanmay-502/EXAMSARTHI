@@ -19,13 +19,13 @@ type ExamEngineProps = {
   interactionMode?: 'standard' | 'voice-first';
 };
 
-type EngineState = 'MIC_TEST' | 'READY' | 'EXAM' | 'CONFIRM_ANSWER' | 'CONFIRM_SUBMIT' | 'PROCESSING';
+type EngineState = 'READY' | 'EXAM' | 'CONFIRM_ANSWER' | 'CONFIRM_SUBMIT' | 'PROCESSING';
 
 
 export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode = 'voice-first' }: ExamEngineProps) {
   const { t, tParams, lang } = useI18n();
   const { announce } = useAccessibility();
-  const { speak, stopSpeaking, startContinuousListening, pauseListening, isContinuous, micError, voiceState } = useVoice();
+  const { speak, stopSpeaking, startContinuousListening, pauseListening, isContinuous, micError } = useVoice();
   const { useVoiceAction } = useGlobalVoice();
   const router = useRouter();
 
@@ -42,10 +42,9 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   const headingRef = useRef<HTMLHeadingElement>(null);
   const currentQuestion = questions[currentQuestionIndex];
   
-  const [engineState, setEngineState] = useState<EngineState>(interactionMode === 'standard' ? 'READY' : 'MIC_TEST');
+  const [engineState, setEngineState] = useState<EngineState>('READY');
   const [pendingAnswer, setPendingAnswer] = useState<number | null>(null);
   const [timeRemainingStr, setTimeRemainingStr] = useState<string>('60:00');
-  const micTestStateRef = useRef<'INIT' | 'SPEAKING' | 'LISTENING'>('INIT');
   const hasTriggeredExpiry = useRef(false);
 
   useEffect(() => {
@@ -100,50 +99,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     if (spokenStateKey.current === currentKey) return;
     spokenStateKey.current = currentKey;
 
-    if (engineState === 'MIC_TEST') {
-      if (micTestStateRef.current === 'INIT') {
-        pauseListening();
-        stopSpeaking(); // Cancel any stale speech
-        
-        let mounted = true;
-        const fallbackTimeout = setTimeout(() => {
-          if (!mounted) return;
-          const attemptSpeak = () => {
-            if (!mounted) return;
-            const voices = window.speechSynthesis.getVoices();
-            if (voices.length === 0) {
-              const onVoicesChanged = () => {
-                window.speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged);
-                if (mounted) attemptSpeak();
-              };
-              window.speechSynthesis.addEventListener('voiceschanged', onVoicesChanged);
-              setTimeout(() => {
-                window.speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged);
-                if (mounted && window.speechSynthesis.getVoices().length === 0) {
-                  announce("Voice instructions could not be spoken. You can continue using the keyboard.", "assertive");
-                  micTestStateRef.current = 'LISTENING';
-                  startContinuousListening();
-                } else if (mounted) {
-                  attemptSpeak();
-                }
-              }, 3000);
-              return;
-            }
-            
-            const prompt = t('mic_check_prompt') || "Let's test your microphone. Please say: Next.";
-            announce(prompt, 'assertive');
-            micTestStateRef.current = 'SPEAKING';
-            speak(prompt);
-          };
-          attemptSpeak();
-        }, 500); // Wait briefly for stabilization
-
-        return () => {
-          mounted = false;
-          clearTimeout(fallbackTimeout);
-        };
-      }
-    } else if (engineState === 'READY') {
+    if (engineState === 'READY') {
       const actualDuration = durationMinutes ?? 60;
       const actualTitle = examTitle ?? (mode === 'exam' ? 'Mock Exam' : 'Practice');
       const announcement = tParams('exam_orientation', { 
@@ -235,14 +191,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     startContinuousListening, durationMinutes, examTitle, pauseListening, interactionMode
   ]);
 
-  useEffect(() => {
-    if (engineState === 'MIC_TEST' && micTestStateRef.current === 'SPEAKING') {
-      if (voiceState === 'IDLE') {
-        micTestStateRef.current = 'LISTENING';
-        startContinuousListening();
-      }
-    }
-  }, [engineState, voiceState, startContinuousListening]);
+
 
   useEffect(() => {
     return () => stopSpeaking();
@@ -402,51 +351,10 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         break;
 
       case 'UNKNOWN_COMMAND':
-        if (engineState === 'MIC_TEST' && payload?.transcript) {
-          const t_input = String(payload.transcript).toLowerCase();
-          if (t_input.includes('test') || t_input.includes('1') || t_input.includes('hello') || t_input.includes('skip') || t_input.includes('next')) {
-            const success = t('mic_check_success') || "Voice control is ready.";
-            setEngineState('READY');
-            spokenStateKey.current = 'READY';
-            
-            const actualDuration = durationMinutes ?? 60;
-            const actualTitle = examTitle ?? (mode === 'exam' ? 'Mock Exam' : 'Practice');
-            const announcement = tParams('exam_orientation', { 
-              examName: actualTitle, 
-              total: questions.length, 
-              duration: actualDuration,
-              language: lang === 'en-IN' ? 'English' : lang === 'hi-IN' ? 'Hindi' : 'Telugu'
-            }) + ' ' + t('say_start_exam');
-            
-            const msg = success + ' ' + announcement;
-            speak(msg);
-            announce(msg);
-          } else {
-            const retryMsg = lang === 'hi-IN' ? 'मुझे समझ नहीं आया। कृपया कहें अगला या परीक्षण छोड़ें।' : lang === 'te-IN' ? 'నాకు అర్థం కాలేదు. దయచేసి చెప్పండి తదుపరి లేదా పరీక్ష వదిలేయండి.' : "I didn't catch that. Please say next or skip test.";
-            speak(retryMsg);
-          }
-        }
         break;
 
       case 'NEXT_QUESTION':
-        if (engineState === 'MIC_TEST') {
-          const success = t('mic_check_success') || "You said Next. Your microphone is working.";
-          setEngineState('READY');
-          spokenStateKey.current = 'READY';
-          
-          const actualDuration = durationMinutes ?? 60;
-          const actualTitle = examTitle ?? (mode === 'exam' ? 'Mock Exam' : 'Practice');
-          const announcement = tParams('exam_orientation', { 
-            examName: actualTitle, 
-            total: questions.length, 
-            duration: actualDuration,
-            language: lang === 'en-IN' ? 'English' : lang === 'hi-IN' ? 'Hindi' : 'Telugu'
-          }) + ' ' + t('say_start_exam');
-          
-          const msg = success + ' ' + announcement;
-          speak(msg);
-          announce(msg);
-        } else if (engineState === 'EXAM') {
+        if (engineState === 'EXAM') {
           handleNext();
         }
         break;
@@ -571,61 +479,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   const isMarkedForReview = currentAnswer?.is_marked_for_review || false;
 
 
-  if (engineState === 'MIC_TEST') {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] bg-black text-white p-6 relative overflow-hidden w-full">
-        <motion.div 
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          className="mb-12"
-        >
-          <VoiceCore size="lg" />
-        </motion.div>
 
-        <div className="w-full max-w-2xl text-center space-y-6 relative z-10">
-          <h1 className="text-3xl md:text-5xl font-bold tracking-tight" aria-live="assertive">Microphone Test</h1>
-          <p className="text-xl text-white/60" aria-live="polite">
-            {t('mic_check_prompt') || "Let's test your microphone. Please say: Next."}
-          </p>
-          
-          {micError && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-destructive font-medium p-4 bg-destructive/10 rounded-lg border border-destructive/20 inline-block mt-4"
-            >
-              {t('mic_check_fail')}
-            </motion.div>
-          )}
-
-          <div className="pt-8">
-            <button
-              onClick={() => {
-                const success = t('mic_check_success') || "You skipped the microphone test.";
-                setEngineState('READY');
-                spokenStateKey.current = 'READY';
-                
-                const announcement = tParams('exam_orientation', { 
-                  examName: mode === 'exam' ? 'Mock Exam' : 'Practice', 
-                  total: questions.length, 
-                  duration: durationMinutes ?? 60,
-                  language: lang === 'en-IN' ? 'English' : lang === 'hi-IN' ? 'Hindi' : 'Telugu'
-                }) + ' ' + t('say_start_exam');
-                
-                const msg = success + ' ' + announcement;
-                speak(msg);
-                announce(msg);
-              }}
-              className="px-8 py-3 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-full border border-white/10 transition-colors focus-visible:ring-4 focus-visible:ring-white/30"
-            >
-              SKIP TEST
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // Renders for different engine states
   if (engineState === 'READY') {

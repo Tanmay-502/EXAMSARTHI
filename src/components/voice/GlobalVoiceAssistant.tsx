@@ -37,6 +37,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
 
   const getContextName = React.useCallback(() => {
     if (pathname === '/') return 'landing';
+    if (pathname.startsWith('/onboarding')) return 'onboarding';
     if (pathname.startsWith('/dashboard')) return 'dashboard';
     if (pathname.startsWith('/exam')) return 'exam';
     if (pathname.startsWith('/practice')) return 'practice';
@@ -167,7 +168,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
        conversationStateRef.current = 'EXECUTING_ACTION';
     }
 
-    if (['OPEN_DASHBOARD', 'OPEN_HISTORY', 'OPEN_SETTINGS', 'LOGOUT'].includes(action)) {
+    if (['OPEN_DASHBOARD', 'OPEN_HISTORY', 'OPEN_SETTINGS', 'LOGOUT', 'READ_PROGRESS', 'READ_HISTORY', 'READ_RESULTS'].includes(action)) {
        conversationStateRef.current = 'IDLE';
        pendingIntentRef.current = null;
        collectedParamsRef.current = {};
@@ -188,7 +189,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
       if (getContextName() !== 'exam' && getContextName() !== 'practice') {
         isNavigatingRef.current = true;
         const query = new URLSearchParams();
-        if (payload?.subject) query.set('subject', payload.subject as string);
+        if (payload?.exam_id) query.set('exam_id', payload.exam_id as string);
         router.push(`/exam?${query.toString()}`);
       }
     }
@@ -202,7 +203,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
         router.push(`/practice?${query.toString()}`);
       }
     }
-    if (action === 'OPEN_HISTORY') {
+    if (action === 'OPEN_HISTORY' || action === 'READ_PROGRESS' || action === 'READ_HISTORY' || action === 'READ_RESULTS') {
       isNavigatingRef.current = true;
       router.push('/history');
     }
@@ -237,6 +238,47 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
       if (capturedVersion !== contextVersionRef.current) {
         console.log(`[VOICE] Dropping stale command "${transcript}". Context changed during processing.`);
         return;
+      }
+
+      // 1. If we are in COLLECTING_PARAMETERS state, try deterministic resolution first
+      if (conversationStateRef.current === 'COLLECTING_PARAMETERS' && pendingIntentRef.current === 'START_PRACTICE') {
+         if (!collectedParamsRef.current.subject) {
+             const subject = await (await import('@/lib/catalog/examCatalog')).resolveSubject(transcript);
+             if (subject) {
+                 collectedParamsRef.current.subject = subject;
+                 dispatchAction('START_PRACTICE', collectedParamsRef.current);
+                 return;
+             }
+         } else if (!collectedParamsRef.current.count) {
+             const numMatch = transcript.match(/\d+/);
+             if (numMatch) {
+                 collectedParamsRef.current.count = numMatch[0];
+                 dispatchAction('START_PRACTICE', collectedParamsRef.current);
+                 return;
+             }
+         } else if (!collectedParamsRef.current.difficulty) {
+             const t = transcript.toLowerCase();
+             let diff = null;
+             if (t.includes('easy')) diff = 'easy';
+             if (t.includes('medium')) diff = 'medium';
+             if (t.includes('hard')) diff = 'hard';
+             if (diff) {
+                 collectedParamsRef.current.difficulty = diff;
+                 dispatchAction('START_PRACTICE', collectedParamsRef.current);
+                 return;
+             }
+         }
+      }
+      
+      if (conversationStateRef.current === 'COLLECTING_PARAMETERS' && pendingIntentRef.current === 'START_EXAM') {
+          if (!collectedParamsRef.current.exam_id) {
+             const exam = await (await import('@/lib/catalog/examCatalog')).resolveExam(transcript);
+             if (exam) {
+                 collectedParamsRef.current.exam_id = exam.id;
+                 dispatchAction('START_EXAM', collectedParamsRef.current);
+                 return;
+             }
+          }
       }
 
       let action: SafeAction | null = null;

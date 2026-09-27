@@ -4,23 +4,42 @@ import React, { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePreferredMode, InteractionMode } from '@/lib/hooks/usePreferredMode';
 import { motion } from 'framer-motion';
+import { useVoice } from '@/lib/voice/VoiceProvider';
+import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 
 export default function ModeSelectionPage() {
   const router = useRouter();
   const { setMode } = usePreferredMode();
   const standardButtonRef = useRef<HTMLButtonElement>(null);
+  
+  const { speak, startContinuousListening } = useVoice();
+  const { useVoiceAction } = useGlobalVoice();
 
   useEffect(() => {
     // Focus the first option on mount for accessibility
     if (standardButtonRef.current) {
       standardButtonRef.current.focus();
     }
-  }, []);
+    
+    // Voice activation
+    speak("Welcome to ExamSaarthi. How would you like to interact? Say Standard for keyboard and screen-reader mode, or say Voice-first for voice-controlled mode. You can also use the keyboard.");
+    startContinuousListening();
+  }, [speak, startContinuousListening]);
 
   const handleSelectMode = (mode: InteractionMode) => {
     setMode(mode);
     router.push('/onboarding/language');
   };
+
+  useVoiceAction((action) => {
+    if (action === 'SELECT_MODE_STANDARD') {
+      speak("Standard mode selected.");
+      handleSelectMode('standard');
+    } else if (action === 'SELECT_MODE_VOICE') {
+      speak("Voice-first mode selected.");
+      handleSelectMode('voice-first');
+    }
+  });
 
   return (
     <main 

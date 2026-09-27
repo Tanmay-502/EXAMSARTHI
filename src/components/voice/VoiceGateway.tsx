@@ -94,7 +94,10 @@ export function VoiceGateway() {
         >
           <button
             ref={primaryButtonRef}
-            onClick={() => router.push('/onboarding/mode')}
+            onClick={() => {
+              speak("Welcome to ExamSaarthi. Let's get started.");
+              router.push('/onboarding/mode');
+            }}
             className="group relative inline-flex items-center justify-center rounded-full text-base font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 overflow-hidden bg-white text-black h-14 px-10 hover:bg-zinc-200 active:scale-[0.98] shadow-sm"
             aria-label="Get Started with ExamSaarthi"
           >

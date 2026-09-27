@@ -41,6 +41,7 @@ export async function updateSession(request: NextRequest) {
   if (
     !user &&
     !request.nextUrl.pathname.startsWith('/auth') &&
+    !request.nextUrl.pathname.startsWith('/onboarding') &&
     request.nextUrl.pathname !== '/'
   ) {
     // Return 401 for API routes instead of redirecting

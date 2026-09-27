@@ -1,9 +1,10 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { fetchAnalyticsData } from './actions';
+import { TrendingUp, TrendingDown, Minus, Clock, AlertCircle, CheckCircle } from 'lucide-react';
 
 export const metadata = {
-  title: 'Analysis | EXAMSAARTHI',
+  title: 'Analysis - ExamSaarthi',
   description: 'Detailed analysis of your exam and practice performance',
 };
 
@@ -14,77 +15,124 @@ export default async function AnalysisPage() {
     redirect('/auth/login');
   }
 
+  const formatDuration = (seconds: number) => {
+    if (seconds < 60) return `${seconds}s`;
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}m ${s}s`;
+  };
+
   return (
     <main id="main-content" className="flex flex-col flex-1 p-6 items-center justify-start max-w-5xl mx-auto w-full space-y-8">
       <div className="w-full">
-        <h1 className="text-4xl font-bold mb-2" tabIndex={-1}>Performance Analysis</h1>
-        <p className="text-xl text-muted-foreground mb-8">Deep insights into your learning journey.</p>
+        <h1 className="text-4xl font-bold tracking-tight mb-2" tabIndex={-1}>Performance Analysis</h1>
+        <p className="text-xl text-muted-foreground mb-8">Detailed insights across all your practice and exam sessions.</p>
 
         {/* High-Level Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-card shadow border rounded-xl p-6 flex flex-col justify-center items-center">
-            <h3 className="text-lg font-medium text-muted-foreground mb-2">Total Sessions</h3>
-            <p className="text-4xl font-bold text-primary">{data.totalSessions}</p>
+        <div className="grid gap-6 md:grid-cols-3 mb-8">
+          <div className="bg-card shadow border rounded-xl flex flex-col justify-center items-center p-6">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Overall Accuracy</h3>
+            <div className="text-3xl font-bold">{data.overall.avgPercentage}%</div>
+            <p className="text-xs text-muted-foreground mt-1">Across {data.overall.totalSessions} sessions</p>
           </div>
-          <div className="bg-card shadow border rounded-xl p-6 flex flex-col justify-center items-center">
-            <h3 className="text-lg font-medium text-muted-foreground mb-2">Practice vs Exam</h3>
-            <p className="text-2xl font-bold">{data.practiceSessions} / {data.examSessions}</p>
+
+          <div className="bg-card shadow border rounded-xl flex flex-col justify-center items-center p-6">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Improvement Trend</h3>
+            <div className="flex items-center gap-2">
+              {data.overall.improvementTrend === 'improving' && <TrendingUp className="text-green-500 w-8 h-8" />}
+              {data.overall.improvementTrend === 'declining' && <TrendingDown className="text-destructive w-8 h-8" />}
+              {data.overall.improvementTrend === 'stable' && <Minus className="text-muted-foreground w-8 h-8" />}
+              {data.overall.improvementTrend === 'insufficient_data' && <Minus className="text-muted-foreground w-8 h-8" />}
+              <div className="text-2xl font-bold capitalize">
+                {data.overall.improvementTrend.replace('_', ' ')}
+              </div>
+            </div>
+            {data.overall.improvementTrend === 'insufficient_data' && (
+              <p className="text-xs text-muted-foreground mt-1">Take more exams to see trends</p>
+            )}
           </div>
-          <div className="bg-card shadow border rounded-xl p-6 flex flex-col justify-center items-center">
-            <h3 className="text-lg font-medium text-muted-foreground mb-2">Avg Practice Score</h3>
-            <p className="text-4xl font-bold text-blue-500">{data.averagePracticeScore}%</p>
-          </div>
-          <div className="bg-card shadow border rounded-xl p-6 flex flex-col justify-center items-center">
-            <h3 className="text-lg font-medium text-muted-foreground mb-2">Avg Exam Score</h3>
-            <p className="text-4xl font-bold text-purple-500">{data.averageExamScore}%</p>
+
+          <div className="bg-card shadow border rounded-xl flex flex-col justify-center items-center p-6">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Avg Time per Session</h3>
+            <div className="flex items-center gap-2">
+              <Clock className="text-muted-foreground w-8 h-8" />
+              <div className="text-3xl font-bold">{formatDuration(data.timeEfficiency.avgDurationSeconds)}</div>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full">
-          {/* Performance by Exam Type */}
+        <div className="grid gap-6 md:grid-cols-2 mb-8">
           <div className="bg-card shadow border rounded-xl p-6">
-            <h2 className="text-2xl font-semibold mb-6 border-b pb-2">Score by Subject / Exam</h2>
-            {data.examPerformance.length === 0 ? (
-              <p className="text-muted-foreground">No data available yet.</p>
-            ) : (
-              <div className="space-y-6">
-                {data.examPerformance.map((perf, index) => (
-                  <div key={index} className="flex flex-col gap-2">
-                    <div className="flex justify-between items-end">
-                      <span className="font-medium text-lg">{perf.title}</span>
-                      <span className="text-muted-foreground text-sm">{perf.averageScore}% avg ({perf.count} attempts)</span>
-                    </div>
-                    <div className="h-4 w-full bg-secondary rounded-full overflow-hidden" role="progressbar" aria-valuenow={perf.averageScore} aria-valuemin={0} aria-valuemax={100} aria-label={`Average score for ${perf.title}`}>
-                      <div 
-                        className="h-full bg-primary transition-all" 
-                        style={{ width: `${perf.averageScore}%` }}
-                      />
-                    </div>
-                  </div>
+            <h2 className="text-2xl font-semibold mb-2">Strong Areas</h2>
+            <p className="text-muted-foreground mb-6">Subjects where you score above 70%</p>
+            {data.strongSubjects.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {data.strongSubjects.map(subject => (
+                  <span key={subject} className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-green-500/20 text-green-500 hover:bg-green-500/30 text-sm">
+                    <CheckCircle className="w-4 h-4 mr-1.5 inline-block" />
+                    {subject}
+                  </span>
                 ))}
               </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No strong subjects identified yet.</p>
             )}
           </div>
 
-          {/* Recent Trend */}
           <div className="bg-card shadow border rounded-xl p-6">
-            <h2 className="text-2xl font-semibold mb-6 border-b pb-2">Recent Trend</h2>
-            {data.recentScores.length === 0 ? (
-              <p className="text-muted-foreground">No recent sessions found.</p>
-            ) : (
-              <div className="flex flex-col gap-4">
-                {data.recentScores.map((score, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg bg-background">
-                    <div className="flex items-center gap-3">
-                      <span className={`w-3 h-3 rounded-full ${score.isPractice ? 'bg-blue-500' : 'bg-purple-500'}`} aria-label={score.isPractice ? 'Practice' : 'Exam'} />
-                      <span className="font-medium">{score.date}</span>
-                    </div>
-                    <span className="font-bold text-lg">{score.percentage}%</span>
+            <h2 className="text-2xl font-semibold mb-2">Areas for Improvement</h2>
+            <p className="text-muted-foreground mb-6">Subjects where you score below 50%</p>
+            {data.weakSubjects.length > 0 ? (
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  {data.weakSubjects.map(subject => (
+                    <span key={subject} className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80 text-sm">
+                      <AlertCircle className="w-4 h-4 mr-1.5 inline-block" />
+                      {subject}
+                    </span>
+                  ))}
+                </div>
+                <div className="text-sm text-muted-foreground pt-2">
+                  <strong>Recommendation:</strong> You should practice more questions in these subjects.
+                  <div className="mt-3">
+                    <Link href="/practice" className="text-primary hover:underline font-medium">Start Practice Session &rarr;</Link>
                   </div>
-                ))}
+                </div>
               </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No weak subjects identified yet. Keep it up!</p>
             )}
           </div>
+        </div>
+
+        <div className="bg-card shadow border rounded-xl p-6">
+          <h2 className="text-2xl font-semibold mb-2">Subject-wise Breakdown</h2>
+          <p className="text-muted-foreground mb-6">Detailed accuracy across all subjects</p>
+          {data.subjectAccuracy.length > 0 ? (
+            <div className="space-y-6">
+              {data.subjectAccuracy.map(stat => (
+                <div key={stat.subject} className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium text-lg">{stat.subject}</span>
+                    <span className="text-muted-foreground">{stat.accuracy}% ({stat.correct}/{stat.total} correct)</span>
+                  </div>
+                  <div className="h-3 w-full bg-secondary rounded-full overflow-hidden" role="progressbar" aria-valuenow={stat.accuracy} aria-valuemin={0} aria-valuemax={100} aria-label={`Accuracy for ${stat.subject}`}>
+                    <div 
+                      className="h-full bg-primary transition-all" 
+                      style={{ width: `${stat.accuracy}%` }}
+                    />
+                  </div>
+                  <div className="flex gap-4 text-xs font-medium">
+                    <span className="text-green-500">{stat.correct} Correct</span>
+                    <span className="text-destructive">{stat.incorrect} Incorrect</span>
+                    <span className="text-muted-foreground">{stat.unanswered} Unanswered</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-8">Not enough data to show subject breakdown.</p>
+          )}
         </div>
 
       </div>

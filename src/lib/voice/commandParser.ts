@@ -28,6 +28,8 @@ export type VoiceCommand =
   | { type: 'SET_LANGUAGE_TELUGU' }
   | { type: 'SIGN_IN' }
   | { type: 'SIGN_UP' }
+  | { type: 'SELECT_MODE_STANDARD' }
+  | { type: 'SELECT_MODE_VOICE' }
   | { type: 'UNKNOWN' };
 
 export function parseCommand(transcript: string, lang: Locale): VoiceCommand {
@@ -43,6 +45,11 @@ export function parseCommand(transcript: string, lang: Locale): VoiceCommand {
     const regex = new RegExp(`(^|\\s)${escaped}(?=\\s|$)`, 'i');
     return regex.test(text);
   };
+
+  // Hardcoded fallback for onboarding mode selection (English)
+  if (matchesPhrase(normalized, 'standard')) return { type: 'SELECT_MODE_STANDARD' };
+  if (matchesPhrase(normalized, 'voice first') || matchesPhrase(normalized, 'voicefirst') || matchesPhrase(normalized, 'voice')) return { type: 'SELECT_MODE_VOICE' };
+
 
   // Collect all phrases and sort by length descending to match longest first
   const allPhrases: { commandType: string, phrase: string }[] = [];

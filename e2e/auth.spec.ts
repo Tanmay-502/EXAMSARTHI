@@ -39,23 +39,6 @@ test.describe('Authentication Flow & Middleware Routing', () => {
     // using a dummy safe email so it doesn't spam real users.
     await emailInput.fill('test-playwright@example.com');
     
-    // Bypass Next.js 14+ client-side router bug where it ignores identical-path redirects
-    // by intercepting the fetch response and manually navigating the browser.
-    await page.evaluate(() => {
-      const originalFetch = window.fetch;
-      window.fetch = async (...args) => {
-        const response = await originalFetch(...args);
-        if (response.headers.has('x-action-redirect')) {
-          const redirectUrl = response.headers.get('x-action-redirect');
-          if (redirectUrl) {
-            window.location.href = redirectUrl;
-            return new Promise(() => {}); // hang to prevent React errors during navigation
-          }
-        }
-        return response;
-      };
-    });
-
     // Wait for hydration before clicking so Next.js can intercept the form submission
     await page.waitForTimeout(1500);
 

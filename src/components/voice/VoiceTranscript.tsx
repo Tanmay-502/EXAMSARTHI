@@ -20,6 +20,7 @@ export function VoiceTranscript({ className }: { className?: string }) {
       className={cn("flex flex-col space-y-3 overflow-y-auto p-4 rounded-xl bg-black/40 border border-white/10 backdrop-blur-md", className)}
       ref={scrollRef}
       role="log"
+      tabIndex={-1}
       aria-live="polite"
       aria-atomic="false"
       aria-label="Conversation transcript"
