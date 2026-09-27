@@ -4,6 +4,16 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { Question } from '@/lib/store/examStore'
 import { SupabaseClient, User } from '@supabase/supabase-js'
 
+type ServerAnalyticsQuestion = {
+  id: string;
+  exam_id: string | null;
+  subject: string | null;
+  question_answers:
+    | { correct_answer_index: number }
+    | { correct_answer_index: number }[]
+    | null;
+};
+
 export async function fetchAvailableExams() {
   const supabase = await createClient()
   
@@ -274,7 +284,7 @@ export async function startExamSession(examId: string) {
     if (error.code === '23505') {
       const { data: raced } = await adminClient
         .from('exam_sessions')
-        .select('id')
+        .select('id, started_at')
         .eq('exam_id', examId)
         .eq('candidate_id', user.id)
         .eq('status', 'in_progress')
@@ -283,7 +293,10 @@ export async function startExamSession(examId: string) {
         .limit(1)
         .maybeSingle();
 
-      if (raced) return { id: raced.id, startedAt: raced.started_at };
+      if (raced) {
+        const racedSession = raced as { id: string; started_at: string };
+        return { id: racedSession.id, startedAt: racedSession.started_at };
+      }
     }
 
     throw new Error(`Failed to start session: ${error.message}`)
@@ -1045,9 +1058,11 @@ export async function buildLearningProfile(userId: string) {
 
       const answer = answerBySessionQuestion.get(`${session.id}:${questionId}`) ?? null;
       const questionAnswers = question.question_answers;
-      const correctIndex = Array.isArray(questionAnswers)
-        ? questionAnswers[0]?.correct_answer_index
-        : questionAnswers?.correct_answer_index;
+      const correctIndex = questionAnswers === null
+        ? null
+        : Array.isArray(questionAnswers)
+          ? questionAnswers[0]?.correct_answer_index ?? null
+          : questionAnswers.correct_answer_index;
 
       if (answer !== null && answer === correctIndex) {
         stat.correct += 1;
