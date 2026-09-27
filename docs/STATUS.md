@@ -1,27 +1,32 @@
-# EXAMSAARTHI V2 - STATUS
+# EXAMSAARTHI V2 — Current Status
 
-## REAL / VERIFIED
+Snapshot: 2026-09-27
 
-- **Next.js App Router**: Application properly routed with middleware protection.
-- **Supabase Authentication**: PKCE Magic Link correctly configured and redirects reliably.
-- **Database Migrations**: 00000_schema, 00001_multilingual, 00002_demo_data, 00003_secure_answers applied.
-- **Profiles**: Automatically and securely provisioned via admin client on exam start, preserving data integrity (Foreign Keys).
-- **Security / RLS**: Fully restricted RLS policies exist on all tables.
-- **Secret Grading**: `correct_answer_index` dropped from public `questions` table and migrated to restricted `question_answers` table. Client cannot cheat.
-- **Multilingual Support**: English, Hindi, and Telugu fully supported across UI, TTS, STT, commands, and content.
-- **Voice System**: Deterministic command parser running independently without fallback errors.
-- **Accessibility**: Semantic HTML and Axe automation validated.
+## Implemented
 
-## PARTIAL
+- Next.js 16.3.6 App Router with protected routes.
+- Supabase passwordless Magic Link authentication with visible Login / Create Account entry.
+- Voice-first interaction using browser Web Speech APIs, deterministic parser, optional Gemini intent fallback, and contextual SafeActionRegistry.
+- English, Hindi, and Telugu UI/voice support.
+- Server-side grading with correct-answer data isolated in question_answers.
+- Exam/practice session ownership checks and server-only writes for session state and answers.
+- Incremental answer persistence plus IndexedDB recovery/replay.
+- Results, history, and analysis routes restricted to submitted candidate-owned sessions.
+- PWA manifest and production static-asset service worker.
+- Automated typecheck, lint, build, Playwright, and axe coverage.
 
-- **Offline Resilience**: Autosave is integrated via IndexedDB, but needs manual validation on harsh network failure conditions.
-- **Testing**: Playwright Auth testing exists, but complex E2E voice testing is strictly manual for now.
+## Verification status
 
-## UNVERIFIED
+Automated baseline before the current full-audit branch: build passed and Playwright passed 18/18.
+Current branch: additional security, persistence, accessibility, voice, and documentation fixes are staged for the next verification run.
 
-- Edge cases of unsupported browser speech engines gracefully falling back.
-- Heavy concurrent load on server actions (grading).
+## Manual release gates
 
-## DEVELOPMENT-ONLY
+- Real Supabase Magic Link delivery and callback.
+- NVDA/VoiceOver screen-reader walkthrough.
+- Browser network interruption/reconnect during an active session.
+- Applying and verifying migrations through 00010 in the target Supabase project.
+- Production PWA installability/update behavior.
+- End-to-end voice-only rehearsal across landing, onboarding, auth, dashboard, practice, exam, results, analysis, and history.
 
-- Fake local mock grading removed! 100% real Supabase flow active.
+Do not mark a manual gate PASS until it has been observed in the target environment.
