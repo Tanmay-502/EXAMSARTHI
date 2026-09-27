@@ -29,7 +29,7 @@ function DashboardContent() {
   const [userName, setUserName] = useState<string | null>(null);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [insight, setInsight] = useState<string | null>(null);
-  const { mode: interactionMode } = usePreferredMode();
+  const { mode: interactionMode, isLoaded: preferenceLoaded } = usePreferredMode();
   // Auto-scroll transcript
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -90,7 +90,7 @@ function DashboardContent() {
   }, []);
 
   useEffect(() => {
-    if (hasSpokenRef.current || userName === null) return;
+    if (!preferenceLoaded || hasSpokenRef.current || userName === null) return;
     hasSpokenRef.current = true;
     headingRef.current?.focus();
     
@@ -107,7 +107,7 @@ function DashboardContent() {
         speak("Hey, welcome back. How can I help you today?");
       }
     }
-  }, [announce, t, speak, isContinuous, startContinuousListening, redirected, userName, interactionMode]);
+  }, [announce, t, speak, isContinuous, startContinuousListening, redirected, userName, interactionMode, preferenceLoaded]);
 
   useVoiceAction((action) => {
     if (action === 'HELP') {
