@@ -89,7 +89,21 @@ async function main() {
   // 2. Insert Questions & Answers
   console.log(`Inserting ${examData.questions.length} questions...`);
   for (const q of examData.questions) {
-    // Insert into questions
+    // Insert into questions. Supabase jsonb columns accept arrays/objects
+    // directly; do not stringify the options payload.
+    const contentTranslations = Object.fromEntries(
+      Object.entries(q.translations).map(([locale, translation]) => [
+        locale,
+        translation.content_text
+      ])
+    );
+    const optionsTranslations = Object.fromEntries(
+      Object.entries(q.translations).map(([locale, translation]) => [
+        locale,
+        translation.options
+      ])
+    );
+
     const { data: qInsert, error: qError } = await supabase
       .from('questions')
       .insert({
@@ -97,9 +111,9 @@ async function main() {
         order_index: q.order_index,
         subject: q.subject,
         content_text: q.content_text,
-        options: JSON.stringify(q.options),
-        content_translations: {}, // simplified for now
-        options_translations: {}
+        options: q.options,
+        content_translations: contentTranslations,
+        options_translations: optionsTranslations
       })
       .select('id')
       .single();
@@ -110,6 +124,24 @@ async function main() {
     }
 
     const questionId = qInsert.id;
+
+    // Verify the jsonb options survived insertion as an array before
+    // creating the privileged correct-answer row.
+    const { data: insertedQuestion, error: sanityError } = await supabase
+      .from('questions')
+      .select('options')
+      .eq('id', questionId)
+      .single();
+
+    if (sanityError) {
+      console.error(`Failed to re-fetch question ${q.order_index} for sanity check:`, sanityError);
+      process.exit(1);
+    }
+
+    if (!insertedQuestion || !Array.isArray(insertedQuestion.options)) {
+      console.error(`Sanity check failed for question ${q.order_index}: options is not an array.`);
+      process.exit(1);
+    }
 
     // Insert into question_answers
     const { error: qaError } = await supabase
