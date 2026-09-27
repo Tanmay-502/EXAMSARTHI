@@ -62,15 +62,29 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
     `);
 
   if (session.is_practice) {
-    const rosterIds = Array.isArray(session.question_ids)
+    let rosterIds = Array.isArray(session.question_ids)
       ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
       : [];
 
+    // Legacy practice sessions created before the roster migration can still
+    // be rendered using their previously saved answer rows.
     if (rosterIds.length === 0) {
-      redirect('/dashboard');
+      const { data: legacyAnswers } = await adminClient
+        .from('answers')
+        .select('question_id')
+        .eq('session_id', sessionId);
+      rosterIds = [...new Set(
+        (legacyAnswers || [])
+          .map(answer => answer.question_id)
+          .filter((id): id is string => typeof id === 'string')
+      )];
     }
 
-    questionQuery = questionQuery.in('id', rosterIds);
+    if (rosterIds.length > 0) {
+      questionQuery = questionQuery.in('id', rosterIds);
+    } else {
+      questionQuery = questionQuery.in('id', ['00000000-0000-0000-0000-000000000000']);
+    }
   } else {
     questionQuery = questionQuery.eq('exam_id', session.exam_id);
   }
