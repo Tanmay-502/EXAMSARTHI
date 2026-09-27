@@ -11,18 +11,21 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { fetchPracticeQuestions, startPracticeSession } from '@/app/exam/actions';
 import { usePreferredMode } from '@/lib/hooks/usePreferredMode';
 import { SUPPORTED_SUBJECTS, resolveSubject } from '@/lib/catalog/examCatalog';
+import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
+import { SafeAction } from '@/lib/voice/safeActionRegistry';
 
 function PracticeContent() {
   const initializeExam = useExamStore(state => state.initializeExam);
   const { t, lang } = useI18n();
   const searchParams = useSearchParams();
-  const { speak, setOnResult, startContinuousListening, isContinuous } = useVoice();
+  const { speak, startContinuousListening, isContinuous } = useVoice();
+  const { useVoiceAction } = useGlobalVoice();
   
   const initialSubject = searchParams.get('subject') || '';
   const initialCount = searchParams.get('count') || '';
   const initialDifficulty = searchParams.get('difficulty') || '';
   
-  const { mode: interactionMode } = usePreferredMode();
+  const { mode: interactionMode, isLoaded } = usePreferredMode();
 
   const [setupState, setSetupState] = useState<'ASK_SUBJECT' | 'ASK_COUNT' | 'ASK_DIFFICULTY' | 'FETCHING' | 'CONFIRM_SHORTFALL' | 'STARTING' | 'READY'>(() => {
     if (initialSubject && initialCount && initialDifficulty) {
@@ -103,132 +106,137 @@ function PracticeContent() {
   }, [setupState, confirmedShortfall, subject, availableCount, lang, speak]);
 
   useEffect(() => {
-    let active = true;
-    
+    if (setupState === 'ASK_SUBJECT' && !subject) speak("What subject would you like to practice?");
+    if (setupState === 'ASK_COUNT' && !count) speak("How many questions would you like?");
+    if (setupState === 'ASK_DIFFICULTY' && !difficulty) speak("What difficulty? Easy, medium, or hard?");
+  }, [setupState, subject, count, difficulty, speak]);
+
+  useVoiceAction((action: SafeAction, payload?: Record<string, unknown> | null, transcript?: string) => {
+    if (setupState === 'READY') return false;
+
     const handleVoiceFallback = (errorMsg: string, repromptMsg: string) => {
       speak(`${errorMsg} ${repromptMsg}`);
     };
-    
-    if (setupState === 'ASK_SUBJECT') {
-      if (!subject) {
-        speak("What subject would you like to practice?");
-        setOnResult(async (text) => {
-          if (active) {
-            const trimmed = text.trim();
-            const resolved = await resolveSubject(trimmed);
-            if (!resolved) {
-               handleVoiceFallback("I didn't quite catch that.", "What subject would you like to practice?");
-               return;
-            }
-            setSubject(resolved);
-            setSetupState('ASK_COUNT');
-          }
-        });
-      }
-    } else if (setupState === 'ASK_COUNT') {
-      if (!count) {
-        speak("How many questions would you like?");
-        setOnResult((text) => {
-          if (active) {
-            const numMatch = text.match(/\d+/);
-            if (!numMatch) {
-               handleVoiceFallback("I didn't hear a number.", "How many questions would you like?");
-               return;
-            }
-            const num = numMatch[0];
-            setCount(num);
-            setSetupState('ASK_DIFFICULTY');
-          }
-        });
-      }
-    } else if (setupState === 'ASK_DIFFICULTY') {
-      if (!difficulty) {
-        speak("What difficulty? Easy, medium, or hard?");
-        setOnResult((text) => {
-          if (active) {
-            const t = text.trim().toLowerCase();
-            let diff = '';
-            if (t.includes('easy')) diff = 'easy';
-            else if (t.includes('medium')) diff = 'medium';
-            else if (t.includes('hard')) diff = 'hard';
-            
-            if (!diff) {
-               handleVoiceFallback("Please choose from easy, medium, or hard.", "What difficulty?");
-               return;
-            }
-            setDifficulty(diff);
-            setSetupState('FETCHING');
-          }
-        });
-      }
-    } else if (setupState === 'CONFIRM_SHORTFALL') {
-      setOnResult((text) => {
-        if (active) {
-          const t = text.trim().toLowerCase();
-          if (t.includes('yes') || t.includes('confirm') || t.includes('हाँ') || t.includes('అవును') || t.includes('start') || t.includes('ok')) {
-            setConfirmedShortfall(true);
-            setTimeout(() => active && setSetupState('STARTING'), 0);
-          } else if (t.includes('no') || t.includes('change') || t.includes('नहीं') || t.includes('కాదు') || t.includes('wait') || t.includes('cancel')) {
-            setCount('');
-            setSetupState('ASK_COUNT');
+
+    if ((action as string === 'RAW_TRANSCRIPT' || action === 'UNKNOWN_COMMAND') && transcript) {
+      if (setupState === 'ASK_SUBJECT') {
+        const trimmed = transcript.trim();
+        resolveSubject(trimmed).then(resolved => {
+          if (!resolved) {
+             handleVoiceFallback("I didn't quite catch that.", "What subject would you like to practice?");
           } else {
-             handleVoiceFallback("Please say yes or no.", "Would you like me to start with the available questions?");
+             setSubject(resolved);
+             setSetupState('ASK_COUNT');
           }
+        });
+        return true;
+      }
+
+      if (setupState === 'ASK_COUNT') {
+        const numMatch = transcript.match(/\d+/);
+        const wordMatch = transcript.toLowerCase().match(/(five|ten|fifteen|twenty|५|१०|१५|२०)/);
+        let countVal = '';
+        if (numMatch) countVal = numMatch[0];
+        else if (wordMatch) {
+           const word = wordMatch[0];
+           if (word === 'five' || word === '५') countVal = '5';
+           if (word === 'ten' || word === '१०') countVal = '10';
+           if (word === 'fifteen' || word === '१५') countVal = '15';
+           if (word === 'twenty' || word === '२०') countVal = '20';
         }
-      });
+
+        if (!countVal) {
+           handleVoiceFallback("Please say the number of questions, such as 10 or 20.", "How many questions would you like?");
+        } else {
+           setCount(countVal);
+           setSetupState('ASK_DIFFICULTY');
+        }
+        return true;
+      }
+
+      if (setupState === 'ASK_DIFFICULTY') {
+        const t = transcript.trim().toLowerCase();
+        let diff = '';
+        if (t.includes('easy')) diff = 'easy';
+        else if (t.includes('medium')) diff = 'medium';
+        else if (t.includes('hard')) diff = 'hard';
+        
+        if (!diff) {
+           handleVoiceFallback("Please say easy, medium, or hard.", "What difficulty?");
+        } else {
+           setDifficulty(diff);
+           setSetupState('FETCHING');
+        }
+        return true;
+      }
+
+      if (setupState === 'CONFIRM_SHORTFALL') {
+        const t = transcript.trim().toLowerCase();
+        if (t.includes('yes') || t.includes('confirm') || t.includes('हाँ') || t.includes('అవును') || t.includes('start') || t.includes('ok')) {
+          setConfirmedShortfall(true);
+          setSetupState('STARTING');
+        } else if (t.includes('no') || t.includes('change') || t.includes('नहीं') || t.includes('కాదు') || t.includes('wait') || t.includes('cancel')) {
+          setCount('');
+          setSetupState('ASK_COUNT');
+        } else {
+           handleVoiceFallback("Please say yes or no.", "Would you like me to start with the available questions?");
+        }
+        return true;
+      }
     }
     
-    return () => { active = false; };
-  }, [setupState, subject, count, difficulty, speak, setOnResult]);
+    // Explicit global START_PRACTICE inside practice context restarts the flow
+    if (action === 'START_PRACTICE' || action === 'OPEN_PRACTICE') {
+      if (payload?.subject) setSubject(payload.subject as string);
+      else setSubject('');
+      
+      if (payload?.count) setCount(String(payload.count));
+      else setCount('');
+
+      if (payload?.difficulty) setDifficulty(payload.difficulty as string);
+      else setDifficulty('');
+
+      setSetupState('ASK_SUBJECT'); // will autoprogress if all 3 are set via useEffect
+      return true;
+    }
+
+    return false;
+  });
 
   if (setupState !== 'READY') {
     return (
-      <div className="relative flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] bg-black text-white p-6 overflow-hidden">
-        {/* Subtle background transitions based on state */}
-        <AnimatePresence>
-          {setupState === 'ASK_SUBJECT' && (
-            <motion.div key="bg-subject" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1 }} className="absolute inset-0 bg-linear-to-b from-blue-900/20 to-black pointer-events-none" />
-          )}
-          {setupState === 'ASK_COUNT' && (
-            <motion.div key="bg-count" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1 }} className="absolute inset-0 bg-linear-to-b from-purple-900/20 to-black pointer-events-none" />
-          )}
-          {setupState === 'ASK_DIFFICULTY' && (
-            <motion.div key="bg-diff" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1 }} className="absolute inset-0 bg-linear-to-b from-emerald-900/20 to-black pointer-events-none" />
-          )}
-          {setupState === 'CONFIRM_SHORTFALL' && (
-            <motion.div key="bg-short" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1 }} className="absolute inset-0 bg-linear-to-b from-amber-900/20 to-black pointer-events-none" />
-          )}
-        </AnimatePresence>
-
-        <motion.div 
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          className="mb-12 relative z-10"
-        >
-          <VoiceCore size="lg" />
-        </motion.div>
+      <div className="relative flex flex-col min-h-screen w-full max-w-7xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
         
-        <div className="w-full max-w-4xl h-64 relative flex items-center justify-center text-center z-10">
+        <div className="mb-24 flex items-center justify-between border-b border-zinc-900 pb-8">
+          <div className="flex flex-col">
+            <span className="text-zinc-500 tracking-[0.2em] text-xs uppercase mb-2">MODE</span>
+            <span className="text-xl font-light tracking-wide">PRACTICE</span>
+          </div>
+          <VoiceCore size="sm" />
+        </div>
+
+        <div className="flex-1 flex flex-col justify-center w-full max-w-4xl mx-auto">
           <AnimatePresence mode="wait">
             <motion.div
               key={setupState}
-              initial={{ y: 20, opacity: 0 }}
+              initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -20, opacity: 0 }}
-              transition={{ duration: 0.4 }}
-              className="absolute inset-0 flex flex-col items-center justify-center"
+              exit={{ y: -10, opacity: 0 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="flex flex-col"
             >
               {setupState === 'ASK_SUBJECT' && (
-                <div className="space-y-6 w-full max-w-md mx-auto">
-                  <h2 className="text-4xl md:text-7xl font-extrabold tracking-tighter mb-4 text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-cyan-400 drop-shadow-sm">Practice Subject</h2>
-                  <p className="text-2xl md:text-3xl font-light text-white/80">&quot;What subject would you like to practice?&quot;</p>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                <div className="space-y-16">
+                  <div>
+                    <h2 className="text-[clamp(2.5rem,5vw,5rem)] font-light tracking-tighter leading-tight mb-4">Practice Subject</h2>
+                    <p className="text-2xl text-zinc-500 font-light">&quot;What subject would you like to practice?&quot;</p>
+                  </div>
+                  <div className="flex flex-wrap gap-4">
                     {SUPPORTED_SUBJECTS.map(subj => (
                       <button 
                         key={subj}
                         onClick={() => { setSubject(subj); setSetupState('ASK_COUNT'); }}
-                        className="p-4 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium transition-colors text-sm md:text-base"
+                        className="px-6 py-4 rounded-full border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-500 transition-colors text-sm md:text-base uppercase tracking-widest font-medium"
                       >
                         {subj}
                       </button>
@@ -236,16 +244,19 @@ function PracticeContent() {
                   </div>
                 </div>
               )}
+
               {setupState === 'ASK_COUNT' && (
-                <div className="space-y-6 w-full max-w-md mx-auto">
-                  <h2 className="text-4xl md:text-7xl font-extrabold tracking-tighter mb-4 text-transparent bg-clip-text bg-linear-to-r from-purple-400 to-pink-400 drop-shadow-sm">Question Count</h2>
-                  <p className="text-2xl md:text-3xl font-light text-white/80">&quot;How many questions would you like?&quot;</p>
-                  <div className="flex justify-center gap-4 mt-8">
+                <div className="space-y-16">
+                  <div>
+                    <h2 className="text-[clamp(2.5rem,5vw,5rem)] font-light tracking-tighter leading-tight mb-4">Question Count</h2>
+                    <p className="text-2xl text-zinc-500 font-light">&quot;How many questions would you like?&quot;</p>
+                  </div>
+                  <div className="flex flex-wrap gap-4">
                     {['5', '10', '15'].map(num => (
                       <button 
                         key={num}
                         onClick={() => { setCount(num); setSetupState('ASK_DIFFICULTY'); }}
-                        className="p-4 px-8 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium text-xl transition-colors"
+                        className="px-8 py-4 rounded-full border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-500 transition-colors text-xl font-light"
                       >
                         {num}
                       </button>
@@ -253,16 +264,19 @@ function PracticeContent() {
                   </div>
                 </div>
               )}
+
               {setupState === 'ASK_DIFFICULTY' && (
-                <div className="space-y-6 w-full max-w-md mx-auto">
-                  <h2 className="text-4xl md:text-7xl font-extrabold tracking-tighter mb-4 text-transparent bg-clip-text bg-linear-to-r from-emerald-400 to-teal-400 drop-shadow-sm">Difficulty Level</h2>
-                  <p className="text-2xl md:text-3xl font-light text-white/80">&quot;What difficulty? Easy, medium, or hard?&quot;</p>
-                  <div className="grid grid-cols-3 gap-4 mt-8">
+                <div className="space-y-16">
+                  <div>
+                    <h2 className="text-[clamp(2.5rem,5vw,5rem)] font-light tracking-tighter leading-tight mb-4">Difficulty Level</h2>
+                    <p className="text-2xl text-zinc-500 font-light">&quot;What difficulty? Easy, medium, or hard?&quot;</p>
+                  </div>
+                  <div className="flex flex-wrap gap-4">
                     {['easy', 'medium', 'hard'].map(diff => (
                       <button 
                         key={diff}
                         onClick={() => { setDifficulty(diff); setSetupState('FETCHING'); }}
-                        className="p-4 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium capitalize transition-colors"
+                        className="px-8 py-4 rounded-full border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-500 transition-colors text-lg uppercase tracking-widest font-medium"
                       >
                         {diff}
                       </button>
@@ -270,20 +284,23 @@ function PracticeContent() {
                   </div>
                 </div>
               )}
+
               {setupState === 'CONFIRM_SHORTFALL' && (
-                <div className="space-y-6 w-full max-w-md mx-auto">
-                  <h2 className="text-4xl md:text-7xl font-extrabold tracking-tighter mb-4 text-transparent bg-clip-text bg-linear-to-r from-amber-400 to-orange-400 drop-shadow-sm">Insufficient Questions</h2>
-                  <p className="text-2xl md:text-3xl font-light text-white/80">&quot;Would you like me to start with the available questions?&quot;</p>
-                  <div className="flex justify-center gap-4 mt-8">
+                <div className="space-y-16">
+                  <div>
+                    <h2 className="text-[clamp(2.5rem,5vw,5rem)] font-light tracking-tighter leading-tight mb-4 text-zinc-100">Insufficient Questions</h2>
+                    <p className="text-2xl text-zinc-500 font-light">&quot;Would you like me to start with the available questions?&quot;</p>
+                  </div>
+                  <div className="flex flex-wrap gap-4">
                     <button 
                       onClick={() => { setCount(''); setSetupState('ASK_COUNT'); }}
-                      className="p-4 px-8 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium transition-colors"
+                      className="px-8 py-4 rounded-full border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors uppercase tracking-widest text-sm font-medium"
                     >
                       Cancel
                     </button>
                     <button 
                       onClick={() => { setConfirmedShortfall(true); setSetupState('STARTING'); }}
-                      className="p-4 px-8 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-medium transition-colors shadow-[0_0_20px_rgba(245,158,11,0.4)]"
+                      className="px-8 py-4 rounded-full bg-white text-black hover:bg-zinc-200 transition-colors uppercase tracking-widest text-sm font-bold"
                     >
                       Start
                     </button>
@@ -295,23 +312,23 @@ function PracticeContent() {
         </div>
 
         {/* Visual Parameter Collection Status */}
-        <div className="flex items-center justify-center gap-6 mt-12 text-center w-full max-w-4xl flex-wrap">
+        <div className="mt-24 pt-8 border-t border-zinc-900 flex gap-12">
           {subject && (
-            <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex flex-col items-center p-4 bg-white/5 rounded-2xl border border-white/10 min-w-32">
-              <span className="text-xs font-bold text-white/40 uppercase tracking-widest mb-1">Subject</span>
-              <span className="text-xl text-white font-medium capitalize">{subject}</span>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col">
+              <span className="text-zinc-600 uppercase tracking-[0.2em] text-xs mb-2">Subject</span>
+              <span className="text-zinc-300 font-light capitalize">{subject}</span>
             </motion.div>
           )}
           {count && (
-            <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex flex-col items-center p-4 bg-white/5 rounded-2xl border border-white/10 min-w-32">
-              <span className="text-xs font-bold text-white/40 uppercase tracking-widest mb-1">Count</span>
-              <span className="text-xl text-white font-medium">{count} Questions</span>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col">
+              <span className="text-zinc-600 uppercase tracking-[0.2em] text-xs mb-2">Count</span>
+              <span className="text-zinc-300 font-light">{count} Questions</span>
             </motion.div>
           )}
           {difficulty && (
-            <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex flex-col items-center p-4 bg-white/5 rounded-2xl border border-white/10 min-w-32">
-              <span className="text-xs font-bold text-white/40 uppercase tracking-widest mb-1">Difficulty</span>
-              <span className="text-xl text-white font-medium capitalize">{difficulty}</span>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col">
+              <span className="text-zinc-600 uppercase tracking-[0.2em] text-xs mb-2">Difficulty</span>
+              <span className="text-zinc-300 font-light capitalize">{difficulty}</span>
             </motion.div>
           )}
         </div>
@@ -322,7 +339,11 @@ function PracticeContent() {
   return (
     <>
       <div className="sr-only">{t('practice')} Mode</div>
-      <ExamEngine mode="practice" interactionMode={interactionMode} />
+      {isLoaded ? (
+        <ExamEngine mode="practice" interactionMode={interactionMode} />
+      ) : (
+        <div className="flex items-center justify-center p-12 text-white/50">{t('loading')}</div>
+      )}
     </>
   );
 }

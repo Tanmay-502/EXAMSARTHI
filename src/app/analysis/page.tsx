@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { fetchAnalyticsData } from './actions';
 import { TrendingUp, TrendingDown, Minus, Clock, AlertCircle, CheckCircle } from 'lucide-react';
+import AnalysisVoiceHandler from './AnalysisVoiceHandler';
 
 export const metadata = {
   title: 'Analysis - ExamSaarthi',
@@ -24,6 +25,7 @@ export default async function AnalysisPage() {
 
   return (
     <main id="main-content" className="flex flex-col flex-1 p-6 items-center justify-start max-w-5xl mx-auto w-full space-y-8">
+      <AnalysisVoiceHandler data={data} />
       <div className="w-full">
         <h1 className="text-4xl font-bold tracking-tight mb-2" tabIndex={-1}>Performance Analysis</h1>
         <p className="text-xl text-muted-foreground mb-8">Detailed insights across all your practice and exam sessions.</p>

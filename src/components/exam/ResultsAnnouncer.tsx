@@ -65,7 +65,9 @@ export function ResultsAnnouncer({ score, total, percentage, correct, incorrect,
     if (action === 'READ_RESULTS' || action === 'REPEAT') {
       const msg = getSummaryMessage();
       speak(msg);
+      return true;
     }
+    return false;
   });
 
   return <h1 tabIndex={-1} ref={headingRef} className="sr-only">Exam Results</h1>;

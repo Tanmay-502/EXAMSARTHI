@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import HistoryVoiceHandler from './HistoryVoiceHandler';
 
 export default async function HistoryPage({ searchParams }: { searchParams: { filter?: string } }) {
   const supabase = await createClient();
@@ -47,6 +48,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: { fi
 
   return (
     <main id="main-content" className="flex flex-col flex-1 p-6 items-center justify-start max-w-5xl mx-auto w-full space-y-8">
+      <HistoryVoiceHandler totalSessions={displayedSessions.length} />
       <div className="w-full">
         <h1 className="text-4xl font-bold mb-2" tabIndex={-1}>Exam History</h1>
         <p className="text-xl text-muted-foreground mb-8">Review your past attempts</p>

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
+  LucideIcon,
   Mic, 
   Brain, 
   ShieldCheck, 
@@ -20,7 +21,7 @@ interface SystemNode {
   id: string;
   title: string;
   description: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   details: string[];
 }
 

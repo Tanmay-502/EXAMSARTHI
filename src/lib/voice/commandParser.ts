@@ -30,6 +30,7 @@ export type VoiceCommand =
   | { type: 'SIGN_UP' }
   | { type: 'SELECT_MODE_STANDARD' }
   | { type: 'SELECT_MODE_VOICE' }
+  | { type: 'OPEN_ANALYSIS' }
   | { type: 'UNKNOWN' };
 
 export function parseCommand(transcript: string, lang: Locale): VoiceCommand {
@@ -46,10 +47,12 @@ export function parseCommand(transcript: string, lang: Locale): VoiceCommand {
     return regex.test(text);
   };
 
-  // Hardcoded fallback for onboarding mode selection (English)
-  if (matchesPhrase(normalized, 'standard')) return { type: 'SELECT_MODE_STANDARD' };
-  if (matchesPhrase(normalized, 'voice first') || matchesPhrase(normalized, 'voicefirst') || matchesPhrase(normalized, 'voice')) return { type: 'SELECT_MODE_VOICE' };
+  // Hardcoded fallback for onboarding mode selection (English and transliterations)
+  if (matchesPhrase(normalized, 'standard') || matchesPhrase(normalized, 'स्टैंडर्ड')) return { type: 'SELECT_MODE_STANDARD' };
+  if (matchesPhrase(normalized, 'voice first') || matchesPhrase(normalized, 'voicefirst') || matchesPhrase(normalized, 'voice') || matchesPhrase(normalized, 'वॉइस फर्स्ट') || matchesPhrase(normalized, 'वॉइस')) return { type: 'SELECT_MODE_VOICE' };
 
+  // Hardcoded fallback for analysis
+  if (matchesPhrase(normalized, 'analysis') || matchesPhrase(normalized, 'show analysis') || matchesPhrase(normalized, 'open analysis') || matchesPhrase(normalized, 'give me the analysis') || matchesPhrase(normalized, 'tell me my analysis') || matchesPhrase(normalized, 'tell me the analysis of me') || matchesPhrase(normalized, 'analyse my preparation') || matchesPhrase(normalized, 'analyze my preparation') || matchesPhrase(normalized, 'show my performance') || matchesPhrase(normalized, 'how am i performing') || matchesPhrase(normalized, 'how is my preparation') || matchesPhrase(normalized, 'analyze') || matchesPhrase(normalized, 'analyse')) return { type: 'OPEN_ANALYSIS' };
 
   // Collect all phrases and sort by length descending to match longest first
   const allPhrases: { commandType: string, phrase: string }[] = [];

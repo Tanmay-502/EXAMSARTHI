@@ -35,10 +35,13 @@ export default function ModeSelectionPage() {
     if (action === 'SELECT_MODE_STANDARD') {
       speak("Standard mode selected.");
       handleSelectMode('standard');
+      return true;
     } else if (action === 'SELECT_MODE_VOICE') {
       speak("Voice-first mode selected.");
       handleSelectMode('voice-first');
+      return true;
     }
+    return false;
   });
 
   return (

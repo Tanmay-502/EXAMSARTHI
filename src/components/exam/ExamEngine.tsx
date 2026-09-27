@@ -11,6 +11,7 @@ import { useExamStore } from '@/lib/store/examStore';
 import { Mic, MicOff, CheckCircle, AlertTriangle } from 'lucide-react';
 import { VoiceCore } from '@/components/voice/VoiceCore';
 import { motion } from 'framer-motion';
+import { HeroScene } from '@/components/experience/HeroScene';
 
 type ExamEngineProps = {
   mode: 'practice' | 'exam';
@@ -305,7 +306,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     router.push('/results');
   };
 
-  const voiceHandler = (action: SafeAction, payload?: Record<string, unknown> | null) => {
+  const voiceHandler = (action: SafeAction, payload?: Record<string, unknown> | null, transcript?: string) => {
     switch (action) {
       case 'START_EXAM':
       case 'OPEN_EXAM':
@@ -314,7 +315,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         if (engineState === 'READY') {
           setEngineState('EXAM');
         }
-        break;
+        return true;
 
 
       case 'CONFIRM':
@@ -329,7 +330,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         } else if (engineState === 'CONFIRM_SUBMIT') {
           executeSubmit();
         }
-        break;
+        return true;
         
       case 'CHANGE':
         if (engineState === 'CONFIRM_ANSWER' || engineState === 'CONFIRM_SUBMIT') {
@@ -348,20 +349,20 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           }
           speak(announcement);
         }
-        break;
+        return true;
 
       case 'UNKNOWN_COMMAND':
-        break;
+        return false;
 
       case 'NEXT_QUESTION':
         if (engineState === 'EXAM') {
           handleNext();
         }
-        break;
+        return true;
         
       case 'PREVIOUS_QUESTION':
         if (engineState === 'EXAM') handlePrev();
-        break;
+        return true;
         
       case 'REPEAT':
       case 'READ_QUESTION':
@@ -401,29 +402,29 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           }
           speak(announcement);
         }
-        break;
+        return true;
         
       case 'MARK_REVIEW':
         if (engineState === 'EXAM') handleToggleMarkForReview();
-        break;
+        return true;
         
       case 'REVIEW_UNANSWERED':
         if (engineState === 'EXAM') jumpToUnanswered();
-        break;
+        return true;
         
       case 'REVIEW_MARKED':
         if (engineState === 'EXAM') jumpToMarked();
-        break;
+        return true;
         
       case 'JUMP_TO_QUESTION':
         if (engineState === 'EXAM' && typeof payload?.index === 'number') {
           jumpToQuestion(payload.index);
         }
-        break;
+        return true;
         
       case 'SUBMIT_EXAM':
         if (engineState === 'EXAM') confirmSubmitFlow();
-        break;
+        return true;
         
       case 'TIME_LEFT':
         if (mode === 'exam') {
@@ -437,7 +438,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             speak(tParams('time_remaining', { time: `${durationMinutes ?? 60} ${t('minutes')}` }));
           }
         }
-        break;
+        return true;
         
       case 'SELECT_OPTION':
         if (engineState === 'EXAM' && typeof payload?.index === 'number') {
@@ -453,12 +454,13 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             speak(t('invalid_option'));
           }
         }
-        break;
+        return true;
         
       case 'HELP':
         speak(t('help_message'));
-        break;
+        return true;
     }
+    return false;
   };
 
   useVoiceAction(voiceHandler);
@@ -484,36 +486,42 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   // Renders for different engine states
   if (engineState === 'READY') {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] bg-black text-white p-6 relative overflow-hidden w-full">
-        <motion.div 
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          className="mb-12"
-        >
-          <VoiceCore size="lg" />
-        </motion.div>
+      <div className="relative flex flex-col min-h-screen w-full mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
+        <div className="absolute inset-0 pointer-events-none opacity-20">
+          <HeroScene />
+        </div>
+        
+        <div className="mb-24 flex items-center justify-between border-b border-zinc-900 pb-8 relative z-10">
+          <div className="flex flex-col">
+            <span className="text-zinc-500 tracking-[0.2em] text-xs uppercase mb-2">MODE</span>
+            <span className="text-xl font-light tracking-wide">{mode === 'exam' ? 'EXAMINATION' : 'PRACTICE'}</span>
+          </div>
+          <VoiceCore size="sm" />
+        </div>
 
         <motion.div 
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="w-full max-w-2xl text-center space-y-6 relative z-10"
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="flex-1 flex flex-col justify-center w-full max-w-4xl mx-auto relative z-10 space-y-12"
         >
-          <h1 className="text-3xl md:text-5xl font-bold tracking-tight">{t('exam')} Orientation</h1>
-          <p className="text-xl text-white/80 leading-relaxed" aria-live="polite">
-            {tParams('exam_orientation', { examName: mode === 'exam' ? 'Mock Exam' : 'Practice', total: questions.length, duration: 60, language: lang === 'en-IN' ? 'English' : lang === 'hi-IN' ? 'Hindi' : 'Telugu' })}
+          <h1 className="text-[clamp(3rem,6vw,7rem)] font-light tracking-tighter leading-tight mb-4">
+            {t('exam')} Orientation
+          </h1>
+          <p className="text-2xl text-zinc-400 font-light leading-relaxed max-w-2xl" aria-live="polite">
+            {tParams('exam_orientation', { examName: mode === 'exam' ? 'Mock Exam' : 'Practice', total: questions.length, duration: durationMinutes ?? 60, language: lang === 'en-IN' ? 'English' : lang === 'hi-IN' ? 'Hindi' : 'Telugu' })}
           </p>
-          <p className="text-lg text-emerald-400 font-medium">
-            {t('say_start_exam')}
-          </p>
-          <div className="pt-8">
+          
+          <div className="pt-16 border-t border-zinc-900 flex justify-between items-center">
+            <p className="text-zinc-500 font-light uppercase tracking-widest text-sm">
+              {t('say_start_exam')}
+            </p>
             <button
               onClick={() => {
                 stopSpeaking();
                 setEngineState('EXAM');
               }}
-              className="px-10 py-4 bg-white text-black text-xl font-bold rounded-full hover:bg-white/90 transition-transform hover:scale-105 focus-visible:ring-4 focus-visible:ring-white/30"
+              className="px-12 py-4 bg-white text-black text-sm font-bold uppercase tracking-widest rounded-full hover:bg-zinc-200 transition-colors focus-visible:ring-4 focus-visible:ring-white/30"
             >
               START EXAM
             </button>
@@ -525,30 +533,33 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
 
   if (engineState === 'CONFIRM_SUBMIT') {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] bg-black text-white p-6 w-full">
-        <motion.div 
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="mb-8 p-6 bg-red-500/20 rounded-full border border-red-500/30"
-        >
-          <AlertTriangle className="w-16 h-16 text-red-500" />
-        </motion.div>
-        
-        <div className="w-full max-w-2xl text-center space-y-6">
-          <h1 className="text-3xl md:text-5xl font-bold tracking-tight">{t('submit')}</h1>
-          <p className="text-xl text-white/80 leading-relaxed" aria-live="polite">
+      <div className="flex flex-col min-h-screen w-full mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
+        <div className="flex-1 flex flex-col justify-center w-full max-w-4xl mx-auto space-y-12">
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="mb-8 p-6 w-fit bg-red-950/30 rounded-full border border-red-900/50"
+          >
+            <AlertTriangle className="w-12 h-12 text-red-500" />
+          </motion.div>
+          
+          <h1 className="text-[clamp(3rem,6vw,7rem)] font-light tracking-tighter leading-tight mb-4">
+            {t('submit')}
+          </h1>
+          <p className="text-2xl text-zinc-400 font-light leading-relaxed max-w-2xl" aria-live="polite">
             {t('submit_confirm_msg')}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
+
+          <div className="pt-16 border-t border-zinc-900 flex flex-wrap gap-4">
             <button
               onClick={() => setEngineState('EXAM')}
-              className="px-8 py-4 bg-white/10 text-white text-lg font-bold rounded-full hover:bg-white/20 transition-colors focus-visible:ring-4 focus-visible:ring-white/30"
+              className="px-12 py-4 rounded-full border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors uppercase tracking-widest text-sm font-medium"
             >
               NO, GO BACK
             </button>
             <button
               onClick={executeSubmit}
-              className="px-8 py-4 bg-red-600 text-white text-lg font-bold rounded-full hover:bg-red-500 transition-colors shadow-[0_0_20px_rgba(220,38,38,0.4)] focus-visible:ring-4 focus-visible:ring-red-500/50"
+              className="px-12 py-4 bg-red-600 text-white rounded-full hover:bg-red-500 transition-colors uppercase tracking-widest text-sm font-bold shadow-[0_0_20px_rgba(220,38,38,0.2)]"
             >
               YES, SUBMIT
             </button>
@@ -560,13 +571,16 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
 
   if (engineState === 'PROCESSING') {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] bg-black text-white p-6 w-full">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-6 w-full relative">
+        <div className="absolute inset-0 pointer-events-none opacity-20">
+          <HeroScene />
+        </div>
         <VoiceCore size="lg" />
         <motion.h1 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="text-2xl md:text-3xl font-bold mt-12 text-white/80" 
+          className="text-2xl font-light tracking-wide mt-12 text-zinc-400 uppercase" 
           aria-live="assertive"
         >
           {lang === 'hi-IN' ? 'जमा किया जा रहा है...' : lang === 'te-IN' ? 'సమర్పిస్తున్నాము...' : 'Processing submission...'}
@@ -577,186 +591,196 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
 
   // EXAM or CONFIRM_ANSWER state
   return (
-    <div className="flex flex-col flex-1 w-full max-w-4xl mx-auto space-y-8">
+    <div className="relative flex flex-col min-h-screen w-full max-w-7xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
+      <div className="absolute inset-0 pointer-events-none opacity-[0.03]">
+        <HeroScene />
+      </div>
+
       {/* Header Info */}
-      {/* Header Info */}
-      <div className="flex justify-between items-center bg-muted/50 p-4 rounded-xl border border-border/50 shadow-sm relative overflow-hidden">
-        <div className="flex items-center gap-6 z-10">
+      <div className="mb-24 flex flex-col md:flex-row md:items-center justify-between border-b border-zinc-900 pb-8 relative z-10 gap-8">
+        <div className="flex items-center gap-6">
           <VoiceCore size="sm" />
           <div className="flex flex-col">
-            <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold">{mode === 'exam' ? 'Real Exam' : 'Practice Mode'}</span>
-            <span className="text-xl font-bold" aria-live="polite">
-              Question {currentQuestionIndex + 1} of {questions.length}
+            <span className="text-zinc-500 tracking-[0.2em] text-xs uppercase mb-2">
+              {mode === 'exam' ? 'Real Exam' : 'Practice Mode'}
+            </span>
+            <span className="text-2xl font-light tracking-wide" aria-live="polite">
+              Question {currentQuestionIndex + 1} / {questions.length}
             </span>
           </div>
         </div>
         
-        <div className="flex items-center gap-4 z-10">
-          <button 
-            onClick={toggleListening}
-            className={`p-3 rounded-full border-2 transition-all ${isContinuous ? 'bg-primary/20 text-primary border-primary shadow-[0_0_15px_rgba(var(--primary),0.3)]' : micError ? 'bg-destructive/10 text-destructive border-destructive' : 'bg-background hover:bg-accent text-foreground border-border'}`}
-            aria-label={micError === 'denied' ? 'Microphone denied' : isContinuous ? 'Pause voice control' : 'Enable voice control'}
-            title={micError === 'denied' ? 'Microphone access denied' : ''}
-          >
-            {micError ? <MicOff className="w-6 h-6 text-destructive" /> : isContinuous ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
-          </button>
+        <div className="flex flex-row-reverse md:flex-row items-center justify-between md:justify-end gap-8 w-full md:w-auto">
           {mode === 'exam' && (
-            <div className="flex flex-col items-end">
-              <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold">{t('time_left')}</span>
-              <span className="text-2xl font-mono font-bold text-primary tracking-tight" aria-live="polite">
+            <div className="flex flex-col md:items-end">
+              <span className="text-zinc-500 tracking-[0.2em] text-xs uppercase mb-2">{t('time_left')}</span>
+              <span className="text-3xl font-light tracking-tight text-zinc-100" aria-live="polite">
                 {timeRemainingStr}
               </span>
             </div>
           )}
+          <button 
+            onClick={toggleListening}
+            className={`p-4 rounded-full border transition-all ${isContinuous ? 'border-white text-black bg-white' : micError ? 'border-red-900 text-red-500 bg-red-950/20' : 'border-zinc-800 text-zinc-400 bg-transparent hover:border-zinc-500 hover:text-white'}`}
+            aria-label={micError === 'denied' ? 'Microphone denied' : isContinuous ? 'Pause voice control' : 'Enable voice control'}
+            title={micError === 'denied' ? 'Microphone access denied' : ''}
+          >
+            {micError ? <MicOff className="w-5 h-5 text-red-500" /> : isContinuous ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+          </button>
         </div>
       </div>
 
-      {engineState === 'CONFIRM_ANSWER' ? (
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }} 
-          animate={{ opacity: 1, scale: 1 }} 
-          className="bg-primary/5 text-primary shadow-lg shadow-primary/10 rounded-2xl border-2 border-primary/50 p-8 md:p-12 flex flex-col items-center space-y-8"
-        >
-          <CheckCircle className="w-16 h-16 text-primary animate-bounce" />
-          <h2 className="text-2xl md:text-3xl font-bold text-center" aria-live="assertive">
-            {currentQuestion.options && pendingAnswer !== null 
-              ? tParams('answer_confirm_prompt', { index: pendingAnswer + 1, option: currentQuestion.options[pendingAnswer] })
-              : 'Confirm answer?'}
-          </h2>
-          <div className="flex gap-4 mt-4">
-            <button
-              onClick={() => {
-                setPendingAnswer(null);
-                setEngineState('EXAM');
-              }}
-              className="px-6 py-3 bg-background text-foreground text-lg font-bold rounded-lg border hover:bg-accent focus-visible:ring-4 focus-visible:ring-ring"
-            >
-              CHANGE
-            </button>
-            <button
-              onClick={() => {
-                if (pendingAnswer !== null) {
-                  handleOptionSelect(pendingAnswer);
+      <div className="flex-1 w-full max-w-4xl mx-auto relative z-10">
+        {engineState === 'CONFIRM_ANSWER' ? (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            className="flex flex-col space-y-12"
+          >
+            <div className="flex items-center gap-6 text-zinc-300">
+              <CheckCircle className="w-12 h-12 text-white" />
+              <h2 className="text-3xl md:text-5xl font-light tracking-tighter" aria-live="assertive">
+                {currentQuestion.options && pendingAnswer !== null 
+                  ? tParams('answer_confirm_prompt', { index: pendingAnswer + 1, option: currentQuestion.options[pendingAnswer] })
+                  : 'Confirm answer?'}
+              </h2>
+            </div>
+            <div className="flex gap-4 border-t border-zinc-900 pt-12">
+              <button
+                onClick={() => {
                   setPendingAnswer(null);
                   setEngineState('EXAM');
-                }
-              }}
-              className="px-6 py-3 bg-primary text-primary-foreground text-lg font-bold rounded-lg hover:bg-primary/90 focus-visible:ring-4 focus-visible:ring-ring"
+                }}
+                className="px-8 py-4 rounded-full border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors uppercase tracking-widest text-sm font-medium"
+              >
+                CHANGE
+              </button>
+              <button
+                onClick={() => {
+                  if (pendingAnswer !== null) {
+                    handleOptionSelect(pendingAnswer);
+                    setPendingAnswer(null);
+                    setEngineState('EXAM');
+                  }
+                }}
+                className="px-8 py-4 rounded-full bg-white text-black hover:bg-zinc-200 transition-colors uppercase tracking-widest text-sm font-bold"
+              >
+                CONFIRM
+              </button>
+            </div>
+          </motion.div>
+        ) : (
+          /* Question */
+          <div className="flex flex-col">
+            {(() => {
+              let cleanText = currentQuestion.question_text;
+              let imgUrl = currentQuestion.image_url || null;
+              const altText = currentQuestion.image_alt_text || "Question diagram";
+              
+              // Legacy fallback
+              const match = cleanText.match(/\[IMAGE:(.*?)\]/);
+              if (match && !imgUrl) {
+                imgUrl = match[1];
+              }
+              if (match) {
+                cleanText = cleanText.replace(match[0], '').trim();
+              }
+              return (
+                <div className="mb-16">
+                  <h2 
+                    tabIndex={-1} 
+                    ref={headingRef} 
+                    className="text-[clamp(2rem,4vw,3.5rem)] font-light leading-tight tracking-tight outline-none"
+                  >
+                    {cleanText}
+                  </h2>
+                  {imgUrl && (
+                    <div className="mt-12">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={imgUrl} alt={currentQuestion.image_alt_text || altText} className="max-w-full h-auto rounded-none border border-zinc-800" />
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Options */}
+            <div 
+              role="radiogroup" 
+              aria-label="Answer options"
+              className="flex flex-col border-t border-zinc-900"
             >
-              CONFIRM
+              {Array.isArray(currentQuestion.options) && currentQuestion.options.map((option, idx) => {
+                const isSelected = currentAnswer?.answer_data === idx;
+                return (
+                  <label 
+                    key={idx}
+                    className={`group relative flex items-start md:items-center p-8 border-b border-zinc-900 cursor-pointer transition-colors duration-300 ${isSelected ? 'bg-zinc-900/50' : 'bg-transparent hover:bg-zinc-900/30'}`}
+                  >
+                    <div className="flex flex-col md:flex-row md:items-center w-full gap-6">
+                      <div className={`shrink-0 flex items-center justify-center w-8 h-8 rounded-full border transition-colors duration-300 ${isSelected ? 'border-white bg-white text-black' : 'border-zinc-700 group-hover:border-zinc-500'}`}>
+                        <input
+                          type="radio"
+                          name={`question-${currentQuestion.id}`}
+                          value={idx}
+                          checked={isSelected}
+                          onChange={() => {
+                            handleOptionSelect(idx);
+                          }}
+                          className="sr-only"
+                          aria-label={`Option ${String.fromCharCode(65 + idx)}: ${option}`}
+                        />
+                        {isSelected && <div className="w-2.5 h-2.5 bg-black rounded-full" />}
+                      </div>
+                      
+                      <div className="flex-1 flex flex-col md:flex-row md:items-baseline gap-2 md:gap-8">
+                        <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest shrink-0">Opt {String.fromCharCode(65 + idx)}</span>
+                        <span className={`text-xl md:text-2xl font-light leading-relaxed ${isSelected ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-200'}`}>{option}</span>
+                      </div>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Navigation Controls */}
+        <div className="mt-24 pt-8 flex flex-col md:flex-row gap-8 justify-between items-center relative z-10">
+          <div className="flex gap-4 w-full md:w-auto">
+            <button
+              onClick={handlePrev}
+              disabled={currentQuestionIndex === 0}
+              className="flex-1 md:flex-none px-8 py-4 rounded-full border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-500 disabled:opacity-30 disabled:hover:border-zinc-800 disabled:hover:text-zinc-400 transition-colors uppercase tracking-widest text-xs font-bold"
+              aria-label={t('back')}
+            >
+              {t('back')}
+            </button>
+            <button
+              onClick={handleNext}
+              disabled={currentQuestionIndex === questions.length - 1}
+              className="flex-1 md:flex-none px-8 py-4 rounded-full bg-white text-black hover:bg-zinc-200 disabled:opacity-30 disabled:hover:bg-white transition-colors uppercase tracking-widest text-xs font-bold"
+              aria-label={t('next')}
+            >
+              {t('next')}
             </button>
           </div>
-        </motion.div>
-      ) : (
-        /* Question */
-        <div className="bg-card text-card-foreground shadow-sm rounded-xl border p-6 md:p-8">
-          {(() => {
-            let cleanText = currentQuestion.question_text;
-            let imgUrl = currentQuestion.image_url || null;
-            const altText = currentQuestion.image_alt_text || "Question diagram";
-            
-            // Legacy fallback
-            const match = cleanText.match(/\[IMAGE:(.*?)\]/);
-            if (match && !imgUrl) {
-              imgUrl = match[1];
-            }
-            if (match) {
-              cleanText = cleanText.replace(match[0], '').trim();
-            }
-            return (
-              <>
-                <h2 
-                  tabIndex={-1} 
-                  ref={headingRef} 
-                  className="text-3xl md:text-5xl font-extrabold tracking-tight mb-8 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background rounded-md"
-                >
-                  {cleanText}
-                </h2>
-                {imgUrl && (
-                  <div className="mb-8">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={imgUrl} alt={currentQuestion.image_alt_text || altText} className="max-w-full h-auto rounded-lg border shadow-sm" />
-                  </div>
-                )}
-              </>
-            );
-          })()}
 
-          {/* Options */}
-          <div 
-            role="radiogroup" 
-            aria-label="Answer options"
-            className="space-y-4 mt-8"
-          >
-            {Array.isArray(currentQuestion.options) && currentQuestion.options.map((option, idx) => {
-              const isSelected = currentAnswer?.answer_data === idx;
-              return (
-                <motion.label 
-                  key={idx}
-                  whileHover={{ y: -4, scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  className={`group relative flex items-center space-x-6 p-8 rounded-3xl border-2 cursor-pointer transition-colors duration-300 focus-within:ring-4 focus-within:ring-primary/50 focus-within:ring-offset-4 focus-within:ring-offset-background ${isSelected ? 'border-primary bg-primary/10 shadow-[0_10px_30px_-10px_rgba(var(--primary),0.3)]' : 'border-border bg-card hover:bg-accent/40 shadow-sm hover:shadow-lg hover:border-primary/40'}`}
-                >
-                  <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors duration-300 ${isSelected ? 'border-primary bg-primary text-primary-foreground shadow-[0_0_15px_rgba(var(--primary),0.5)]' : 'border-muted-foreground group-hover:border-primary/60'}`}>
-                    <input
-                      type="radio"
-                      name={`question-${currentQuestion.id}`}
-                      value={idx}
-                      checked={isSelected}
-                      onChange={() => {
-                        handleOptionSelect(idx);
-                      }}
-                      className="sr-only"
-                      aria-label={`Option ${String.fromCharCode(65 + idx)}: ${option}`}
-                    />
-                    {isSelected && <motion.div layoutId={`selected-${currentQuestion.id}`} className="w-4 h-4 bg-current rounded-full" />}
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-1 group-hover:text-primary/70 transition-colors">Option {String.fromCharCode(65 + idx)}</span>
-                    <span className={`text-2xl font-medium tracking-wide leading-relaxed ${isSelected ? 'text-primary' : 'text-foreground'}`}>{option}</span>
-                  </div>
-                </motion.label>
-              );
-            })}
+          <div className="flex gap-4 w-full md:w-auto">
+            <button
+              onClick={handleToggleMarkForReview}
+              aria-pressed={isMarkedForReview}
+              className={`flex-1 md:flex-none px-8 py-4 rounded-full border transition-colors uppercase tracking-widest text-xs font-bold ${isMarkedForReview ? 'border-zinc-400 text-white bg-zinc-800/50' : 'border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-500'}`}
+            >
+              {t('mark_review')}
+            </button>
+            <button
+              onClick={confirmSubmitFlow}
+              className="flex-1 md:flex-none px-8 py-4 rounded-full border border-red-900/50 text-red-500 hover:bg-red-950/20 transition-colors uppercase tracking-widest text-xs font-bold"
+            >
+              {t('submit')}
+            </button>
           </div>
-        </div>
-      )}
-
-      {/* Navigation Controls */}
-      <div className="flex flex-wrap gap-4 justify-between items-center pt-4">
-        <div className="flex gap-4">
-          <button
-            onClick={handlePrev}
-            disabled={currentQuestionIndex === 0}
-            className="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-lg font-bold transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border-2 border-input bg-background hover:bg-accent hover:text-accent-foreground h-14 px-8"
-            aria-label={t('back')}
-          >
-            {t('back')}
-          </button>
-          <button
-            onClick={handleNext}
-            disabled={currentQuestionIndex === questions.length - 1}
-            className="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-lg font-bold transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-14 px-8"
-            aria-label={t('next')}
-          >
-            {t('next')}
-          </button>
-        </div>
-
-        <div className="flex gap-4">
-          <button
-            onClick={handleToggleMarkForReview}
-            aria-pressed={isMarkedForReview}
-            className={`inline-flex items-center justify-center whitespace-nowrap rounded-xl text-lg font-bold transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring border-2 h-14 px-8 ${isMarkedForReview ? 'bg-amber-500/20 text-amber-500 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'bg-background border-input hover:bg-accent'}`}
-          >
-            {t('mark_review')}
-          </button>
-          <button
-            onClick={confirmSubmitFlow}
-            className="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-lg font-bold transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring bg-destructive text-destructive-foreground hover:bg-destructive/90 h-14 px-8 shadow-[0_0_15px_rgba(220,38,38,0.3)] hover:shadow-[0_0_25px_rgba(220,38,38,0.5)]"
-          >
-            {t('submit')}
-          </button>
         </div>
       </div>
     </div>

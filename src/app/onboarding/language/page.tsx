@@ -38,7 +38,9 @@ export default function LanguageSelectionPage() {
     if (action === 'CHANGE_LANGUAGE' && payload?.lang) {
        // VoiceAssistant already speaks the language confirmation internally, so we just handle routing
        handleSelectLanguage(payload.lang as LanguageCode);
+       return true;
     }
+    return false;
   });
 
   const languages = [

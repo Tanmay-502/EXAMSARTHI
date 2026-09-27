@@ -66,36 +66,47 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
   const allClear = micStatus === 'success' && browserStatus === 'success';
 
   return (
-    <div className="flex flex-col items-center justify-center flex-1 p-6 max-w-xl mx-auto space-y-6 text-center">
-      <h2 className="text-3xl font-bold">Device Readiness Check</h2>
-      <div className="w-full space-y-4 text-left border rounded-xl p-6 bg-card text-card-foreground shadow-sm">
-        <div className="flex items-center justify-between">
-          <span className="text-lg font-medium">Browser Speech Services</span>
-          {browserStatus === 'pending' && <span className="text-muted-foreground animate-pulse">Checking...</span>}
-          {browserStatus === 'success' && <span className="text-green-500 font-bold">✅ Available</span>}
-          {browserStatus === 'error' && <span className="text-destructive font-bold">❌ Unavailable</span>}
+    <div className="flex flex-col min-h-screen w-full max-w-4xl mx-auto pt-32 pb-24 px-6 bg-black text-white">
+      <div className="mb-24 border-b border-zinc-900 pb-8">
+        <span className="text-zinc-500 tracking-[0.2em] text-xs uppercase">SYSTEM CHECK</span>
+      </div>
+
+      <div className="flex-1 flex flex-col justify-center space-y-16">
+        <h2 className="text-[clamp(2.5rem,5vw,5rem)] font-light tracking-tighter leading-tight mb-8">
+          Verifying Environment.
+        </h2>
+        
+        <div className="space-y-8 border-t border-zinc-900 pt-8">
+          <div className="flex items-center justify-between">
+            <span className="text-2xl font-light text-zinc-400">Browser Speech Services</span>
+            {browserStatus === 'pending' && <span className="text-zinc-600 uppercase tracking-widest text-sm animate-pulse">Checking</span>}
+            {browserStatus === 'success' && <span className="text-white uppercase tracking-widest text-sm font-medium">Ready</span>}
+            {browserStatus === 'error' && <span className="text-red-500 uppercase tracking-widest text-sm font-medium">Unavailable</span>}
+          </div>
+          <div className="flex items-center justify-between border-t border-zinc-900 pt-8">
+            <span className="text-2xl font-light text-zinc-400">Microphone Access</span>
+            {micStatus === 'pending' && <span className="text-zinc-600 uppercase tracking-widest text-sm animate-pulse">Checking</span>}
+            {micStatus === 'success' && <span className="text-white uppercase tracking-widest text-sm font-medium">Granted</span>}
+            {micStatus === 'error' && <span className="text-red-500 uppercase tracking-widest text-sm font-medium">Denied</span>}
+          </div>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="text-lg font-medium">Microphone Access</span>
-          {micStatus === 'pending' && <span className="text-muted-foreground animate-pulse">Checking...</span>}
-          {micStatus === 'success' && <span className="text-green-500 font-bold">✅ Granted</span>}
-          {micStatus === 'error' && <span className="text-destructive font-bold">❌ Denied</span>}
+        
+        {!allClear && (micStatus !== 'pending' && browserStatus !== 'pending') && (
+           <div className="pt-8 text-zinc-500 font-light text-lg">
+             Voice features are currently unavailable. The exam will start in Standard mode.
+           </div>
+        )}
+
+        <div className="pt-16 border-t border-zinc-900 flex justify-end">
+          <button
+            onClick={onComplete}
+            disabled={micStatus === 'pending' || browserStatus === 'pending'}
+            className="px-12 py-4 rounded-full bg-white text-black hover:bg-zinc-200 disabled:opacity-50 transition-colors uppercase tracking-widest text-sm font-bold"
+          >
+            Start Exam
+          </button>
         </div>
       </div>
-      
-      {!allClear && (micStatus !== 'pending' && browserStatus !== 'pending') && (
-         <div className="p-4 bg-destructive/10 text-destructive rounded-lg border border-destructive/20 w-full text-sm">
-           Voice features are currently unavailable. The exam will start in Standard mode.
-         </div>
-      )}
-
-      <button
-        onClick={onComplete}
-        disabled={micStatus === 'pending' || browserStatus === 'pending'}
-        className="w-full py-4 text-lg font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-all focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-      >
-        Start Exam
-      </button>
     </div>
   );
 }
@@ -187,39 +198,51 @@ function ExamSelection({
     }
   }, [transcript, exams, selectedExam, onSelect, speak]);
 
-  if (loading) return <div className="flex flex-col items-center justify-center flex-1 p-6 text-xl">Loading available exams...</div>;
-  if (error) return <div className="flex flex-col items-center justify-center flex-1 p-6 text-xl text-destructive">{error}</div>;
+  if (loading) return <div className="flex flex-col items-center justify-center min-h-screen bg-black text-zinc-500 font-light text-xl">Loading available exams...</div>;
+  if (error) return <div className="flex flex-col items-center justify-center min-h-screen bg-black text-red-500 font-light text-xl">{error}</div>;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 space-y-8 max-w-2xl mx-auto w-full">
-      <div className="flex flex-col items-center space-y-4 text-center">
-        <h1 className="text-4xl font-bold tracking-tight">Choose your exam</h1>
-        <p className="text-lg text-muted-foreground">Say the name of an available exam.</p>
-      </div>
-
-      <div className="relative flex items-center justify-center w-full py-12">
-        <VoiceCore size="lg" />
-      </div>
-
-      <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
-        {exams.map(exam => (
-          <div key={exam.id} className={`p-6 border rounded-xl bg-card text-card-foreground shadow-sm transition-all ${selectedExam?.id === exam.id ? 'ring-2 ring-primary border-primary' : ''}`}>
-            <h3 className="text-xl font-semibold mb-2">{exam.title}</h3>
-            {exam.description && <p className="text-sm text-muted-foreground mb-4">{exam.description}</p>}
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>{exam.question_count} questions</span>
-              <span>{exam.duration_minutes} mins</span>
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      {selectedExam && (
-        <div className="p-4 mt-6 border rounded-lg bg-primary/10 text-primary border-primary/20 text-center animate-in fade-in slide-in-from-bottom-4 w-full">
-          <p className="font-medium">You selected <strong>{selectedExam.title}</strong>.</p>
-          <p className="text-sm opacity-90 mt-1">Say &quot;Yes&quot; to start or &quot;No&quot; to choose another.</p>
+    <div className="relative flex flex-col min-h-screen w-full max-w-7xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
+      <div className="mb-24 flex items-center justify-between border-b border-zinc-900 pb-8">
+        <div className="flex flex-col">
+          <span className="text-zinc-500 tracking-[0.2em] text-xs uppercase mb-2">MODE</span>
+          <span className="text-xl font-light tracking-wide">EXAMINATION</span>
         </div>
-      )}
+        <VoiceCore size="sm" />
+      </div>
+
+      <div className="flex-1 flex flex-col justify-center w-full max-w-4xl mx-auto">
+        <div className="mb-16">
+          <h2 className="text-[clamp(2.5rem,5vw,5rem)] font-light tracking-tighter leading-tight mb-4">Choose your exam</h2>
+          <p className="text-2xl text-zinc-500 font-light">&quot;Say the name of an available exam.&quot;</p>
+        </div>
+
+        <div className="flex flex-col">
+          {exams.map((exam, i) => (
+            <div 
+              key={exam.id} 
+              className={`group flex flex-col md:flex-row md:items-center justify-between py-8 transition-colors ${i === 0 ? 'border-t border-zinc-900' : 'border-t border-zinc-900'} ${selectedExam?.id === exam.id ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+            >
+              <div className="flex-1 pr-8">
+                <h3 className="text-3xl md:text-4xl font-light tracking-tight mb-2">{exam.title}</h3>
+                {exam.description && <p className="text-lg font-light opacity-60 line-clamp-2">{exam.description}</p>}
+              </div>
+              <div className="flex flex-row md:flex-col items-center md:items-end gap-4 md:gap-2 mt-4 md:mt-0 opacity-80 uppercase tracking-widest text-xs">
+                <span>{exam.question_count} questions</span>
+                <span className="hidden md:inline">•</span>
+                <span>{exam.duration_minutes} mins</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {selectedExam && (
+          <div className="mt-16 pt-8 border-t border-zinc-900 animate-in fade-in slide-in-from-bottom-4">
+            <p className="text-2xl font-light text-zinc-300 mb-2">You selected <strong className="text-white font-medium">{selectedExam.title}</strong>.</p>
+            <p className="text-zinc-500 font-light">Say &quot;Yes&quot; to start or &quot;No&quot; to choose another.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

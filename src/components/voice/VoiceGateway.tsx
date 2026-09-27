@@ -44,7 +44,9 @@ export function VoiceGateway() {
   useVoiceAction((action) => {
     if (action === 'HELP') {
       speak("Welcome to ExamSaarthi. Let's get started.");
+      return true;
     }
+    return false;
   });
 
   return (

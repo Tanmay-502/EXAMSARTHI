@@ -24,27 +24,34 @@ export const SUPPORTED_SUBJECTS: SupportedSubject[] = [
   'DBMS'
 ];
 
+function matchesPhrase(text: string, phrase: string): boolean {
+  const escapedPhrase = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`\\b${escapedPhrase}\\b`, 'i');
+  return regex.test(text);
+}
+
 export async function resolveSubject(spokenText: string): Promise<SupportedSubject | null> {
   const normalized = spokenText.toLowerCase().trim();
   
-  const mappings: Record<string, SupportedSubject> = {
-    'geography': 'Geography',
-    'geo': 'Geography',
-    'science': 'Science',
-    'reasoning': 'Reasoning',
-    'math': 'Mathematics',
-    'maths': 'Mathematics',
-    'mathematics': 'Mathematics',
-    'history': 'History',
-    'computer science': 'Computer Science',
-    'cs': 'Computer Science',
-    'computer': 'Computer Science',
-    'dbms': 'DBMS'
-  };
+  const mappings: { key: string, value: SupportedSubject }[] = [
+    { key: 'database management systems', value: 'DBMS' },
+    { key: 'computer science', value: 'Computer Science' },
+    { key: 'mathematics', value: 'Mathematics' },
+    { key: 'geography', value: 'Geography' },
+    { key: 'reasoning', value: 'Reasoning' },
+    { key: 'computer', value: 'Computer Science' },
+    { key: 'science', value: 'Science' },
+    { key: 'history', value: 'History' },
+    { key: 'maths', value: 'Mathematics' },
+    { key: 'math', value: 'Mathematics' },
+    { key: 'dbms', value: 'DBMS' },
+    { key: 'geo', value: 'Geography' },
+    { key: 'cs', value: 'Computer Science' },
+  ];
 
-  for (const [key, value] of Object.entries(mappings)) {
-    if (normalized.includes(key)) {
-      return value;
+  for (const mapping of mappings) {
+    if (matchesPhrase(normalized, mapping.key)) {
+      return mapping.value;
     }
   }
 
@@ -53,9 +60,10 @@ export async function resolveSubject(spokenText: string): Promise<SupportedSubje
     const supabase = createClient();
     const { data } = await supabase.from('questions').select('subject').not('subject', 'is', null);
     if (data) {
-      const dbSubjects = Array.from(new Set(data.map(d => d.subject)));
+      const dbSubjects = Array.from(new Set(data.map(d => d.subject))) as string[];
+      dbSubjects.sort((a, b) => b.length - a.length);
       for (const sub of dbSubjects) {
-        if (sub && normalized.includes(sub.toLowerCase())) {
+        if (sub && matchesPhrase(normalized, sub.toLowerCase())) {
           return sub;
         }
       }
@@ -70,7 +78,7 @@ export async function resolveSubject(spokenText: string): Promise<SupportedSubje
 export async function resolveExam(spokenText: string): Promise<ExamRecord | null> {
   const normalized = spokenText.toLowerCase().trim();
   
-  if (normalized.includes('general knowledge') || normalized.includes('reasoning demo') || normalized.includes('demo')) {
+  if (matchesPhrase(normalized, 'general knowledge') || matchesPhrase(normalized, 'reasoning demo') || matchesPhrase(normalized, 'demo')) {
     return SUPPORTED_EXAMS[0];
   }
 
@@ -79,8 +87,9 @@ export async function resolveExam(spokenText: string): Promise<ExamRecord | null
     const { data: exams } = await supabase.from('exams').select('id, title');
     
     if (exams) {
-      for (const exam of exams) {
-        if (normalized.includes(exam.title.toLowerCase())) {
+      const sortedExams = [...exams].sort((a, b) => b.title.length - a.title.length);
+      for (const exam of sortedExams) {
+        if (matchesPhrase(normalized, exam.title.toLowerCase())) {
           return { id: exam.id, title: exam.title };
         }
       }

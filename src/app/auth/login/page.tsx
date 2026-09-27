@@ -32,11 +32,13 @@ function LoginForm() {
   }, [speak, t, isContinuous, message, lang]);
 
   useVoiceAction((action) => {
-    if (!isContinuous) return;
+    if (!isContinuous) return false;
 
     if (action === 'HELP') {
       speak(t('login_orientation'));
+      return true;
     }
+    return false;
   });
 
   return (
