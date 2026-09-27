@@ -20,13 +20,13 @@ Core English, Hindi, and Telugu command paths are implemented. The deterministic
 
 - Correct-answer data remains server-side.
 - Client exam-session INSERT and UPDATE writes are disabled; session creation/finalization use privileged server actions.
-- Migration 00008_lock_exam_session_inserts.sql removes the client session INSERT policy.
+- Migration 00008_lock_exam_session_inserts.sql removes the client session INSERT policy; 00009 adds active-session constraints; 00010 persists the server-bound question set.
 - Final submission updates require an owned in_progress session.
 - Answers are validated against the session/question boundary before server persistence.
 - Active-exam voice navigation is restricted and blocked navigation now produces an explicit spoken boundary.
 - Real biometric/speaker verification is intentionally not faked.
 
-Manual gate: apply all migrations through 00008 to the target Supabase project and perform a real end-to-end exam.
+Manual gate: apply all migrations through 00010 to the target Supabase project and perform a real end-to-end exam.
 
 ## Persistence
 
