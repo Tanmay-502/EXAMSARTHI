@@ -50,3 +50,98 @@ test.describe('Accessibility & Keyboard Navigation', () => {
   //   expect(accessibilityScanResults.violations).toEqual([]);
   // });
 });
+
+
+const authStatePath = process.env.PLAYWRIGHT_AUTH_STATE;
+const readyExamId = process.env.PLAYWRIGHT_READY_EXAM_ID;
+const resultSessionId = process.env.PLAYWRIGHT_RESULT_SESSION_ID;
+
+test.describe('Authenticated route accessibility coverage', () => {
+  test.use({ storageState: authStatePath || undefined });
+
+  test('dashboard has no automatically detectable accessibility issues', async ({ page }) => {
+    test.skip(
+      !authStatePath,
+      'TODO: provide PLAYWRIGHT_AUTH_STATE with a valid authenticated Supabase session for protected-route axe coverage.'
+    );
+
+    await page.goto('/dashboard');
+    await expect(page).toHaveURL(/.*\/dashboard/);
+    await expectNoAxeViolations(page);
+  });
+
+  test('practice ASK_SUBJECT state has no automatically detectable accessibility issues', async ({ page }) => {
+    test.skip(
+      !authStatePath,
+      'TODO: provide PLAYWRIGHT_AUTH_STATE with a valid authenticated Supabase session for protected-route axe coverage.'
+    );
+
+    await page.goto('/practice');
+    await expect(page.getByRole('heading', { name: /Practice Subject/i })).toBeVisible();
+    await expectNoAxeViolations(page);
+  });
+
+  test('exam READY state has no automatically detectable accessibility issues', async ({ page }) => {
+    test.skip(
+      !authStatePath,
+      'TODO: provide PLAYWRIGHT_AUTH_STATE with a valid authenticated Supabase session.'
+    );
+    test.skip(
+      !readyExamId,
+      'TODO: provide PLAYWRIGHT_READY_EXAM_ID for a real available exam in the authenticated Playwright database.'
+    );
+
+    await page.addInitScript(() => {
+      localStorage.setItem('examsarthi_mode', 'standard');
+    });
+    await page.goto(`/exam?exam_id=${encodeURIComponent(readyExamId as string)}`);
+    await expect(page.getByRole('button', { name: /Start Exam/i })).toBeVisible();
+    await expectNoAxeViolations(page);
+  });
+
+  test('results has no automatically detectable accessibility issues', async ({ page }) => {
+    test.skip(
+      !authStatePath,
+      'TODO: provide PLAYWRIGHT_AUTH_STATE with a valid authenticated Supabase session.'
+    );
+    test.skip(
+      !resultSessionId,
+      'TODO: provide PLAYWRIGHT_RESULT_SESSION_ID for a completed session available to the authenticated test user.'
+    );
+
+    await page.goto(`/results?session_id=${encodeURIComponent(resultSessionId as string)}`);
+    await expect(page.getByRole('heading', { name: /Performance summary/i })).toBeVisible();
+    await expectNoAxeViolations(page);
+  });
+
+  test('history has no automatically detectable accessibility issues', async ({ page }) => {
+    test.skip(
+      !authStatePath,
+      'TODO: provide PLAYWRIGHT_AUTH_STATE with a valid authenticated Supabase session for protected-route axe coverage.'
+    );
+
+    await page.goto('/history');
+    await expectNoAxeViolations(page);
+  });
+
+  test('analysis has no automatically detectable accessibility issues', async ({ page }) => {
+    test.skip(
+      !authStatePath,
+      'TODO: provide PLAYWRIGHT_AUTH_STATE with a valid authenticated Supabase session for protected-route axe coverage.'
+    );
+
+    await page.goto('/analysis');
+    await expectNoAxeViolations(page);
+  });
+
+  test('settings has no automatically detectable accessibility issues', async ({ page }) => {
+    test.skip(
+      !authStatePath,
+      'TODO: provide PLAYWRIGHT_AUTH_STATE with a valid authenticated Supabase session for protected-route axe coverage.'
+    );
+
+    await page.goto('/settings');
+    await expect(page.getByRole('heading', { name: /Accessibility Settings|सेटिंग्स|యాక్సెసిబిలిటీ/i })).toBeVisible();
+    await expectNoAxeViolations(page);
+  });
+});
