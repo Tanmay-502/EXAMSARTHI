@@ -165,74 +165,97 @@ function PracticeContent() {
     };
 
     if ((action as string === 'RAW_TRANSCRIPT' || action === 'UNKNOWN_COMMAND') && transcript) {
+      const raw = transcript.trim();
+      const lower = raw.toLowerCase();
+
       if (setupState === 'ASK_SUBJECT') {
-        const trimmed = transcript.trim();
-        resolveSubject(trimmed).then(resolved => {
+        const countVal = parseQuestionCount(raw);
+        const diff = /\b(easy|medium|hard)\b/.exec(lower)?.[1] || '';
+        resolveSubject(raw).then(resolved => {
           if (!resolved) {
-             handleVoiceFallback("I didn't quite catch that.", "What subject would you like to practice?");
+            handleVoiceFallback("I didn't quite catch that.", "What subject would you like to practice?");
+            return;
+          }
+
+          setSubject(resolved);
+          if (countVal && diff) {
+            setCount(countVal);
+            setDifficulty(diff);
+            setSetupState('FETCHING');
+          } else if (countVal) {
+            setCount(countVal);
+            setSetupState('ASK_DIFFICULTY');
           } else {
-             setSubject(resolved);
-             setSetupState('ASK_COUNT');
+            setSetupState('ASK_COUNT');
           }
         });
         return true;
       }
 
       if (setupState === 'ASK_COUNT') {
-        const countVal = parseQuestionCount(transcript);
+        const countVal = parseQuestionCount(raw);
+        const diff = /\b(easy|medium|hard)\b/.exec(lower)?.[1] || '';
 
         if (!countVal) {
-           handleVoiceFallback("Please say the number of questions, such as 10 or 20.", "How many questions would you like?");
+          handleVoiceFallback("Please say the number of questions, such as 10 or 20.", "How many questions would you like?");
+        } else if (diff) {
+          setCount(countVal);
+          setDifficulty(diff);
+          setSetupState('FETCHING');
         } else {
-           setCount(countVal);
-           setSetupState('ASK_DIFFICULTY');
+          setCount(countVal);
+          setSetupState('ASK_DIFFICULTY');
         }
         return true;
       }
 
       if (setupState === 'ASK_DIFFICULTY') {
-        const t = transcript.trim().toLowerCase();
-        let diff = '';
-        if (t.includes('easy')) diff = 'easy';
-        else if (t.includes('medium')) diff = 'medium';
-        else if (t.includes('hard')) diff = 'hard';
-        
+        const diff = /\b(easy|medium|hard)\b/.exec(lower)?.[1] || '';
+
         if (!diff) {
-           handleVoiceFallback("Please say easy, medium, or hard.", "What difficulty?");
+          handleVoiceFallback("Please say easy, medium, or hard.", "What difficulty?");
         } else {
-           setDifficulty(diff);
-           setSetupState('FETCHING');
+          setDifficulty(diff);
+          setSetupState('FETCHING');
         }
         return true;
       }
 
       if (setupState === 'CONFIRM_SHORTFALL') {
-        const t = transcript.trim().toLowerCase();
-        if (t.includes('yes') || t.includes('confirm') || t.includes('हाँ') || t.includes('అవును') || t.includes('start') || t.includes('ok')) {
+        if (lower.includes('yes') || lower.includes('confirm') || lower.includes('हाँ') || lower.includes('అవును') || lower.includes('start') || lower.includes('ok')) {
           setConfirmedShortfall(true);
           setSetupState('STARTING');
-        } else if (t.includes('no') || t.includes('change') || t.includes('नहीं') || t.includes('కాదు') || t.includes('wait') || t.includes('cancel')) {
+        } else if (lower.includes('no') || lower.includes('change') || lower.includes('नहीं') || lower.includes('కాదు') || lower.includes('wait') || lower.includes('cancel')) {
           setCount('');
           setSetupState('ASK_COUNT');
         } else {
-           handleVoiceFallback("Please say yes or no.", "Would you like me to start with the available questions?");
+          handleVoiceFallback("Please say yes or no.", "Would you like me to start with the available questions?");
         }
         return true;
       }
     }
     
-    // Explicit global START_PRACTICE inside practice context restarts the flow
+    // Explicit natural START_PRACTICE commands can carry all three parameters.
     if (action === 'START_PRACTICE' || action === 'OPEN_PRACTICE') {
-      if (payload?.subject) setSubject(payload.subject as string);
-      else setSubject('');
-      
-      if (payload?.count) setCount(String(payload.count));
-      else setCount('');
+      const nextSubject = typeof payload?.subject === 'string' ? payload.subject : '';
+      const nextCount = payload?.count !== undefined ? String(payload.count) : '';
+      const nextDifficulty = typeof payload?.difficulty === 'string'
+        ? payload.difficulty.toLowerCase()
+        : '';
 
-      if (payload?.difficulty) setDifficulty(payload.difficulty as string);
-      else setDifficulty('');
+      setSubject(nextSubject);
+      setCount(nextCount);
+      setDifficulty(nextDifficulty);
 
-      setSetupState('ASK_SUBJECT'); // will autoprogress if all 3 are set via useEffect
+      if (nextSubject && nextCount && ['easy', 'medium', 'hard'].includes(nextDifficulty)) {
+        setSetupState('FETCHING');
+      } else if (!nextSubject) {
+        setSetupState('ASK_SUBJECT');
+      } else if (!nextCount) {
+        setSetupState('ASK_COUNT');
+      } else {
+        setSetupState('ASK_DIFFICULTY');
+      }
       return true;
     }
 
