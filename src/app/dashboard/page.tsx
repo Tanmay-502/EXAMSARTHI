@@ -25,6 +25,7 @@ function DashboardContent() {
   
   const headingRef = useRef<HTMLHeadingElement>(null);
   const hasSpokenRef = useRef(false);
+  const [timeOfDay, setTimeOfDay] = useState<'morning' | 'afternoon' | 'evening'>('morning');
   const [userName, setUserName] = useState<string | null>(null);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [insight, setInsight] = useState<string | null>(null);
@@ -35,6 +36,9 @@ function DashboardContent() {
   }, [transcript]);
 
   useEffect(() => {
+    const hour = new Date().getHours();
+    setTimeOfDay(hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening');
+
     const fetchUser = async () => {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
@@ -126,7 +130,7 @@ function DashboardContent() {
         className="mb-32"
       >
         <h2 className="text-[clamp(3rem,6vw,7rem)] leading-[0.9] font-light tracking-tighter mb-4 text-zinc-100">
-          {userName ? `Good evening, ${userName.split(' ')[0]}.` : 'Good evening.'}
+          {userName ? `Good ${timeOfDay}, ${userName.split(' ')[0]}.` : `Good ${timeOfDay}.`}
         </h2>
         <p className="text-2xl md:text-4xl font-light text-zinc-500">Continue your preparation.</p>
       </motion.div>
@@ -144,11 +148,19 @@ function DashboardContent() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
               <div>
                 <p className="text-zinc-500 tracking-[0.2em] text-sm uppercase mb-4">CURRENT FOCUS</p>
-                <h3 className="text-6xl md:text-8xl font-light tracking-tighter">DBMS</h3>
+                <h3 className="text-5xl md:text-8xl font-light tracking-tighter">
+                  {stats?.focusSubject || 'Choose a subject'}
+                </h3>
               </div>
               <div className="text-right">
-                <span className="text-5xl md:text-7xl font-light">72%</span>
-                <p className="text-zinc-500 tracking-[0.2em] text-sm uppercase mt-2">PREPARED</p>
+                {stats?.focusPercentage !== null && stats?.focusPercentage !== undefined ? (
+                  <>
+                    <span className="text-5xl md:text-7xl font-light">{stats.focusPercentage}%</span>
+                    <p className="text-zinc-500 tracking-[0.2em] text-sm uppercase mt-2">CURRENT ACCURACY</p>
+                  </>
+                ) : (
+                  <p className="text-zinc-500 tracking-[0.2em] text-sm uppercase mt-2">NO DATA YET</p>
+                )}
               </div>
             </div>
             
