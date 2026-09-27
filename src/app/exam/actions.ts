@@ -146,6 +146,24 @@ export async function fetchExamQuestions(examId: string, sessionId: string, lang
     [mappedQuestions[i], mappedQuestions[j]] = [mappedQuestions[j], mappedQuestions[i]];
   }
 
+  if (mappedQuestions.length === 0) {
+    throw new Error('This exam currently has no available questions');
+  }
+
+  const { error: rosterError } = await adminClient
+    .from('exam_sessions')
+    .update({
+      question_ids: mappedQuestions.map((question) => question.id),
+      total_questions: mappedQuestions.length,
+    })
+    .eq('id', sessionId)
+    .eq('candidate_id', user.id)
+    .eq('status', 'in_progress');
+
+  if (rosterError) {
+    throw new Error('Failed to bind exam question set: ' + rosterError.message);
+  }
+
   return mappedQuestions;
 }
 
@@ -541,6 +559,14 @@ export async function saveAnswer(
     throw new Error('Question does not belong to this exam session');
   }
 
+  const boundExamQuestionIds = Array.isArray(session.question_ids)
+    ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+    : [];
+
+  if (!session.is_practice && boundExamQuestionIds.length > 0 && !boundExamQuestionIds.includes(questionId)) {
+    throw new Error('Question does not belong to this exam session');
+  }
+
   if (session.is_practice) {
     const practiceQuestionIds = Array.isArray((session as { question_ids?: unknown }).question_ids)
       ? (session as { question_ids: string[] }).question_ids
@@ -622,17 +648,19 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     .from('questions')
     .select('id, question_answers(correct_answer_index)');
 
-  if (session.is_practice) {
-    const serverQuestionIds = Array.isArray(session.question_ids)
-      ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
-      : [];
+  const serverQuestionIds = Array.isArray(session.question_ids)
+    ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+    : [];
 
+  if (session.is_practice) {
     if (serverQuestionIds.length === 0) {
       throw new Error('Practice session has no question set');
     }
-
+    query = query.in('id', serverQuestionIds);
+  } else if (serverQuestionIds.length > 0) {
     query = query.in('id', serverQuestionIds);
   } else {
+    // Legacy exam sessions created before question_ids existed.
     query = query.eq('exam_id', session.exam_id);
   }
 
