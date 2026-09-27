@@ -19,8 +19,11 @@ test.describe('PWA shell', () => {
     const registration = await page.evaluate(async () => {
       if (!('serviceWorker' in navigator)) return false;
       try {
-        const ready = await navigator.serviceWorker.ready;
-        return Boolean(ready.active);
+        const ready = await Promise.race([
+        navigator.serviceWorker.ready,
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+      ]);
+      return Boolean(ready && ready.active);
       } catch {
         return false;
       }
