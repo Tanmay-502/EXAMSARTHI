@@ -267,7 +267,16 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       const callback = onResultRef.current;
       if (callback) {
         Promise.resolve(callback(resultTranscript))
-          .catch((error) => console.error('Voice command processing failed:', error))
+          .catch((error) => {
+            console.error('Voice command processing failed:', error);
+            speak(
+              langRef.current === 'hi-IN'
+                ? 'कमांड को संसाधित नहीं किया जा सका। कृपया फिर से बोलें।'
+                : langRef.current === 'te-IN'
+                  ? 'వాయిస్ కమాండ్‌ను ప్రాసెస్ చేయలేకపోయాను. దయచేసి మళ్లీ చెప్పండి.'
+                  : 'I could not process that command. Please try again.'
+            );
+          })
           .finally(() => {
             processingRef.current = false;
 
