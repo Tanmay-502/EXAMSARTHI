@@ -10,6 +10,8 @@ export type DashboardStats = {
   totalQuestionsAttempted: number;
   strongSubjects: string[];
   weakSubjects: string[];
+  focusSubject: string | null;
+  focusPercentage: number | null;
   recentSessions: {
     id: string;
     title: string | null;
@@ -59,6 +61,8 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
   
   const strongSubjects: string[] = [];
   const weakSubjects: string[] = [];
+  let focusSubject: string | null = null;
+  let focusPercentage: number | null = null;
 
   if (completedSessions.length > 0) {
     const { data: answers, error: answersError } = await adminClient
@@ -103,12 +107,22 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
         if (isCorrect) subjectStats[subject].correct += 1;
       });
 
-      Object.entries(subjectStats).forEach(([subject, stats]) => {
-        if (stats.total < 2) return; 
-        const accuracy = (stats.correct / stats.total) * 100;
-        if (accuracy >= 70) strongSubjects.push(subject);
-        if (accuracy <= 50) weakSubjects.push(subject);
-      });
+      Object.entries(subjectStats)
+        .filter(([, stats]) => stats.total >= 2)
+        .forEach(([subject, stats]) => {
+          const accuracy = (stats.correct / stats.total) * 100;
+          if (accuracy >= 70) strongSubjects.push(subject);
+          if (accuracy <= 50) weakSubjects.push(subject);
+
+          if (
+            focusPercentage === null ||
+            accuracy < focusPercentage ||
+            (accuracy === focusPercentage && subject.localeCompare(focusSubject || '') < 0)
+          ) {
+            focusSubject = subject;
+            focusPercentage = Math.round(accuracy);
+          }
+        });
     }
   }
 
@@ -119,6 +133,8 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
     totalQuestionsAttempted,
     strongSubjects,
     weakSubjects,
+    focusSubject,
+    focusPercentage,
     recentSessions
   };
 }
