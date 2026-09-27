@@ -865,7 +865,7 @@ export async function recordAnswerEvent(sessionId: string, questionId: string) {
 
   if (!session) return { success: false }
 
-  await supabase.from('audit_logs').insert({
+  await adminClient.from('audit_logs').insert({
     session_id: sessionId,
     candidate_id: user.id,
     action: 'answered_question',
