@@ -121,8 +121,6 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
     });
   }
 
-  const isPassing = (percentage || 0) >= 50;
-
   return (
     <>
       <ResultsAnnouncer
@@ -143,7 +141,6 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
         percentage={percentage || 0}
         subjectStats={subjectStats}
         weakestSubject={weakestSubject}
-        isPassing={isPassing}
       />
     </>
   );
