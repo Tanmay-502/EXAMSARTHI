@@ -22,6 +22,7 @@ export interface VoiceCommandMap {
   HISTORY: string[];
   LOGOUT: string[];
   DASHBOARD_EXAM: string[];
+  OPEN_DASHBOARD: string[];
   DASHBOARD_PRACTICE: string[];
   SET_LANGUAGE_ENGLISH: string[];
   SET_LANGUAGE_HINDI: string[];
@@ -77,7 +78,8 @@ export const LANGUAGE_REGISTRY: Record<Locale, LanguageDefinition> = {
       SETTINGS: ['settings', 'preferences'],
       HISTORY: ['history', 'previous attempts'],
       LOGOUT: ['logout', 'sign out'],
-      DASHBOARD_EXAM: ['start exam', 'exam'],
+      DASHBOARD_EXAM: ['start exam', 'give exam', 'take exam', 'exam', 'test'],
+      OPEN_DASHBOARD: ['dashboard', 'open dashboard', 'go to dashboard', 'back to dashboard', 'go back to dashboard', 'take me back to dashboard', 'return to dashboard', 'home', 'go home'],
       DASHBOARD_PRACTICE: ['start practice', 'practice', 'i wanna practice', 'i want to practice', 'open practice', 'practice dbms'],
       SET_LANGUAGE_ENGLISH: ['english'],
       SET_LANGUAGE_HINDI: ['hindi'],
@@ -194,7 +196,8 @@ export const LANGUAGE_REGISTRY: Record<Locale, LanguageDefinition> = {
       SETTINGS: ['सेटिंग्स', 'प्राथमिकताएं'],
       HISTORY: ['इतिहास', 'पिछला प्रयास'],
       LOGOUT: ['लॉग आउट', 'साइन आउट'],
-      DASHBOARD_EXAM: ['परीक्षा शुरू करें', 'परीक्षा'],
+      DASHBOARD_EXAM: ['परीक्षा शुरू करें', 'परीक्षा दें', 'परीक्षा', 'टेस्ट'],
+      OPEN_DASHBOARD: ['डैशबोर्ड', 'डैशबोर्ड खोलें', 'डैशबोर्ड पर जाएं', 'डैशबोर्ड पर वापस जाएं', 'होम'],
       DASHBOARD_PRACTICE: ['अभ्यास शुरू करें', 'अभ्यास'],
       SET_LANGUAGE_ENGLISH: ['इंग्लिश', 'english', 'अंग्रेजी'],
       SET_LANGUAGE_HINDI: ['हिंदी', 'hindi', 'हिन्दी'],
@@ -311,7 +314,8 @@ export const LANGUAGE_REGISTRY: Record<Locale, LanguageDefinition> = {
       SETTINGS: ['సెట్టింగులు', 'ప్రాధాన్యతలు'],
       HISTORY: ['చరిత్ర', 'గత ప్రయత్నాలు'],
       LOGOUT: ['లాగ్అవుట్', 'సైన్ అవుట్'],
-      DASHBOARD_EXAM: ['పరీక్ష ప్రారంభించండి', 'పరీక్ష'],
+      DASHBOARD_EXAM: ['పరీక్ష ప్రారంభించండి', 'పరీక్ష రాయాలి', 'పరీక్ష', 'టెస్ట్'],
+      OPEN_DASHBOARD: ['డాష్‌బోర్డ్', 'డాష్‌బోర్డ్ తెరవండి', 'డాష్‌బోర్డ్‌కు వెళ్లండి', 'డాష్‌బోర్డ్‌కు తిరిగి వెళ్లండి', 'హోమ్'],
       DASHBOARD_PRACTICE: ['ప్రాక్టీస్ ప్రారంభించండి', 'ప్రాక్టీస్'],
       SET_LANGUAGE_ENGLISH: ['ఇంగ్లీష్', 'english'],
       SET_LANGUAGE_HINDI: ['హిందీ', 'hindi'],
