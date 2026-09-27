@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/server'
+import { buildSubjectStats } from '@/lib/analytics/subjectStats'
 
 export type DashboardStats = {
   totalExams: number;
@@ -48,7 +49,7 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
 
   const recentSessions = completedSessions.slice(0, 5).map(s => ({
     id: s.id,
-    title: (s.exams as { title: string } | null)?.title || 'Unknown Exam',
+    title: Array.isArray(s.exams) ? (s.exams[0]?.title || 'Unknown Exam') : ((s.exams as { title: string } | null)?.title || 'Unknown Exam'),
     date: new Date(s.started_at).toLocaleDateString(),
     score: s.score || 0,
     percentage: s.percentage || 0,
@@ -56,60 +57,17 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
   }));
 
   const adminClient = await createAdminClient();
-  
+
   const strongSubjects: string[] = [];
   const weakSubjects: string[] = [];
 
   if (completedSessions.length > 0) {
-    const { data: answers, error: answersError } = await adminClient
-      .from('answers')
-      .select(`
-        id,
-        session_id,
-        selected_option_index,
-        questions!inner (
-          subject,
-          question_answers (
-            correct_answer_index
-          )
-        )
-      `)
-      .in('session_id', completedSessions.map(s => s.id));
-
-    if (!answersError && answers && answers.length > 0) {
-      const subjectStats: Record<string, { correct: number, total: number }> = {};
-      
-      answers.forEach((ans: {
-        selected_option_index: number | null;
-        questions: {
-          subject: string | null;
-          question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
-        }[] | {
-          subject: string | null;
-          question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
-        } | null;
-      }) => {
-        const qList = Array.isArray(ans.questions) ? ans.questions : (ans.questions ? [ans.questions] : []);
-        const q = qList[0];
-        const subject = q?.subject || 'General';
-        const qa = q?.question_answers;
-        const correctIndex = Array.isArray(qa) ? qa[0]?.correct_answer_index : qa?.correct_answer_index;
-        const isCorrect = ans.selected_option_index !== null && ans.selected_option_index === correctIndex;
-        
-        if (!subjectStats[subject]) {
-          subjectStats[subject] = { correct: 0, total: 0 };
-        }
-        subjectStats[subject].total += 1;
-        if (isCorrect) subjectStats[subject].correct += 1;
-      });
-
-      Object.entries(subjectStats).forEach(([subject, stats]) => {
-        if (stats.total < 2) return; 
-        const accuracy = (stats.correct / stats.total) * 100;
-        if (accuracy >= 70) strongSubjects.push(subject);
-        if (accuracy <= 50) weakSubjects.push(subject);
-      });
-    }
+    const subjectStats = await buildSubjectStats(adminClient, completedSessions);
+    Object.values(subjectStats).forEach((stats) => {
+      if (stats.total < 2) return;
+      if (stats.accuracy >= 70) strongSubjects.push(stats.subject);
+      if (stats.accuracy < 50) weakSubjects.push(stats.subject);
+    });
   }
 
   return {
