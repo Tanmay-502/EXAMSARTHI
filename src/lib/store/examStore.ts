@@ -25,6 +25,8 @@ export type Question = {
   marks: number
   audio_url_en?: string
   audio_url_hi?: string
+  image_url?: string
+  image_alt_text?: string
   order_num: number
 }
 

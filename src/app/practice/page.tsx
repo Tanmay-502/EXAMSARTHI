@@ -8,16 +8,9 @@ import { useSearchParams } from 'next/navigation';
 import { useVoice } from '@/lib/voice/VoiceProvider';
 import { VoiceCore } from '@/components/voice/VoiceCore';
 import { motion, AnimatePresence } from 'framer-motion';
+import { fetchPracticeQuestions, startPracticeSession } from '@/app/exam/actions';
 
-const MOCK_PRACTICE_POOL: Question[] = Array.from({ length: 30 }, (_, i) => ({
-  id: `p${i + 1}`,
-  exam_id: 'practice',
-  question_text: i === 0 ? 'What is the capital of India?' : i === 1 ? 'What is normalization?' : `Sample practice question ${i + 1}?`,
-  question_type: 'MCQ',
-  options: ['Option 1', 'Option 2', 'Option 3', 'Option 4'],
-  marks: 1,
-  order_num: i + 1
-}));
+// Removed MOCK_PRACTICE_POOL
 
 function PracticeContent() {
   const initializeExam = useExamStore(state => state.initializeExam);
@@ -29,12 +22,9 @@ function PracticeContent() {
   const initialCount = searchParams.get('count') || '';
   const initialDifficulty = searchParams.get('difficulty') || '';
 
-  const [setupState, setSetupState] = useState<'ASK_SUBJECT' | 'ASK_COUNT' | 'ASK_DIFFICULTY' | 'CONFIRM_SHORTFALL' | 'READY'>(() => {
+  const [setupState, setSetupState] = useState<'ASK_SUBJECT' | 'ASK_COUNT' | 'ASK_DIFFICULTY' | 'FETCHING' | 'CONFIRM_SHORTFALL' | 'STARTING' | 'READY'>(() => {
     if (initialSubject && initialCount && initialDifficulty) {
-      const qCount = parseInt(initialCount, 10) || 5;
-      const available = MOCK_PRACTICE_POOL.length;
-      if (qCount > available) return 'CONFIRM_SHORTFALL';
-      return 'READY';
+      return 'FETCHING';
     }
     return 'ASK_SUBJECT';
   });
@@ -43,6 +33,8 @@ function PracticeContent() {
   const [count, setCount] = useState(initialCount);
   const [difficulty, setDifficulty] = useState(initialDifficulty);
   const [confirmedShortfall, setConfirmedShortfall] = useState(false);
+  const [fetchedQuestions, setFetchedQuestions] = useState<Question[]>([]);
+  const [availableCount, setAvailableCount] = useState<number>(0);
   
   const hasStartedRef = useRef(false);
 
@@ -54,12 +46,32 @@ function PracticeContent() {
   }, [isContinuous, startContinuousListening]);
 
   useEffect(() => {
-    if (setupState === 'READY') {
+    if (setupState === 'FETCHING') {
       const qCount = parseInt(count, 10) || 5;
-      const available = MOCK_PRACTICE_POOL.length;
-      const actualCount = qCount > available ? available : qCount;
-      const computedQuestions = MOCK_PRACTICE_POOL.slice(0, actualCount);
-      
+      fetchPracticeQuestions(subject, difficulty, qCount, lang)
+        .then(res => {
+          setFetchedQuestions(res.questions);
+          setAvailableCount(res.totalFound);
+          if (res.totalFound < qCount && res.totalFound > 0) {
+            setSetupState('CONFIRM_SHORTFALL');
+          } else if (res.totalFound === 0) {
+            speak(`I couldn't find any questions for ${subject} at ${difficulty} difficulty. Let's try another subject.`);
+            setSubject('');
+            setSetupState('ASK_SUBJECT');
+          } else {
+            setSetupState('STARTING');
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          speak("Sorry, there was an error loading practice questions.");
+        });
+    }
+  }, [setupState, subject, count, difficulty, lang, speak]);
+
+  useEffect(() => {
+    if (setupState === 'STARTING') {
+      const actualCount = fetchedQuestions.length;
       const confirmMsg = lang === 'hi-IN' 
         ? `${actualCount} प्रश्नों का ${difficulty} स्तर का ${subject} अभ्यास शुरू हो रहा है।` 
         : lang === 'te-IN' 
@@ -67,21 +79,26 @@ function PracticeContent() {
         : `Starting a ${actualCount}-question ${difficulty} ${subject} practice session.`;
       
       speak(confirmMsg);
-      initializeExam('practice-session', 'practice-exam', computedQuestions);
+      startPracticeSession().then(sessionId => {
+        initializeExam(sessionId, 'practice-exam', fetchedQuestions);
+        setSetupState('READY');
+      }).catch(err => {
+        console.error(err);
+        speak("Failed to create practice session.");
+      });
     }
-  }, [setupState, count, subject, difficulty, lang, initializeExam, speak]);
+  }, [setupState, fetchedQuestions, subject, difficulty, lang, initializeExam, speak]);
 
   useEffect(() => {
     if (setupState === 'CONFIRM_SHORTFALL' && !confirmedShortfall) {
-      const available = MOCK_PRACTICE_POOL.length;
       const msg = lang === 'hi-IN'
-        ? `मुझे ${subject} के लिए केवल ${available} उपलब्ध प्रश्न मिले। क्या आप ${available} के साथ शुरू करना चाहेंगे?`
+        ? `मुझे ${subject} के लिए केवल ${availableCount} उपलब्ध प्रश्न मिले। क्या आप ${availableCount} के साथ शुरू करना चाहेंगे?`
         : lang === 'te-IN'
-        ? `నాకు ${subject} కోసం కేవలం ${available} అందుబాటులో ఉన్న ప్రశ్నలు మాత్రమే దొరికాయి. మీరు ${available} తో ప్రారంభించాలనుకుంటున్నారా?`
-        : `I found only ${available} available validated questions for ${subject}. Would you like me to start with ${available}?`;
+        ? `నాకు ${subject} కోసం కేవలం ${availableCount} అందుబాటులో ఉన్న ప్రశ్నలు మాత్రమే దొరికాయి. మీరు ${availableCount} తో ప్రారంభించాలనుకుంటున్నారా?`
+        : `I found only ${availableCount} available validated questions for ${subject}. Would you like me to start with ${availableCount}?`;
       speak(msg);
     }
-  }, [setupState, confirmedShortfall, subject, lang, speak]);
+  }, [setupState, confirmedShortfall, subject, availableCount, lang, speak]);
 
   useEffect(() => {
     let active = true;
@@ -137,13 +154,7 @@ function PracticeContent() {
                return;
             }
             setDifficulty(diff);
-            const qCount = parseInt(count, 10) || 5;
-            const available = MOCK_PRACTICE_POOL.length;
-            if (qCount > available) {
-              setSetupState('CONFIRM_SHORTFALL');
-            } else {
-              setSetupState('READY');
-            }
+            setSetupState('FETCHING');
           }
         });
       }
@@ -153,7 +164,7 @@ function PracticeContent() {
           const t = text.trim().toLowerCase();
           if (t.includes('yes') || t.includes('confirm') || t.includes('हाँ') || t.includes('అవును') || t.includes('start') || t.includes('ok')) {
             setConfirmedShortfall(true);
-            setTimeout(() => active && setSetupState('READY'), 0);
+            setTimeout(() => active && setSetupState('STARTING'), 0);
           } else if (t.includes('no') || t.includes('change') || t.includes('नहीं') || t.includes('కాదు') || t.includes('wait') || t.includes('cancel')) {
             setCount('');
             setSetupState('ASK_COUNT');

@@ -14,15 +14,17 @@ import { motion } from 'framer-motion';
 
 type ExamEngineProps = {
   mode: 'practice' | 'exam';
+  examTitle?: string;
+  durationMinutes?: number;
 };
 
 type EngineState = 'MIC_TEST' | 'READY' | 'EXAM' | 'CONFIRM_ANSWER' | 'CONFIRM_SUBMIT' | 'PROCESSING';
 
 
-export function ExamEngine({ mode }: ExamEngineProps) {
+export function ExamEngine({ mode, examTitle, durationMinutes }: ExamEngineProps) {
   const { t, tParams, lang } = useI18n();
   const { announce } = useAccessibility();
-  const { speak, stopSpeaking, startContinuousListening, pauseListening, isContinuous, micError } = useVoice();
+  const { speak, stopSpeaking, startContinuousListening, pauseListening, isContinuous, micError, voiceState } = useVoice();
   const { useVoiceAction } = useGlobalVoice();
   const router = useRouter();
 
@@ -43,6 +45,7 @@ export function ExamEngine({ mode }: ExamEngineProps) {
   const [engineState, setEngineState] = useState<EngineState>('MIC_TEST');
   const [pendingAnswer, setPendingAnswer] = useState<number | null>(null);
   const [timeRemainingStr, setTimeRemainingStr] = useState<string>('60:00');
+  const micTestStateRef = useRef<'INIT' | 'SPEAKING' | 'LISTENING'>('INIT');
 
   useEffect(() => {
     let timer: ReturnType<typeof setInterval>;
@@ -72,18 +75,55 @@ export function ExamEngine({ mode }: ExamEngineProps) {
     spokenStateKey.current = currentKey;
 
     if (engineState === 'MIC_TEST') {
-      stopSpeaking(); // Cancel any stale speech
-      const prompt = t('mic_check_prompt') || "Let's test your microphone. Please say: Next.";
-      announce(prompt, 'assertive');
-      if (!isContinuous) {
-        startContinuousListening();
+      if (micTestStateRef.current === 'INIT') {
+        pauseListening();
+        stopSpeaking(); // Cancel any stale speech
+        
+        let mounted = true;
+        const fallbackTimeout = setTimeout(() => {
+          if (!mounted) return;
+          const attemptSpeak = () => {
+            if (!mounted) return;
+            const voices = window.speechSynthesis.getVoices();
+            if (voices.length === 0) {
+              const onVoicesChanged = () => {
+                window.speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged);
+                if (mounted) attemptSpeak();
+              };
+              window.speechSynthesis.addEventListener('voiceschanged', onVoicesChanged);
+              setTimeout(() => {
+                window.speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged);
+                if (mounted && window.speechSynthesis.getVoices().length === 0) {
+                  announce("Voice instructions could not be spoken. You can continue using the keyboard.", "assertive");
+                  micTestStateRef.current = 'LISTENING';
+                  startContinuousListening();
+                } else if (mounted) {
+                  attemptSpeak();
+                }
+              }, 3000);
+              return;
+            }
+            
+            const prompt = t('mic_check_prompt') || "Let's test your microphone. Please say: Next.";
+            announce(prompt, 'assertive');
+            micTestStateRef.current = 'SPEAKING';
+            speak(prompt);
+          };
+          attemptSpeak();
+        }, 500); // Wait briefly for stabilization
+
+        return () => {
+          mounted = false;
+          clearTimeout(fallbackTimeout);
+        };
       }
-      speak(prompt);
     } else if (engineState === 'READY') {
+      const actualDuration = durationMinutes ?? 60;
+      const actualTitle = examTitle ?? (mode === 'exam' ? 'Mock Exam' : 'Practice');
       const announcement = tParams('exam_orientation', { 
-        examName: mode === 'exam' ? 'Mock Exam' : 'Practice', 
+        examName: actualTitle, 
         total: questions.length, 
-        duration: 60,
+        duration: actualDuration,
         language: lang === 'en-IN' ? 'English' : lang === 'hi-IN' ? 'Hindi' : 'Telugu'
       }) + ' ' + t('say_start_exam');
       announce(announcement, 'assertive');
@@ -94,12 +134,16 @@ export function ExamEngine({ mode }: ExamEngineProps) {
       
       // Automatically announce the question
       if (currentQuestion) {
-        const match = currentQuestion.question_text.match(/\[IMAGE:(.*?)\]/);
         let cleanQuestion = currentQuestion.question_text;
-        let imageUrl: string | null = null;
-        if (match) {
+        let imageUrl = currentQuestion.image_url || null;
+        
+        // Fallback for legacy format if present
+        const match = cleanQuestion.match(/\[IMAGE:(.*?)\]/);
+        if (match && !imageUrl) {
           imageUrl = match[1];
-          cleanQuestion = currentQuestion.question_text.replace(match[0], '').trim();
+        }
+        if (match) {
+          cleanQuestion = cleanQuestion.replace(match[0], '').trim();
         }
 
         let announcement = `${tParams('question_x_of_y', { x: currentQuestionIndex + 1, y: questions.length })}. ${cleanQuestion}.`;
@@ -150,7 +194,20 @@ export function ExamEngine({ mode }: ExamEngineProps) {
         }
       }
     }
-  }, [engineState, currentQuestionIndex, currentQuestion, mode, questions.length, lang, t, tParams, announce, speak, stopSpeaking, isContinuous, startContinuousListening]);
+  }, [
+    engineState, currentQuestionIndex, currentQuestion, mode, questions.length, 
+    lang, t, tParams, announce, speak, stopSpeaking, isContinuous, 
+    startContinuousListening, durationMinutes, examTitle, pauseListening
+  ]);
+
+  useEffect(() => {
+    if (engineState === 'MIC_TEST' && micTestStateRef.current === 'SPEAKING') {
+      if (voiceState === 'IDLE') {
+        micTestStateRef.current = 'LISTENING';
+        startContinuousListening();
+      }
+    }
+  }, [engineState, voiceState, startContinuousListening]);
 
   useEffect(() => {
     return () => stopSpeaking();
@@ -242,18 +299,17 @@ export function ExamEngine({ mode }: ExamEngineProps) {
   const executeSubmit = async () => {
     setEngineState('PROCESSING');
     speak(lang === 'hi-IN' ? 'जमा किया जा रहा है...' : lang === 'te-IN' ? 'సమర్పిస్తున్నాము...' : 'Processing submission...');
-    if (mode === 'exam') {
-      try {
-        const { submitExamAnswers } = await import('@/app/exam/actions');
-        if (sessionId) {
-          await submitExamAnswers(sessionId, answers);
-          submitExam();
-          router.push(`/results?session_id=${sessionId}`);
-          return;
-        }
-      } catch (err) {
-        console.error('Failed to submit exam:', err);
+    try {
+      const { submitExamAnswers } = await import('@/app/exam/actions');
+      if (sessionId) {
+        const questionIds = questions.map(q => q.id);
+        await submitExamAnswers(sessionId, answers, questionIds);
+        submitExam();
+        router.push(`/results?session_id=${sessionId}`);
+        return;
       }
+    } catch (err) {
+      console.error('Failed to submit exam:', err);
     }
     submitExam();
     router.push('/results');
@@ -307,15 +363,17 @@ export function ExamEngine({ mode }: ExamEngineProps) {
       case 'UNKNOWN_COMMAND':
         if (engineState === 'MIC_TEST' && payload?.transcript) {
           const t_input = String(payload.transcript).toLowerCase();
-          if (t_input.includes('test') || t_input.includes('1') || t_input.includes('hello') || t_input.includes('skip')) {
+          if (t_input.includes('test') || t_input.includes('1') || t_input.includes('hello') || t_input.includes('skip') || t_input.includes('next')) {
             const success = t('mic_check_success') || "Voice control is ready.";
             setEngineState('READY');
             spokenStateKey.current = 'READY';
             
+            const actualDuration = durationMinutes ?? 60;
+            const actualTitle = examTitle ?? (mode === 'exam' ? 'Mock Exam' : 'Practice');
             const announcement = tParams('exam_orientation', { 
-              examName: mode === 'exam' ? 'Mock Exam' : 'Practice', 
+              examName: actualTitle, 
               total: questions.length, 
-              duration: 60,
+              duration: actualDuration,
               language: lang === 'en-IN' ? 'English' : lang === 'hi-IN' ? 'Hindi' : 'Telugu'
             }) + ' ' + t('say_start_exam');
             
@@ -335,10 +393,12 @@ export function ExamEngine({ mode }: ExamEngineProps) {
           setEngineState('READY');
           spokenStateKey.current = 'READY';
           
+          const actualDuration = durationMinutes ?? 60;
+          const actualTitle = examTitle ?? (mode === 'exam' ? 'Mock Exam' : 'Practice');
           const announcement = tParams('exam_orientation', { 
-            examName: mode === 'exam' ? 'Mock Exam' : 'Practice', 
+            examName: actualTitle, 
             total: questions.length, 
-            duration: 60,
+            duration: actualDuration,
             language: lang === 'en-IN' ? 'English' : lang === 'hi-IN' ? 'Hindi' : 'Telugu'
           }) + ' ' + t('say_start_exam');
           
@@ -358,10 +418,12 @@ export function ExamEngine({ mode }: ExamEngineProps) {
       case 'READ_QUESTION':
       case 'READ_OPTIONS':
         if (engineState === 'READY') {
+          const actualDuration = durationMinutes ?? 60;
+          const actualTitle = examTitle ?? (mode === 'exam' ? 'Mock Exam' : 'Practice');
           const announcement = tParams('exam_orientation', { 
-            examName: mode === 'exam' ? 'Mock Exam' : 'Practice', 
+            examName: actualTitle, 
             total: questions.length, 
-            duration: 60,
+            duration: actualDuration,
             language: lang === 'en-IN' ? 'English' : lang === 'hi-IN' ? 'Hindi' : 'Telugu'
           });
           speak(announcement);
@@ -369,9 +431,16 @@ export function ExamEngine({ mode }: ExamEngineProps) {
           let announcement = '';
           if (action === 'REPEAT' || action === 'READ_QUESTION') {
             let cleanText = currentQuestion.question_text;
+            let imgUrl = currentQuestion.image_url || null;
             const match = currentQuestion.question_text.match(/\[IMAGE:(.*?)\]/);
+            if (match && !imgUrl) {
+              imgUrl = match[1];
+            }
             if (match) {
-              cleanText = currentQuestion.question_text.replace(match[0], '').trim() + '. (This question contains a diagram)';
+              cleanText = cleanText.replace(match[0], '').trim();
+            }
+            if (imgUrl) {
+              cleanText += '. (This question contains a diagram)';
             }
             announcement += `${tParams('question_x_of_y', { x: currentQuestionIndex + 1, y: questions.length })}. ${cleanText}. `;
           }
@@ -687,12 +756,17 @@ export function ExamEngine({ mode }: ExamEngineProps) {
         /* Question */
         <div className="bg-card text-card-foreground shadow-sm rounded-xl border p-6 md:p-8">
           {(() => {
-            const match = currentQuestion.question_text.match(/\[IMAGE:(.*?)\]/);
             let cleanText = currentQuestion.question_text;
-            let imgUrl: string | null = null;
-            if (match) {
+            let imgUrl = currentQuestion.image_url || null;
+            const altText = currentQuestion.image_alt_text || "Question diagram";
+            
+            // Legacy fallback
+            const match = cleanText.match(/\[IMAGE:(.*?)\]/);
+            if (match && !imgUrl) {
               imgUrl = match[1];
-              cleanText = currentQuestion.question_text.replace(match[0], '').trim();
+            }
+            if (match) {
+              cleanText = cleanText.replace(match[0], '').trim();
             }
             return (
               <>
@@ -706,7 +780,7 @@ export function ExamEngine({ mode }: ExamEngineProps) {
                 {imgUrl && (
                   <div className="mb-8">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={imgUrl} alt="Question diagram" className="max-w-full h-auto rounded-lg border shadow-sm" />
+                    <img src={imgUrl} alt={altText} className="max-w-full h-auto rounded-lg border shadow-sm" />
                   </div>
                 )}
               </>

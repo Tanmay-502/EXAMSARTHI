@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 
     // Call Gemini to parse intent
     const { object } = await generateObject({
-      model: google('models/gemini-1.5-pro'),
+      model: google('gemini-3.8-flash'),
       schema: z.object({
         intent: z.enum([
           'OPEN_DASHBOARD', 'OPEN_HISTORY', 'OPEN_SETTINGS', 'OPEN_PRACTICE', 'OPEN_EXAM',

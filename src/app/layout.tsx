@@ -7,6 +7,8 @@ import { VoiceProvider } from "@/lib/voice/VoiceProvider";
 import { GlobalVoiceAssistant } from "@/components/voice/GlobalVoiceAssistant";
 import { VoiceOverlay } from "@/components/voice/VoiceOverlay";
 
+import { MotionConfig } from "framer-motion";
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -23,16 +25,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} antialiased dark`}>
-        <I18nProvider>
-          <AccessibilityProvider>
-            <VoiceProvider>
-              <GlobalVoiceAssistant>
-                <VoiceOverlay />
-                {children}
-              </GlobalVoiceAssistant>
-            </VoiceProvider>
-          </AccessibilityProvider>
-        </I18nProvider>
+        <MotionConfig reducedMotion="user">
+          <I18nProvider>
+            <AccessibilityProvider>
+              <VoiceProvider>
+                <GlobalVoiceAssistant>
+                  <VoiceOverlay />
+                  {children}
+                </GlobalVoiceAssistant>
+              </VoiceProvider>
+            </AccessibilityProvider>
+          </I18nProvider>
+        </MotionConfig>
       </body>
     </html>
   );
