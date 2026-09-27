@@ -54,12 +54,14 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
   if (matchesPhrase(normalized, 'voice first') || matchesPhrase(normalized, 'voicefirst') || matchesPhrase(normalized, 'voice') || matchesPhrase(normalized, 'वॉइस फर्स्ट') || matchesPhrase(normalized, 'वॉइस') || matchesPhrase(normalized, 'వాయిస్ ఫస్ట్') || matchesPhrase(normalized, 'వాయిస్')) return { type: 'SELECT_MODE_VOICE' };
 
   // Natural-language shortcuts for common navigation and study intents.
-  if (/\b(i|i'd|i would|i want|i need|would like)\b.*\b(give|take|start|attempt)\b.*\b(exam|test)\b/.test(normalized)) return { type: 'DASHBOARD_EXAM' };
-  if (/\b(i|i'd|i would|i want|i need|would like)\b.*\b(practice|prepare)\b/.test(normalized)) return { type: 'DASHBOARD_PRACTICE' };
-  if (/\b(take me|go to|open|show|bring me|send me|return to|back to)\b.*\b(dashboard|home)\b/.test(normalized)) return { type: 'OPEN_DASHBOARD' };
-  if (/\b(give me|show me|tell me|check|what is my)\b.*\b(progress|performance|score)\b/.test(normalized)) return { type: 'READ_PROGRESS' };
-  if (/\b(i|i'd|i would|i want|i need|would like)\b.*\b(sign in|login|log in)\b/.test(normalized)) return { type: 'SIGN_IN' };
-  if (/\b(i|i'd|i would|i want|i need|would like)\b.*\b(sign up|signup|register|create an account)\b/.test(normalized)) return { type: 'SIGN_UP' };
+  // Keep these deterministic and deliberately broad so normal speech does not
+  // depend on the LLM intent service being available.
+  if (/\b(i|i'd|i would|i want|i need|would like|can you|could you)\b.*\b(give|take|start|attempt|write)\b.*\b(exam|test|paper)\b/.test(normalized)) return { type: 'DASHBOARD_EXAM' };
+  if (/\b(i|i'd|i would|i want|i need|would like|can you|could you)\b.*\b(practice|prepare|study)\b/.test(normalized)) return { type: 'DASHBOARD_PRACTICE' };
+  if (/\b(take me|go to|open|show|bring me|send me|return to|back to|navigate to)\b.*\b(dashboard|home)\b/.test(normalized)) return { type: 'OPEN_DASHBOARD' };
+  if (/\b(give me|show me|tell me|check|what is my|how is my)\b.*\b(progress|performance|score|result|results)\b/.test(normalized)) return { type: 'READ_PROGRESS' };
+  if (/\b(i|i'd|i would|i want|i need|would like|can you|could you)\b.*\b(sign in|login|log in)\b/.test(normalized)) return { type: 'SIGN_IN' };
+  if (/\b(i|i'd|i would|i want|i need|would like|can you|could you)\b.*\b(sign up|signup|register|create an account|create account)\b/.test(normalized)) return { type: 'SIGN_UP' };
   // Natural-language shortcuts for Hindi and Telugu voice flows.
   if (lang === 'hi-IN') {
     if (/(मैं|मुझे)\s+.*(परीक्षा|टेस्ट).*(देना|शुरू|लेना)/.test(normalized)) return { type: 'DASHBOARD_EXAM' };
