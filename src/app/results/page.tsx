@@ -37,6 +37,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
     .select('*')
     .eq('id', sessionId)
     .eq('candidate_id', user.id)
+    .eq('status', 'submitted')
     .single();
 
   if (!session) {
