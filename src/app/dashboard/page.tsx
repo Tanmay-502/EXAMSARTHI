@@ -111,9 +111,26 @@ function DashboardContent() {
 
   useVoiceAction((action) => {
     if (action === 'HELP') {
-      speak("You are on the dashboard. You can ask me to start an exam, prepare a practice session, or check your history.");
+      speak("You are on the dashboard. You can ask me to start an exam, prepare a practice session, check your progress, view history, open analysis, or open settings.");
       return true;
     }
+
+    if (action === 'READ_PROGRESS') {
+      if (!stats) {
+        speak("Your progress is still loading. Please try again in a moment.");
+        return true;
+      }
+
+      const focusText = stats.focusSubject && stats.focusPercentage !== null
+        ? ` Your current focus is ${stats.focusSubject} at ${stats.focusPercentage} percent accuracy.`
+        : '';
+      speak(
+        `You have completed ${stats.totalExams + stats.totalPractice} sessions with an average score of ${stats.avgPercentage} percent.` +
+        focusText
+      );
+      return true;
+    }
+
     return false;
   });
 
