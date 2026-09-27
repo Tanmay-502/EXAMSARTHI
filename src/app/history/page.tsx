@@ -5,7 +5,8 @@ import HistoryPageContent from './HistoryPageContent';
 
 export default async function HistoryPage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
   const supabase = await createClient();
-  const { filter = 'all' } = await searchParams;
+  const { filter: rawFilter = 'all' } = await searchParams;
+  const filter = ['all', 'exam', 'practice'].includes(rawFilter) ? rawFilter : 'all';
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
