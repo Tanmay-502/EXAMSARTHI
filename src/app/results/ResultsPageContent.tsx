@@ -22,7 +22,6 @@ type ResultsPageContentProps = {
   percentage: number;
   subjectStats: Record<string, SubjectStat>;
   weakestSubject: string;
-  isPassing: boolean;
 };
 
 export default function ResultsPageContent({
@@ -34,7 +33,6 @@ export default function ResultsPageContent({
   percentage,
   subjectStats,
   weakestSubject,
-  isPassing,
 }: ResultsPageContentProps) {
   return (
     <main id="main-content" className="flex flex-col flex-1 min-h-screen w-full bg-black text-white">
@@ -56,7 +54,7 @@ export default function ResultsPageContent({
 
           <div className="flex flex-col gap-8">
             <div className="flex items-center gap-4 text-zinc-500">
-              <Trophy className={`w-6 h-6 ${isPassing ? 'text-white' : 'text-amber-500'}`} />
+              <Trophy className="w-6 h-6 text-zinc-400" />
               <span className="text-xs font-bold uppercase tracking-[0.2em]">Performance summary</span>
             </div>
             <h1 className="text-[clamp(3.5rem,8vw,9rem)] leading-[0.9] font-light tracking-tighter text-zinc-100">
@@ -77,10 +75,9 @@ export default function ResultsPageContent({
               <p className="text-zinc-500 tracking-[0.2em] text-sm uppercase mb-4">OVERALL SCORE</p>
               <p className="text-xl md:text-2xl text-zinc-400 font-light leading-relaxed">
                 You answered <span className="text-white">{attempted_questions}</span> out of {total_questions} questions.
-                {isPassing ? ' Great job!' : ' Keep practicing to improve your score.'}
               </p>
             </div>
-            <ScoreVisualizer percentage={percentage || 0} isPassing={isPassing} />
+            <ScoreVisualizer percentage={percentage || 0} />
           </div>
         </motion.section>
 
