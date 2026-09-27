@@ -50,7 +50,9 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
 
   const recentSessions = completedSessions.slice(0, 5).map(s => ({
     id: s.id,
-    title: (s.exams as { title: string } | null)?.title || 'Unknown Exam',
+    title: s.is_practice
+      ? `Practice${s.practice_subject ? ` — ${s.practice_subject}` : ''}`
+      : (Array.isArray(s.exams) ? s.exams[0]?.title : (s.exams as { title?: string } | null)?.title) || 'Unknown Exam',
     date: new Date(s.started_at).toLocaleDateString(),
     score: s.score || 0,
     percentage: s.percentage || 0,
