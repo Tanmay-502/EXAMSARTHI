@@ -456,7 +456,7 @@ export async function saveAnswer(
       : null;
 
   const options = Array.isArray(question.options) ? question.options : [];
-  if (selectedOptionIndex !== null && selectedOptionIndex >= options.length) {
+  if (selectedOptionIndex !== null && (!Number.isInteger(selectedOptionIndex) || selectedOptionIndex >= options.length)) {
     throw new Error('Invalid option index');
   }
 
@@ -572,7 +572,7 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     .map((ansTyped) => {
     
     // Grading
-    const isAttempted = typeof ansTyped.answer_data === 'number' && ansTyped.answer_data >= 0;
+    const isAttempted = typeof ansTyped.answer_data === 'number' && Number.isInteger(ansTyped.answer_data) && ansTyped.answer_data >= 0;
     if (isAttempted) {
       attempted_questions += 1;
       if (questionMap.get(ansTyped.question_id) === ansTyped.answer_data) {
@@ -585,7 +585,7 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     return {
       session_id: sessionId,
       question_id: ansTyped.question_id,
-      selected_option_index: (typeof ansTyped.answer_data === 'number' && ansTyped.answer_data >= 0) ? ansTyped.answer_data : null,
+      selected_option_index: (typeof ansTyped.answer_data === 'number' && Number.isInteger(ansTyped.answer_data) && ansTyped.answer_data >= 0) ? ansTyped.answer_data : null,
       marked_for_review: ansTyped.is_marked_for_review
     };
   })
