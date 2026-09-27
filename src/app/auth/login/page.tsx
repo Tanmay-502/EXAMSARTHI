@@ -23,7 +23,7 @@ function LoginForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const lastVoiceEmailRef = useRef<string>('');
   const orientationSpokenRef = useRef(false);
-  const [voiceStep, setVoiceStep] = useState<'idle' | 'awaiting_email' | 'confirming_email' | 'sending'>('idle');
+  const [voiceStep, setVoiceStep] = useState<'idle' | 'awaiting_email' | 'confirming_email' | 'sending'>('awaiting_email');
   const [voiceEmail, setVoiceEmail] = useState('');
   const [voiceStatus, setVoiceStatus] = useState('');
 
@@ -52,8 +52,6 @@ function LoginForm() {
       orientationSpokenRef.current = true;
       speak(msg);
     }
-    setVoiceStep('awaiting_email');
-    setVoiceStatus('');
   }, [message, lang, modeLoaded, preferredMode, isContinuous, startContinuousListening, speak]);
 
   useVoiceAction((action, _payload, transcript) => {
