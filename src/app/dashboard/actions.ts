@@ -44,6 +44,10 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
   const totalPractice = completedSessions.filter(s => s.is_practice).length;
   
   const totalQuestionsAttempted = completedSessions.reduce((acc, s) => acc + (s.attempted_questions || 0), 0);
+  const strongSubjects: string[] = [];
+  const weakSubjects: string[] = [];
+  let focusSubject: string | null = null;
+  let focusPercentage: number | null = null;
   
   const sumPercentage = completedSessions.reduce((acc, s) => acc + (s.percentage || 0), 0);
   const avgPercentage = completedSessions.length > 0 ? Math.round(sumPercentage / completedSessions.length) : 0;
