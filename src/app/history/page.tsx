@@ -15,19 +15,19 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
   // Fetch all completed exam sessions for this user
   const { data: sessions } = await supabase
     .from('exam_sessions')
-    .select('\
-      id,\
-      status,\
-      started_at,\
-      completed_at,\
-      score,\
-      total_questions,\
-      percentage,\
-      is_practice,\
-      exams (\
-        title\
-      )\
-    ')
+    .select(`
+      id,
+      status,
+      started_at,
+      completed_at,
+      score,
+      total_questions,
+      percentage,
+      is_practice,
+      exams (
+        title
+      )
+    `)
     .eq('candidate_id', user.id)
     .order('completed_at', { ascending: false });
 
