@@ -6,17 +6,21 @@ import { headers } from 'next/headers'
 
 export async function loginWithMagicLink(formData: FormData) {
   const supabase = await createClient()
-  const email = formData.get('email') as string
-  const headersList = await headers()
-  
-  let origin = headersList.get('origin')
-  if (!origin) {
-    const host = headersList.get('host') || 'localhost:3000'
-    const protocol = host.includes('localhost') ? 'http' : 'https'
-    origin = `${protocol}://${host}`
+  const email = String(formData.get('email') || '').trim().toLowerCase()
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+  if (!emailPattern.test(email) || email.length > 254) {
+    return redirect('/auth/login?message=Please%20enter%20a%20valid%20email%20address.')
   }
 
-  console.error('--- SERVER ACTION CALLED ---', email);
+  const headersList = await headers()
+  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
+  const requestOrigin = headersList.get('origin')
+  const origin = configuredSiteUrl || (
+    requestOrigin && /^https?:\/\/[^\s]+$/i.test(requestOrigin)
+      ? requestOrigin
+      : 'http://localhost:3000'
+  )
 
 
   const { error } = await supabase.auth.signInWithOtp({
