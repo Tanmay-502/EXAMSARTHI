@@ -359,9 +359,23 @@ function ExamSelection({
 
         <div className="flex flex-col">
           {exams.map((exam, i) => (
-            <div 
-              key={exam.id} 
-              className={`group flex flex-col md:flex-row md:items-center justify-between py-8 transition-colors ${i === 0 ? 'border-t border-zinc-900' : 'border-t border-zinc-900'} ${selectedExam?.id === exam.id ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+            <button
+              type="button"
+              key={exam.id}
+              onClick={() => {
+                setSelectedExam(exam);
+                speak(
+                  exam.title +
+                  " selected. It has " +
+                  exam.question_count +
+                  " questions and " +
+                  exam.duration_minutes +
+                  " minutes. Say yes to start or say change to choose another."
+                );
+              }}
+              className={`group flex w-full text-left flex-col md:flex-row md:items-center justify-between py-8 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-inset ${selectedExam?.id === exam.id ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+              aria-pressed={selectedExam?.id === exam.id}
+              aria-label={`${exam.title}, ${exam.question_count} questions, ${exam.duration_minutes} minutes`}
             >
               <div className="flex-1 pr-8">
                 <h3 className="text-3xl md:text-4xl font-light tracking-tight mb-2">{exam.title}</h3>
@@ -372,8 +386,8 @@ function ExamSelection({
                 <span className="hidden md:inline">•</span>
                 <span>{exam.duration_minutes} mins</span>
               </div>
-            </div>
-          ))}
+            </button>
+          ))})}
         </div>
         
         {selectedExam && (
