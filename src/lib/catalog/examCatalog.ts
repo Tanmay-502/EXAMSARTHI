@@ -24,10 +24,45 @@ export const SUPPORTED_SUBJECTS: SupportedSubject[] = [
   'DBMS'
 ];
 
+function normalizeSpokenText(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function matchesPhrase(text: string, phrase: string): boolean {
-  const escapedPhrase = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const regex = new RegExp(`\\b${escapedPhrase}\\b`, 'i');
-  return regex.test(text);
+  const normalizedText = normalizeSpokenText(text);
+  const normalizedPhrase = normalizeSpokenText(phrase);
+  if (!normalizedText || !normalizedPhrase) return false;
+
+  if (normalizedText === normalizedPhrase || normalizedText.includes(normalizedPhrase)) {
+    return true;
+  }
+
+  const textTokens = normalizedText.split(' ');
+  const phraseTokens = normalizedPhrase.split(' ').filter(
+    token => !['the', 'a', 'an', 'and', 'of', 'to', 'for', 'my', 'me'].includes(token)
+  );
+
+  if (phraseTokens.length === 0) return false;
+
+  let matched = 0;
+  let lastIndex = -1;
+  for (const token of phraseTokens) {
+    const index = textTokens.findIndex((candidate, i) => i > lastIndex && candidate === token);
+    if (index === -1) continue;
+    matched += 1;
+    lastIndex = index;
+  }
+
+  return matched === phraseTokens.length;
+}
+
+export function normalizeExamName(text: string): string {
+  return normalizeSpokenText(text);
 }
 
 export async function resolveSubject(spokenText: string): Promise<SupportedSubject | null> {
@@ -78,8 +113,13 @@ export async function resolveSubject(spokenText: string): Promise<SupportedSubje
 export async function resolveExam(spokenText: string): Promise<ExamRecord | null> {
   const normalized = spokenText.toLowerCase().trim();
   
-  if (matchesPhrase(normalized, 'general knowledge') || matchesPhrase(normalized, 'reasoning demo') || matchesPhrase(normalized, 'demo')) {
-    return SUPPORTED_EXAMS[0];
+  if (
+    matchesPhrase(normalized, 'general knowledge & reasoning demo') ||
+    matchesPhrase(normalized, 'general knowledge reasoning demo') ||
+    matchesPhrase(normalized, 'reasoning demo')
+  ) {
+    // Prefer the real database title below, including the currently
+    // available SSC/other exam records. Do not invent an exam id here.
   }
 
   try {
