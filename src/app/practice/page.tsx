@@ -51,39 +51,34 @@ function PracticeContent() {
   const hasStartedRef = useRef(false);
   const hasAnnouncedResumeRef = useRef(false);
 
+
   const parseQuestionCount = (transcript: string): string | null => {
     const normalized = transcript.trim().toLowerCase().replace(/[.,!?।]/g, ' ');
     const numericMatch = normalized.match(/\b(5|10|15|20|25|30|40|50|100)\b/);
     if (numericMatch) return numericMatch[1];
 
     const wordCounts: Array<[string, string]> = [
-      ['one hundred', '100'],
-      ['hundred', '100'],
-      ['fifty', '50'],
-      ['forty', '40'],
-      ['thirty', '30'],
-      ['twenty five', '25'],
-      ['twenty-five', '25'],
-      ['twenty', '20'],
-      ['fifteen', '15'],
-      ['ten', '10'],
-      ['five', '5'],
-      ['१००', '100'],
-      ['५०', '50'],
-      ['४०', '40'],
-      ['३०', '30'],
-      ['२५', '25'],
-      ['२०', '20'],
-      ['१५', '15'],
-      ['१०', '10'],
-      ['५', '5'],
+      ['one hundred','100'], ['hundred','100'], ['fifty','50'], ['forty','40'], ['thirty','30'],
+      ['twenty five','25'], ['twenty-five','25'], ['twenty','20'], ['fifteen','15'], ['ten','10'], ['five','5'],
+      ['एक सौ','100'], ['पचास','50'], ['चालीस','40'], ['तीस','30'], ['पच्चीस','25'], ['बीस','20'], ['पंद्रह','15'], ['दस','10'], ['पाँच','5'], ['पांच','5'],
+      ['వంద','100'], ['యాభై','50'], ['నలభై','40'], ['ముప్పై','30'], ['ఇరవై ఐదు','25'], ['ఇరవై','20'], ['పదిహేను','15'], ['పది','10'], ['ఐదు','5'],
+      ['१००','100'], ['५०','50'], ['४०','40'], ['३०','30'], ['२५','25'], ['२०','20'], ['१५','15'], ['१०','10'], ['५','5'],
     ];
 
     for (const [phrase, value] of wordCounts) {
-      if (normalized.split(/\s+/).includes(phrase) || normalized.includes(phrase)) {
-        return value;
-      }
+      if (normalized.split(/\s+/).includes(phrase) || normalized.includes(phrase)) return value;
     }
+    return null;
+  };
+
+  const parseDifficulty = (transcript: string): string | null => {
+    const normalized = transcript.trim().toLowerCase();
+    if (/\b(easy|beginner|basic|आसान|सरल|शुरुआती)\b/.test(normalized)) return 'easy';
+    if (/\b(medium|moderate|intermediate|मध्यम|सामान्य)\b/.test(normalized)) return 'medium';
+    if (/\b(hard|difficult|advanced|कठिन|मुश्किल)\b/.test(normalized)) return 'hard';
+    if (/\b(సులభం|ఈజీ)\b/.test(normalized)) return 'easy';
+    if (/\b(మధ్యస్థం|మధ్యస్థ|మీడియం)\b/.test(normalized)) return 'medium';
+    if (/\b(కఠినం|కష్టం|హార్డ్)\b/.test(normalized)) return 'hard';
     return null;
   };
 
@@ -262,7 +257,7 @@ function PracticeContent() {
 
       if (setupState === 'ASK_SUBJECT') {
         const countVal = parseQuestionCount(raw);
-        const diff = /\b(easy|medium|hard)\b/.exec(lower)?.[1] || '';
+        const diff = parseDifficulty(lower) || '';
         resolveSubject(raw).then(resolved => {
           if (!resolved) {
             handleVoiceFallback("I didn't quite catch that.", "What subject would you like to practice?");
