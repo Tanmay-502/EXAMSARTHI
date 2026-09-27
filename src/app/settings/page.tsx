@@ -64,12 +64,16 @@ export default function SettingsPage() {
   };
 
   const handleConsentToggle = async (newConsent: boolean) => {
+    const previousConsent = consent;
     setConsent(newConsent);
     announce(newConsent ? 'Learning Profile enabled' : 'Learning Profile disabled');
+
     try {
       await updateLearningProfileConsent(newConsent);
     } catch (e) {
       console.error(e);
+      setConsent(previousConsent);
+      announce('The learning profile setting could not be saved. Your previous setting remains active.', 'assertive');
     }
   };
 
