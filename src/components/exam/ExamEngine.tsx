@@ -379,21 +379,17 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
       router.push(`/results?session_id=${state.sessionId}`);
     } catch (err) {
       console.error('Failed to submit exam:', err);
-      setSubmissionError(
+      const retryMessage =
         lang === 'hi-IN'
-          ? 'परीक्षा जमा नहीं हो सकी। कृपया कनेक्शन जाँचें और फिर से प्रयास करें।'
+          ? 'परीक्षा जमा नहीं हो सकी। आपके उत्तर सुरक्षित हैं। कनेक्शन जाँचें और फिर से जमा करने के लिए हाँ कहें।'
           : lang === 'te-IN'
-            ? 'పరీక్ష సమర్పించలేకపోయాం. దయచేసి కనెక్షన్ తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.'
-            : 'The exam could not be submitted. Check your connection and retry.'
-      );
-      setEngineState('PROCESSING');
-      speak(
-        lang === 'hi-IN'
-          ? 'परीक्षा जमा नहीं हो सकी। कनेक्शन जाँचें और फिर से प्रयास करें।'
-          : lang === 'te-IN'
-            ? 'పరీక్ష సమర్పించలేకపోయాం. కనెక్షన్ తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.'
-            : 'The exam could not be submitted. Check your connection and try again.'
-      );
+            ? 'పరీక్ష సమర్పించలేకపోయాం. మీ సమాధానాలు భద్రంగా ఉన్నాయి. కనెక్షన్ తనిఖీ చేసి మళ్లీ సమర్పించడానికి అవును అని చెప్పండి.'
+            : 'The exam could not be submitted. Your answers are preserved. Check your connection and say yes to retry submission.';
+
+      setSubmissionError(retryMessage);
+      setEngineState('CONFIRM_SUBMIT');
+      spokenStateKey.current = null;
+      speak(retryMessage);
     } finally {
       isSubmittingRef.current = false;
     }
