@@ -15,9 +15,7 @@ function formatDuration(seconds: number) {
 
 export default function AnalysisPageContent({ data }: { data: AnalyticsData }) {
   return (
-
     <main id="main-content" className="flex flex-col flex-1 min-h-screen w-full max-w-7xl mx-auto px-6 md:px-12 pt-32 pb-24 bg-black text-white">
-      <AnalysisVoiceHandler data={data} />
       <div className="w-full">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -136,10 +134,10 @@ export default function AnalysisPageContent({ data }: { data: AnalyticsData }) {
                     <span className="font-light text-2xl">{stat.subject}</span>
                     <span className="text-zinc-500">{stat.accuracy}% ({stat.correct}/{stat.total} correct)</span>
                   </div>
-                  <div className="h-2 w-full bg-zinc-900 rounded-full overflow-hidden" role="progressbar" aria-valuenow={stat.accuracy} aria-valuemin={0} aria-valuemax={100} aria-label={`Accuracy for \${stat.subject}`}>
+                  <div className="h-2 w-full bg-zinc-900 rounded-full overflow-hidden" role="progressbar" aria-valuenow={stat.accuracy} aria-valuemin={0} aria-valuemax={100} aria-label={`Accuracy for ${stat.subject}`}>
                     <div 
                       className="h-full bg-white transition-all"
-                      style={{ width: `\${stat.accuracy}%` }}
+                      style={{ width: `${stat.accuracy}%` }}
                     />
                   </div>
                   <div className="flex gap-4 text-xs font-medium">
