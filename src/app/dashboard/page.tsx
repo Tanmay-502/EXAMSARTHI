@@ -10,7 +10,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState, Suspense } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { motion } from 'framer-motion';
-import { BrainCircuit, GraduationCap, History, BarChart2, Settings } from 'lucide-react';
 import { fetchDashboardStats, type DashboardStats } from './actions';
 import { usePreferredMode } from '@/lib/hooks/usePreferredMode';
 
