@@ -72,7 +72,7 @@ export function normalizeSpokenEmail(transcript: string): string | null {
     .replace(/\s*([_+\-])\s*/g, '$1')
     .replace(/\s+/g, '');
 
-  const match = value.match(/[a-z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-z0-9.-]+\.[a-z]{2,}/i);
+  const match = value.match(/^[a-z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i);
   if (!match) return null;
 
   const email = match[0].replace(/^\.+|\.+$/g, '');
