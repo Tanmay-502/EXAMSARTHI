@@ -203,6 +203,13 @@ function ExamSelection({
       return true;
     }
 
+    if (
+      /\b(help|support|what can i say|sign in|login|log in|sign up|signup)\b/.test(normalized) &&
+      action !== 'OPEN_DASHBOARD'
+    ) {
+      return false;
+    }
+
     const isDashboardRequest =
       /\b(dashboard|home)\b/.test(normalized) &&
       /(back|return|take me|go to|open|show|bring me|send me)/.test(normalized);
