@@ -104,9 +104,9 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
         // Small delay before restarting mic after speaking to avoid feedback
         if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
         restartTimeoutRef.current = setTimeout(() => {
-          if (isContinuousRef.current && voiceStateRef.current !== 'SPEAKING') {
-            try { 
-              recognitionRef.current?.start(); 
+          if (isContinuousRef.current && voiceStateRef.current === 'IDLE') {
+            try {
+              recognitionRef.current?.start();
             } catch { /* ignore AlreadyStarted */ }
           }
         }, 300);
@@ -134,6 +134,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       if (isContinuousRef.current && onResultRef.current && micErrorRef.current !== 'denied' && micErrorRef.current !== 'not-supported') {
         if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
         restartTimeoutRef.current = setTimeout(() => {
+          if (voiceStateRef.current !== 'IDLE') return;
           try { recognitionRef.current?.start(); } catch { /* ignore */ }
         }, 300);
       }
@@ -246,6 +247,10 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       }
       lastTranscriptRef.current = { text: normalizedTranscript, at: now };
 
+      if (restartTimeoutRef.current) {
+        clearTimeout(restartTimeoutRef.current);
+        restartTimeoutRef.current = null;
+      }
       updateVoiceState('PROCESSING');
       
       setTranscript(prev => [...prev, {
@@ -299,7 +304,12 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
         // Add delay with backoff
         if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
         restartTimeoutRef.current = setTimeout(() => {
-          if (isContinuousRef.current && voiceStateRef.current !== 'SPEAKING') {
+          if (
+            isContinuousRef.current &&
+            voiceStateRef.current === 'IDLE' &&
+            micErrorRef.current !== 'denied' &&
+            micErrorRef.current !== 'not-supported'
+          ) {
             try { recognition.start(); } catch { /* ignore */ }
           }
         }, 500); // 500ms delay to prevent tight loop
