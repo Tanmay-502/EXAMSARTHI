@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback, useRef, useEffect } from 'react';
 
 type AccessibilityContextType = {
   announce: (message: string, politeness?: 'polite' | 'assertive') => void;
@@ -10,11 +10,20 @@ const AccessibilityContext = createContext<AccessibilityContextType | undefined>
 
 export function AccessibilityProvider({ children }: { children: ReactNode }) {
   const [announcement, setAnnouncement] = useState<{ message: string; politeness: 'polite' | 'assertive' }>({ message: '', politeness: 'polite' });
+  const clearTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const announce = useCallback((message: string, politeness: 'polite' | 'assertive' = 'polite') => {
+    if (!message.trim()) return;
+    if (clearTimeoutRef.current) clearTimeout(clearTimeoutRef.current);
     setAnnouncement({ message, politeness });
-    // Clear after a short delay to allow repeated announcements
-    setTimeout(() => setAnnouncement({ message: '', politeness }), 3000);
+    clearTimeoutRef.current = setTimeout(() => {
+      setAnnouncement({ message: '', politeness });
+      clearTimeoutRef.current = null;
+    }, 3000);
+  }, []);
+
+  useEffect(() => () => {
+    if (clearTimeoutRef.current) clearTimeout(clearTimeoutRef.current);
   }, []);
 
   return (
