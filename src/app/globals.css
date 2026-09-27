@@ -128,3 +128,36 @@
     @apply font-sans;
   }
 }
+
+html[data-font-scale="1.1"] {
+  font-size: 110%;
+}
+
+html[data-font-scale="1.25"] {
+  font-size: 125%;
+}
+
+html[data-font-scale="1.5"] {
+  font-size: 150%;
+}
+
+html[data-high-contrast="true"] body {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+html[data-high-contrast="true"] .text-zinc-500,
+html[data-high-contrast="true"] .text-zinc-600,
+html[data-high-contrast="true"] .text-zinc-700 {
+  color: #f4f4f5 !important;
+}
+
+html[data-high-contrast="true"] .text-zinc-400 {
+  color: #fff !important;
+}
+
+html[data-high-contrast="true"] .border-zinc-900,
+html[data-high-contrast="true"] .border-zinc-800,
+html[data-high-contrast="true"] .border-zinc-700 {
+  border-color: #71717a !important;
+}
