@@ -24,6 +24,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
       total_questions,
       percentage,
       is_practice,
+      practice_subject,
       exams (
         title
       )
