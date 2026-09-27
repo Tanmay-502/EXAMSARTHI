@@ -61,7 +61,7 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
     return () => {
       isMounted = false;
     };
-  }, [interactionMode]);]);
+  }, [interactionMode]);
 
   useEffect(() => {
     if (micStatus === 'pending' || browserStatus === 'pending' || hasSpoken.current) return;
