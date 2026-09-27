@@ -23,7 +23,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ intent: 'UNKNOWN_COMMAND' }, { status: 400 });
     }
 
-    const safeContext = context && typeof context === 'object' ? context : null;
+    const safeContext =
+      context && typeof context === 'object'
+        ? Object.fromEntries(
+            Object.entries(context)
+              .slice(0, 12)
+              .map(([key, value]) => [
+                key.slice(0, 80),
+                typeof value === 'string' ? value.slice(0, 300) : value
+              ])
+          )
+        : null;
 
     const apiKey = getGeminiKey();
     if (!apiKey) {
@@ -47,7 +57,7 @@ export async function POST(req: Request) {
       prompt: `Parse the following voice transcript into an intent.
 Transcript: "${transcript}"
 Language: ${lang}
-Context: ${JSON.stringify(context)}
+Context: ${JSON.stringify(safeContext)}
 
 If the user wants to log in or sign in, return SIGN_IN.
 If the user wants to create an account, register, or sign up, return SIGN_UP.
