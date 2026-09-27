@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { VoiceCore } from '@/components/voice/VoiceCore';
+import { ScoreVisualizer } from '@/components/exam/ScoreVisualizer';
 import { Trophy, Target, AlertCircle, HelpCircle, ArrowRight, BarChart3, BookOpen, History, Home } from 'lucide-react';
 
 type SubjectStat = {
@@ -38,18 +39,7 @@ export default function ResultsPageContent({
   isPassing,
 }: ResultsPageContentProps) {
   return (
-
     <main id="main-content" className="flex flex-col flex-1 min-h-screen w-full bg-black text-white">
-      <ResultsAnnouncer 
-        score={score || 0}
-        total={total_questions || 0}
-        percentage={percentage || 0}
-        correct={correct_questions || 0}
-        incorrect={incorrect_questions || 0}
-        unanswered={unanswered_questions || 0}
-        subjectStats={subjectStats}
-      />
-      
       <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 pt-32 pb-24">
         
         <motion.header
@@ -68,7 +58,7 @@ export default function ResultsPageContent({
 
           <div className="flex flex-col gap-8">
             <div className="flex items-center gap-4 text-zinc-500">
-              <Trophy className={`w-6 h-6 \${isPassing ? 'text-white' : 'text-amber-500'}`} />
+              <Trophy className={`w-6 h-6 ${isPassing ? 'text-white' : 'text-amber-500'}`} />
               <span className="text-xs font-bold uppercase tracking-[0.2em]">Performance summary</span>
             </div>
             <h1 className="text-[clamp(3.5rem,8vw,9rem)] leading-[0.9] font-light tracking-tighter text-zinc-100">
@@ -149,7 +139,7 @@ export default function ResultsPageContent({
                     <div className="w-full bg-zinc-900 rounded-full h-1 mb-8 overflow-hidden">
                       <div 
                         className="bg-white h-1 rounded-full transition-all duration-1000"
-                        style={{ width: `\${subjPerc}%` }}
+                        style={{ width: `${subjPerc}%` }}
                       />
                     </div>
                     <div className="grid grid-cols-3 gap-4 text-center">
@@ -177,7 +167,7 @@ export default function ResultsPageContent({
         <div className="flex flex-col sm:flex-row justify-start items-stretch gap-4 border-t border-zinc-900 pt-12">
           {weakestSubject && (
             <Link
-              href={`/practice?subject=\${encodeURIComponent(weakestSubject)}`}
+              href={`/practice?subject=${encodeURIComponent(weakestSubject)}`}
               className="group inline-flex items-center justify-center px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest bg-white text-black hover:bg-zinc-200 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             >
               <BookOpen className="mr-3 w-4 h-4" />
