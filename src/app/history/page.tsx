@@ -3,8 +3,9 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import HistoryVoiceHandler from './HistoryVoiceHandler';
 
-export default async function HistoryPage({ searchParams }: { searchParams: { filter?: string } }) {
+export default async function HistoryPage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
   const supabase = await createClient();
+  const { filter = 'all' } = await searchParams;
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
@@ -30,8 +31,6 @@ export default async function HistoryPage({ searchParams }: { searchParams: { fi
     .eq('candidate_id', user.id)
     .order('completed_at', { ascending: false });
 
-  const filter = searchParams.filter || 'all';
-  
   let displayedSessions = sessions || [];
   if (filter === 'exam') {
     displayedSessions = displayedSessions.filter(s => !s.is_practice);
