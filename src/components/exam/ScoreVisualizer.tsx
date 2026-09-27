@@ -4,10 +4,9 @@ import { motion } from 'framer-motion';
 
 interface ScoreVisualizerProps {
   percentage: number;
-  isPassing: boolean;
 }
 
-export function ScoreVisualizer({ percentage, isPassing }: ScoreVisualizerProps) {
+export function ScoreVisualizer({ percentage }: ScoreVisualizerProps) {
   return (
     <div className="relative w-48 h-48 flex items-center justify-center shrink-0">
       {/* Minimal SVG Circle for Score */}
@@ -25,7 +24,7 @@ export function ScoreVisualizer({ percentage, isPassing }: ScoreVisualizerProps)
           stroke="currentColor" 
           strokeWidth="8" 
           strokeLinecap="round"
-          className={isPassing ? 'text-primary' : 'text-amber-500'}
+          className="text-primary"
           initial={{ strokeDasharray: "0 283" }}
           animate={{ strokeDasharray: `${percentage * 2.83} 283` }}
           transition={{ duration: 1.5, ease: "easeOut", delay: 0.5 }}
