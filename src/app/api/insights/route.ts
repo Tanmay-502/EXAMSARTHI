@@ -43,10 +43,10 @@ export async function POST() {
 
     const google = createGoogleGenerativeAI({ apiKey });
 
-    const profile = await buildLearningProfile(user.id);
+    const learningProfile = await buildLearningProfile(user.id);
 
-    if ('error' in profile) {
-      return NextResponse.json({ error: profile.error }, { status: 400 });
+    if ('error' in learningProfile) {
+      return NextResponse.json({ error: learningProfile.error }, { status: 400 });
     }
 
     const prompt = `You are the EXAMSAARTHI AI study assistant.
@@ -54,10 +54,10 @@ Given this candidate's learning profile, provide 2-3 specific, actionable study 
 Do not provide exam answers. Do not invent details.
 
 Profile context:
-- Strong Subjects: ${profile.strongSubjects.join(', ') || 'None yet'}
-- Weak Subjects: ${profile.weakSubjects.join(', ') || 'None yet'}
-- Recent accuracy trend: ${profile.recentAccuracy.join('%, ')}
-- Total sessions completed: ${profile.totalSessions} (Practice: ${profile.practiceSessions}, Exam: ${profile.examSessions})
+- Strong Subjects: ${learningProfile.strongSubjects.join(', ') || 'None yet'}
+- Weak Subjects: ${learningProfile.weakSubjects.join(', ') || 'None yet'}
+- Recent accuracy trend: ${learningProfile.recentAccuracy.join('%, ')}
+- Total sessions completed: ${learningProfile.totalSessions} (Practice: ${learningProfile.practiceSessions}, Exam: ${learningProfile.examSessions})
 `;
 
     const { text } = await generateText({
