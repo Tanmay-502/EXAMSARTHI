@@ -97,7 +97,7 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
         
         {!allClear && (micStatus !== 'pending' && browserStatus !== 'pending') && (
            <div className="pt-8 text-zinc-500 font-light text-lg">
-             Voice features are currently unavailable. The exam will start in Standard mode.
+             Voice features are unavailable in this browser right now. You can retry voice access or explicitly continue with keyboard and screen reader mode.
            </div>
         )}
 
@@ -289,6 +289,40 @@ function ExamSelection({
         selectByIndex.question_count +
         " questions. Say yes to start or say change to choose another."
       );
+      return true;
+    }
+
+    // Resolve the actual spoken exam title locally from the live database
+    // before falling back to Gemini. This keeps exact exam selection reliable
+    // even when the semantic service is unavailable.
+    if (normalized.length >= 2) {
+      lastHandledTranscriptRef.current = normalized;
+      void resolveExam(raw).then((matched) => {
+        if (!matched) return;
+        const availableMatch = exams.find(exam => exam.id === matched.id);
+        if (!availableMatch) return;
+
+        setSelectedExam(availableMatch);
+
+        const wantsImmediateStart =
+          /\b(start|begin|take|attempt|give)\b/.test(normalized) &&
+          /\b(exam|test)\b/.test(normalized);
+
+        speak(
+          wantsImmediateStart
+            ? "Starting " + availableMatch.title + "."
+            : availableMatch.title +
+              " selected. It has " +
+              availableMatch.question_count +
+              " questions and " +
+              availableMatch.duration_minutes +
+              " minutes. Say yes to start or say change to choose another."
+        );
+
+        if (wantsImmediateStart) {
+          onSelect(availableMatch.id);
+        }
+      });
       return true;
     }
 
