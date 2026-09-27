@@ -55,15 +55,19 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (user && request.nextUrl.pathname.startsWith('/auth')) {
-    // If user is authenticated and trying to access auth pages, redirect to dashboard
-    // But allow /auth/callback to proceed so it can exchange the session
-    if (request.nextUrl.pathname !== '/auth/callback') {
-      const url = request.nextUrl.clone()
-      url.pathname = '/dashboard'
-      url.searchParams.set('redirected', 'true')
-      return NextResponse.redirect(url)
-    }
+  if (
+    user &&
+    request.nextUrl.pathname.startsWith('/auth') &&
+    request.nextUrl.pathname !== '/auth/login' &&
+    request.nextUrl.pathname !== '/auth/confirm' &&
+    request.nextUrl.pathname !== '/auth/callback'
+  ) {
+    // Keep the login/confirmation screens reachable for an already-authenticated
+    // candidate so the public auth step remains visible in the onboarding flow.
+    const url = request.nextUrl.clone()
+    url.pathname = '/dashboard'
+    url.searchParams.set('redirected', 'true')
+    return NextResponse.redirect(url)
   }
 
   return supabaseResponse
