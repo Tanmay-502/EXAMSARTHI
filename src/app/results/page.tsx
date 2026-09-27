@@ -117,9 +117,11 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
     const subject = question.subject || 'General';
     const answer = answerByQuestion.get(question.id) ?? null;
     const questionAnswers = question.question_answers;
-    const correctIndex = Array.isArray(questionAnswers)
-      ? questionAnswers[0]?.correct_answer_index
-      : questionAnswers?.correct_answer_index;
+    const correctIndex = questionAnswers === null
+      ? null
+      : Array.isArray(questionAnswers)
+        ? questionAnswers[0]?.correct_answer_index ?? null
+        : questionAnswers.correct_answer_index;
 
     const stats = subjectStats[subject] || { total: 0, correct: 0, incorrect: 0, unanswered: 0 };
     stats.total += 1;
