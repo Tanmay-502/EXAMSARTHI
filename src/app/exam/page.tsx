@@ -102,14 +102,14 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
             {browserStatus === 'pending' && <span className="text-zinc-600 uppercase tracking-widest text-sm animate-pulse">Checking</span>}
             {browserStatus === 'success' && <span className="text-white uppercase tracking-widest text-sm font-medium">Ready</span>}
             {browserStatus === 'not-required' && <span className="text-zinc-500 uppercase tracking-widest text-sm font-medium">Not required</span>}
-            {browserStatus === 'error' && <span className="text-red-500 uppercase tracking-widest text-sm font-medium">Unavailable</span>
+            {browserStatus === 'error' && <span className="text-red-500 uppercase tracking-widest text-sm font-medium">Unavailable</span>}
           </div>
           <div className="flex items-center justify-between border-t border-zinc-900 pt-8">
             <span className="text-2xl font-light text-zinc-400">Microphone Access</span>
             {micStatus === 'pending' && <span className="text-zinc-600 uppercase tracking-widest text-sm animate-pulse">Checking</span>}
             {micStatus === 'success' && <span className="text-white uppercase tracking-widest text-sm font-medium">Granted</span>}
             {micStatus === 'not-required' && <span className="text-zinc-500 uppercase tracking-widest text-sm font-medium">Not required</span>}
-            {micStatus === 'error' && <span className="text-red-500 uppercase tracking-widest text-sm font-medium">Unavailable</span>
+            {micStatus === 'error' && <span className="text-red-500 uppercase tracking-widest text-sm font-medium">Unavailable</span>}
           </div>
         </div>
         
@@ -120,7 +120,7 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
         )}
 
         <div className="pt-16 border-t border-zinc-900 flex flex-wrap justify-end gap-4">
-          {!(micStatus === 'success' && browserStatus === 'success') && (
+          {!allClear && (
             <button
               type="button"
               onClick={() => window.location.reload()}
