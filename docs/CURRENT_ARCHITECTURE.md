@@ -1,7 +1,7 @@
 # CURRENT_ARCHITECTURE
 
 ## Existing Architecture
-ExamSaarthi V2 is built with Next.js 14+ App Router, utilizing React Server Components and Server Actions. It uses Supabase for authentication (Magic Link) and PostgreSQL for data storage. The application is bilingual (English, Hindi, Telugu) via a custom `I18nProvider`. State is managed via Zustand (`useExamStore`) with `idb-keyval` for persistent client-side storage of active exam sessions.
+ExamSaarthi V2 is built with Next.js 16.3.6 App Router, utilizing React Server Components and Server Actions. It uses Supabase for authentication (Magic Link) and PostgreSQL for data storage. The application is bilingual (English, Hindi, Telugu) via a custom `I18nProvider`. State is managed via Zustand (`useExamStore`) with `idb-keyval` for persistent client-side storage of active exam sessions.
 
 ## Current Voice Architecture
 The application currently uses a `VoiceProvider` wrapping the standard Web Speech API (SpeechRecognition and SpeechSynthesis). 
@@ -11,7 +11,7 @@ The application currently uses a `VoiceProvider` wrapping the standard Web Speec
 - Microphone is requested on the landing page, and continuous listening is enabled.
 
 ## Intended Global Voice Architecture
-1. **Single Global Assistant Lifecycle**: The microphone starts on the landing page and stays active persistently across navigation (`/dashboard`, `/exam`, etc.).
+1. **Single Global Assistant Lifecycle**: VoiceProvider owns the microphone lifecycle and GlobalVoiceAssistant dispatches transcripts across routes. Page handlers subscribe through useVoiceAction.
 2. **Deterministic + Optional LLM**: Commands like "next", "confirm", "option 1" must be resolved purely client-side without API calls to guarantee speed and free-tier operation. Complex intents ("I want to practice DBMS") optionally use the LLM to route, emitting strongly-typed `SafeAction` events.
 3. **Conversational vs. Monologue**: The assistant won't blindly read text off the screen; it provides conversational guidance tailored to the context (e.g. telling the user their options in the dashboard, or guiding them through the exam orientation).
 
@@ -31,6 +31,12 @@ The application currently uses a `VoiceProvider` wrapping the standard Web Speec
 ## Results & History Flow
 - **Results**: Fetches the graded session, calculates total, correct, incorrect, skipped, and lowest-performing subject ("weakest area"). The assistant reads a concise summary aloud.
 - **History**: Fetches past `exam_sessions` for the authenticated candidate.
+
+## Persistence and PWA
+
+- IndexedDB stores the active exam state locally.
+- saveAnswer persists answers and review state server-side while a session is in progress, with replay when the browser reconnects.
+- The web manifest and production static-asset service worker are implemented; authenticated HTML and API responses are not cached.
 
 ## Dataset Provenance
 - Verified exam data vs. Generated practice data. 

@@ -48,11 +48,11 @@ export function parseCommand(transcript: string, lang: Locale): VoiceCommand {
   };
 
   // Hardcoded fallback for onboarding mode selection (English and transliterations)
-  if (matchesPhrase(normalized, 'standard') || matchesPhrase(normalized, 'स्टैंडर्ड')) return { type: 'SELECT_MODE_STANDARD' };
-  if (matchesPhrase(normalized, 'voice first') || matchesPhrase(normalized, 'voicefirst') || matchesPhrase(normalized, 'voice') || matchesPhrase(normalized, 'वॉइस फर्स्ट') || matchesPhrase(normalized, 'वॉइस')) return { type: 'SELECT_MODE_VOICE' };
+  if (matchesPhrase(normalized, 'standard') || matchesPhrase(normalized, 'स्टैंडर्ड') || matchesPhrase(normalized, 'స్టాండర్డ్') || matchesPhrase(normalized, 'సాధారణం')) return { type: 'SELECT_MODE_STANDARD' };
+  if (matchesPhrase(normalized, 'voice first') || matchesPhrase(normalized, 'voicefirst') || matchesPhrase(normalized, 'voice') || matchesPhrase(normalized, 'वॉइस फर्स्ट') || matchesPhrase(normalized, 'वॉइस') || matchesPhrase(normalized, 'వాయిస్ ఫస్ట్') || matchesPhrase(normalized, 'వాయిస్')) return { type: 'SELECT_MODE_VOICE' };
 
   // Hardcoded fallback for analysis
-  if (matchesPhrase(normalized, 'analysis') || matchesPhrase(normalized, 'show analysis') || matchesPhrase(normalized, 'open analysis') || matchesPhrase(normalized, 'give me the analysis') || matchesPhrase(normalized, 'tell me my analysis') || matchesPhrase(normalized, 'tell me the analysis of me') || matchesPhrase(normalized, 'analyse my preparation') || matchesPhrase(normalized, 'analyze my preparation') || matchesPhrase(normalized, 'show my performance') || matchesPhrase(normalized, 'how am i performing') || matchesPhrase(normalized, 'how is my preparation') || matchesPhrase(normalized, 'analyze') || matchesPhrase(normalized, 'analyse')) return { type: 'OPEN_ANALYSIS' };
+  if (matchesPhrase(normalized, 'analysis') || matchesPhrase(normalized, 'show analysis') || matchesPhrase(normalized, 'open analysis') || matchesPhrase(normalized, 'give me the analysis') || matchesPhrase(normalized, 'tell me my analysis') || matchesPhrase(normalized, 'tell me the analysis of me') || matchesPhrase(normalized, 'analyse my preparation') || matchesPhrase(normalized, 'analyze my preparation') || matchesPhrase(normalized, 'show my performance') || matchesPhrase(normalized, 'how am i performing') || matchesPhrase(normalized, 'how is my preparation') || matchesPhrase(normalized, 'analyze') || matchesPhrase(normalized, 'analyse') || matchesPhrase(normalized, 'విశ్లేషణ') || matchesPhrase(normalized, 'విశ్లేషణ చూపించు') || matchesPhrase(normalized, 'నా విశ్లేషణ') || matchesPhrase(normalized, 'నా పనితీరు ఎలా ఉంది') || matchesPhrase(normalized, 'నా తయారీ ఎలా ఉంది') || matchesPhrase(normalized, 'పనితీరు')) return { type: 'OPEN_ANALYSIS' };
 
   // Collect all phrases and sort by length descending to match longest first
   const allPhrases: { commandType: string, phrase: string }[] = [];

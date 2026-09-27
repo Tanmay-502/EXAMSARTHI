@@ -1,4 +1,4 @@
-import { google } from '@ai-sdk/google';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateText } from 'ai';
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
@@ -18,11 +18,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing image URL' }, { status: 400 });
     }
 
-    if (!getGeminiKey()) {
+    const apiKey = getGeminiKey();
+    if (!apiKey) {
       return NextResponse.json({ 
         description: "This question contains an image or diagram, but the vision accessibility service is not currently configured. I cannot describe it for you at this time." 
       });
     }
+
+    const google = createGoogleGenerativeAI({ apiKey });
 
     const { text } = await generateText({
       model: google('gemini-3.8-flash'),

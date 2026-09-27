@@ -1,39 +1,48 @@
-# Current Architecture Audit - ExamSaarthi V2
+# Current Architecture — ExamSaarthi V2
+
+**Snapshot:** 2026-09-27
 
 ## Overview
 
-The application is a Next.js web application utilizing Supabase for authentication and database management. It supports English, Hindi, and Telugu.
-The app relies heavily on the Web Speech API (`SpeechRecognition` and `SpeechSynthesis`) for voice accessibility.
+ExamSaarthi V2 is a Next.js 16.3.6 application using Supabase for authentication/database, Web Speech API for voice interaction, Zustand + IndexedDB for local exam-state resilience, and Gemini through the AI SDK for optional semantic intent parsing and vision descriptions.
 
-## Voice Components
+## Provider and voice flow
 
-- **VoiceProvider (`src/lib/voice/VoiceProvider.tsx`)**: Manages the global state of SpeechRecognition and SpeechSynthesis. It maintains a queue of utterances for text-to-speech (TTS) and controls the microphone lifecycle.
-- **commandParser (`src/lib/voice/commandParser.ts`)**: A deterministic parser mapping speech transcripts to predefined `VoiceCommand` types using a static registry defined in `src/lib/i18n/registry.ts`.
-- **VoiceGateway (`src/components/voice/VoiceGateway.tsx`)**: An independent voice loop found on the landing page that prompts users to select a language and navigates them to login.
+1. VoiceProvider owns browser speech recognition and synthesis.
+2. GlobalVoiceAssistant maintains conversation/context state and receives speech transcripts.
+3. Deterministic parsing runs first; semantic Gemini intent parsing is used as fallback.
+4. SafeActionRegistry authorizes actions by active route/context.
+5. Page-specific handlers consume approved actions through useVoiceAction.
+6. Actions update application state or perform guarded navigation, then TTS confirms the result.
 
-## Routing and Navigation
+There is no active independent VoiceGateway loop on the landing page.
 
-- The dashboard (`src/app/dashboard/page.tsx`) uses a continuous listening loop that manually maps `VoiceCommand` to `router.push(...)`.
-- The exam page relies on a central store `examStore.ts` and standard Supabase actions (`actions.ts`).
+## Application flow
 
-## Data Schema (Supabase)
+Landing → Mode → Language → Login → Dashboard → Practice/Exam → Results → Analysis/History/Settings.
 
-- **profiles**: Extends `auth.users` to store user preferences.
-- **exams**: Metadata about the exam (title, duration, etc).
-- **questions**: Stores question content and options. Note: `correct_answer_index` is strictly kept on the server.
-- **exam_sessions**: Tracks candidate exam progress, status (in_progress, submitted), score, and analytics metrics.
-- **answers**: Tracks selected options and review marks for each question in a session.
-- **audit_logs**: User actions during exams.
-- **Security**: Row Level Security (RLS) is enabled across all tables, ensuring candidates can only modify their own sessions/answers and cannot fetch correct answers before submission.
+The landing page speaks its gateway welcome on mount and starts continuous listening.
 
-## Duplicated/Conflicting Flows
+## Exam state and persistence
 
-- **Language Selection**: Currently, the landing page asks for language and handles routing, but the same might be asked again elsewhere or the state is not fully inherited across independent voice consumers.
-- **Voice Loop Implementations**: The VoiceGateway and Dashboard implement overlapping logics to consume voice context. A global Voice Assistant needs to be refactored to unify these handlers.
-- **Intent vs Action**: Currently, intent parsing is deterministic and safe, but there is no explicit Action Registry. Actions (like `router.push`) are scattered across page components.
+- useExamStore is the immediate client state.
+- IndexedDB persists the exam state locally.
+- saveAnswer writes each selected answer/review state to Supabase while the session is in progress.
+- On mount and browser online events, persisted local answers are replayed to the server.
+- submitExamAnswers performs final server-side grading and atomically transitions an owned session from in_progress to submitted.
 
-## Tests & State
+## Security boundary
 
-- Existing architecture utilizes IndexedDB/stores for resilience.
-- Security relies on server-side validations during grading.
-- Current tests include Playwright end-to-end tests and manual Voice Assistant test checklists.
+- Client question payloads omit correct_answer_index.
+- exam_sessions client INSERT and UPDATE policies are removed/disabled; session creation and final updates are server-side.
+- answers client write policy is removed; server actions use the privileged client after validating the signed-in candidate.
+- Active exam voice navigation is restricted by SafeActionRegistry.
+- Audit events are written for significant session actions.
+
+## Accessibility
+
+The project targets WCAG 2.1 AA, uses semantic HTML/focus management/live announcements, and respects user reduced-motion preferences. Manual screen-reader verification remains a release gate.
+
+## PWA
+
+The app includes a web manifest and a production service worker that caches static assets only. Authenticated pages, auth routes, and API responses are not cached.

@@ -8,7 +8,7 @@
 - Purpose: Multi-turn natural language intent parsing and image/diagram accessibility descriptions.
 - SDK/Client: `@ai-sdk/google` (v4.0.82) and `ai` (v7.0.116).
 - Model: `gemini-3.8-flash`.
-- Auth: `GOOGLE_GENERATIVE_AI_API_KEY` (used by `src/app/api/intent/route.ts`) and `GEMINI_API_KEY` (used by `src/app/api/vision/route.ts`).
+- Auth: `src/lib/ai/getGeminiKey.ts` resolves `GOOGLE_GENERATIVE_AI_API_KEY` first and falls back to `GEMINI_API_KEY`; both `/api/intent` and `/api/vision` pass the resolved key into their Google provider.
 - Endpoints:
   - `/api/intent` - Fallback semantic parser for complex voice utterances that fall outside deterministic regex patterns. Prevents test cheating by classifying question-solving requests as `QUESTION_SOLVING`.
   - `/api/vision` - Generates objective structural descriptions of diagram-based exam questions for visually impaired candidates.
@@ -32,7 +32,7 @@
     - `exam_sessions` - Session lifecycle (`in_progress`, `submitted`), time tracking, score, and analytics.
     - `answers` - Candidate selected options, review flags (`is_marked_for_review`), and response timing.
     - `audit_logs` - Action logging for exam integrity monitoring.
-  - Migrations: Managed in `supabase/migrations/` (00000 through 00006).
+  - Migrations: Managed in `supabase/migrations/` (00000 through 00008).
 
 **Local Client Cache:**
 - IndexedDB via `idb-keyval` (v6.3.0) and `zustand/middleware` (`createJSONStorage`):

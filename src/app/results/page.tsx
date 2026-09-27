@@ -125,7 +125,6 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
   return (
     <>
       <ResultsAnnouncer
-        score={score || 0}
         total={total_questions || 0}
         percentage={percentage || 0}
         correct={correct_questions || 0}
@@ -134,7 +133,6 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
         subjectStats={subjectStats}
       />
       <ResultsPageContent
-        score={score || 0}
         total_questions={total_questions || 0}
         attempted_questions={attempted_questions || 0}
         correct_questions={correct_questions || 0}

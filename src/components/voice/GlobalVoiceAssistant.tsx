@@ -89,9 +89,24 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
 
     if (!registry.isActionAllowed(action, context)) {
       console.warn(`Action ${action} is not allowed in context ${context}`);
-      // Only speak refusal if it's an exam context (anti-cheating)
-      if (context === 'exam' && ['OPEN_DASHBOARD', 'OPEN_HISTORY'].includes(action)) {
-         speak("I cannot navigate away during an active exam.");
+      // During an active exam, navigation/logout/restart requests must never
+      // be swallowed silently. Give the candidate an explicit spoken boundary.
+      if (context === 'exam' && [
+        'OPEN_DASHBOARD',
+        'OPEN_HISTORY',
+        'OPEN_SETTINGS',
+        'OPEN_PRACTICE',
+        'START_PRACTICE',
+        'OPEN_ANALYSIS',
+        'LOGOUT'
+      ].includes(action)) {
+        speak(
+          lang === 'hi-IN'
+            ? 'मैं सक्रिय परीक्षा के दौरान बाहर नहीं जा सकता। पहले परीक्षा जमा करें।'
+            : lang === 'te-IN'
+            ? 'యాక్టివ్ పరీక్ష సమయంలో నేను బయటకు తీసుకెళ్లలేను. ముందుగా పరీక్షను సమర్పించండి.'
+            : 'I cannot leave or restart an active exam. Please submit the exam before navigating away.'
+        );
       } else if (action !== 'UNKNOWN_COMMAND') {
          // Speak for other valid commands that are not allowed here
          speak(lang === 'hi-IN' ? 'यह कार्रवाई यहाँ उपलब्ध नहीं है।' : lang === 'te-IN' ? 'ఈ చర్య ఇక్కడ అందుబాటులో లేదు.' : "That action isn't available here.");

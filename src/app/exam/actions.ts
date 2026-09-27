@@ -41,6 +41,18 @@ export async function fetchExamQuestions(examId: string, sessionId: string, lang
     throw new Error('Unauthorized')
   }
 
+  // Bind question retrieval to the authenticated in-progress session.
+  const { data: session, error: sessionError } = await supabase
+    .from('exam_sessions')
+    .select('id, exam_id, status')
+    .eq('id', sessionId)
+    .eq('candidate_id', user.id)
+    .single()
+
+  if (sessionError || !session || session.status !== 'in_progress' || session.exam_id !== examId) {
+    throw new Error('Exam session not found, inactive, or unauthorized')
+  }
+
   // Fetch questions, explicitly EXCLUDING correct_answer_index
   const { data: questions, error } = await supabase
     .from('questions')
@@ -80,7 +92,7 @@ export async function fetchExamQuestions(examId: string, sessionId: string, lang
     };
   }) as Question[];
 
-  let seed = Array.from(`${examId}:${user.id}`).reduce(
+  let seed = Array.from(`${examId}:${sessionId}:${user.id}`).reduce(
     (hash, char) => ((hash << 5) - hash + char.charCodeAt(0)) | 0,
     0
   ) >>> 0;
@@ -260,6 +272,84 @@ export async function fetchPracticeQuestions(subject: string, difficulty: string
     }) as Question[],
     totalFound: questions.length
   };
+}
+
+export async function saveAnswer(
+  sessionId: string,
+  questionId: string,
+  answerData: unknown,
+  isMarkedForReview: boolean
+) {
+  const supabase = await createClient();
+  const adminClient = await createAdminClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Unauthorized');
+
+  const { data: session, error: sessionError } = await supabase
+    .from('exam_sessions')
+    .select('id, exam_id, is_practice, status')
+    .eq('id', sessionId)
+    .eq('candidate_id', user.id)
+    .single();
+
+  if (sessionError || !session) {
+    throw new Error('Exam session not found or unauthorized');
+  }
+
+  if (session.status !== 'in_progress') {
+    throw new Error('Answers can only be saved while the session is in progress');
+  }
+
+  const { data: question, error: questionError } = await adminClient
+    .from('questions')
+    .select('id, exam_id, options')
+    .eq('id', questionId)
+    .single();
+
+  if (questionError || !question) {
+    throw new Error('Question not found');
+  }
+
+  if (!session.is_practice && question.exam_id !== session.exam_id) {
+    throw new Error('Question does not belong to this exam session');
+  }
+
+  const selectedOptionIndex =
+    typeof answerData === 'number' && Number.isInteger(answerData) && answerData >= 0
+      ? answerData
+      : null;
+
+  const options = Array.isArray(question.options) ? question.options : [];
+  if (selectedOptionIndex !== null && selectedOptionIndex >= options.length) {
+    throw new Error('Invalid option index');
+  }
+
+  const { error: answerError } = await adminClient
+    .from('answers')
+    .upsert(
+      {
+        session_id: sessionId,
+        question_id: questionId,
+        selected_option_index: selectedOptionIndex,
+        marked_for_review: Boolean(isMarkedForReview),
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'session_id,question_id' }
+    );
+
+  if (answerError) {
+    throw new Error(`Failed to save answer: ${answerError.message}`);
+  }
+
+  await supabase.from('audit_logs').insert({
+    session_id: sessionId,
+    candidate_id: user.id,
+    action: 'answer_saved',
+    metadata: { question_id: questionId, selected_option_index: selectedOptionIndex },
+  });
+
+  return { success: true };
 }
 
 export async function submitExamAnswers(sessionId: string, answers: Record<string, unknown>, questionIds?: string[]) {

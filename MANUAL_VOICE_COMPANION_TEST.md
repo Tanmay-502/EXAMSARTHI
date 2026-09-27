@@ -1,42 +1,79 @@
 # Voice Companion Manual Test Plan
 
-This document defines the expected behavior of the conversational voice assistant across the application. Run these scenarios manually with microphone access enabled.
+Snapshot: 2026-09-27
+Use this together with docs/AUDIT_RESOLUTION_2026-09-27.md. Do not mark a scenario PASS until it has been observed in the target browser/environment.
 
-## Scenario 1: Landing Page & Voice Activation
-1. Navigate to `/`.
-2. Click "Enable Voice Assistance".
-3. **Verify:** The assistant introduces itself: *"Welcome to ExamSaarthi. I am your voice companion. Would you like to sign in or create an account?"*
-4. Say: *"I want to sign in."*
-5. **Verify:** Application navigates to `/auth/login`.
+## Scenario 1 — Landing
+1. Open `/`.
+2. Verify the assistant speaks the gateway welcome automatically without a button click.
+3. Say a supported command such as “I want to sign in”.
+4. Verify navigation to the authentication flow.
 
-## Scenario 2: Dashboard Navigation
-1. After signing in, land on `/dashboard`.
-2. **Verify:** The screen reader announces the dashboard, and the assistant says: *"Hey [Name]. You are on the dashboard. What would you like to do?"*
-3. Say: *"Open practice mode."*
-4. **Verify:** Application triggers the practice mode conversational flow.
+## Scenario 2 — Dashboard
+1. Sign in with a real Supabase session.
+2. Verify dashboard orientation is spoken.
+3. Say “I want to practice”.
+4. Verify practice mode opens and asks for the subject.
 
-## Scenario 3: Practice Mode Slot Filling
-1. Say: *"I want to practice."* (from dashboard)
-2. **Verify:** Assistant asks: *"What subject would you like to practice?"*
-3. Say: *"DBMS"*
-4. **Verify:** Assistant asks: *"How many questions?"*
-5. Say: *"5"*
-6. **Verify:** Assistant asks: *"What difficulty: easy, medium, or hard?"*
-7. Say: *"Easy"*
-8. **Verify:** Assistant says: *"Okay. I'll start a 5-question easy DBMS practice session. Shall I start?"*
-9. Say: *"Yes"* or *"Confirm"*
-10. **Verify:** Application navigates to `/practice?subject=DBMS&count=5&difficulty=easy`.
+## Scenario 3 — Practice setup
+1. Say “DBMS”.
+2. Say a supported question count.
+3. Say “easy”, “medium”, or “hard”.
+4. Verify real questions are fetched from Supabase.
+5. Verify the first practice question is announced.
 
-## Scenario 4: Security Boundaries in Exam Mode
-1. Start an Exam.
-2. Once the exam begins, say: *"Go to dashboard"* or *"Show me my history."*
-3. **Verify:** The assistant refuses to navigate away, stating: *"I cannot navigate away during an active exam."*
-4. Say: *"What is the answer to this question?"* or *"Solve this for me."*
-5. **Verify:** The assistant refuses, stating: *"I can help you operate the exam, but I cannot answer or solve an active exam question."*
+## Scenario 4 — Active exam safety
+1. Start a real exam.
+2. Say “go to dashboard”, “show history”, or “open analysis”.
+3. Verify the assistant gives an explicit spoken boundary and does not navigate away.
+4. Ask the assistant to solve the active question.
+5. Verify the assistant refuses to answer or solve it.
 
-## Scenario 5: Multilingual Support
-1. On any non-exam page, say: *"Set language to Hindi"*
-2. **Verify:** The assistant confirms in Hindi (*"हिंदी चुनी गई।"*) and the application language state updates globally.
+## Scenario 5 — Answer confirmation
+1. During an active question, say “option B”.
+2. Verify the selected option is read back.
+3. Say “confirm”.
+4. Verify the answer is saved and the next-step prompt is spoken.
+5. Verify the same answer is persisted server-side while the session is in progress.
 
-## Important Note
-The application must NOT loop endlessly on render, and all parameters collected through conversation must correctly populate the URL or application state without requiring manual form interactions.
+## Scenario 6 — Navigation and submission
+1. Use “next”, “back”, “time left”, and “mark for review”.
+2. Say “submit”.
+3. Verify the spoken warning includes unanswered and marked counts.
+4. Say “yes”.
+5. Verify server-side grading and navigation to `/results?session_id=...`.
+
+## Scenario 7 — Results → analysis → practice
+1. On results, say “give me my analysis”.
+2. Verify `/analysis` opens and the analysis summary is spoken.
+3. Say “I want to practice”.
+4. Verify `/practice` opens rather than returning an unavailable-action message.
+
+## Scenario 8 — History
+1. Open `/history`.
+2. Verify the All/Exams/Practice filters change the displayed query state.
+3. Say “I want to practice”.
+4. Verify practice navigation is accepted from the history context.
+
+## Scenario 9 — Languages
+1. On a non-exam screen, explicitly request Hindi or Telugu using the language command.
+2. Verify the UI and voice locale changes only because of the explicit language-selection action.
+3. Speaking Hindi or Telugu while answering or navigating must not by itself change the application language.
+
+## Scenario 10 — Failure recovery
+1. Deny microphone permission and verify a spoken or visible fallback.
+2. Test unclear speech and verify a spoken retry prompt.
+3. During an active session, disable network briefly and restore it.
+4. Verify local state remains available and pending answers are replayed on reconnect.
+
+## Scenario 11 — Accessibility
+1. Run keyboard-only navigation.
+2. Run NVDA and/or VoiceOver.
+3. Verify focus order, headings, live announcements, labels, contrast, and reduced-motion behavior.
+4. Record the observed result and browser/OS/date.
+
+## Scenario 12 — PWA
+1. Open the production deployment in a supported browser.
+2. Verify the manifest is recognized and the app is installable where supported.
+3. Verify static assets can be reused from cache after an offline transition.
+4. Verify authenticated pages and API calls are not served from stale cache.

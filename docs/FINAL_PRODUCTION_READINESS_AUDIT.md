@@ -1,37 +1,59 @@
-# FINAL PRODUCTION READINESS AUDIT
+# Production Readiness Audit
 
-## 1. Authentication Audit
+Snapshot: 2026-09-27
 
-**Supabase Session Persistence:**
+## Authentication
 
-- Configured successfully using `@supabase/ssr`.
-- `proxy.ts` now correctly intercepts requests (added the missing `export default` and `matcher` config which caused it to be ignored by Next.js previously).
-- Middleware properly redirects unauthenticated users to `/auth/login` and authenticated users away from public routes like `/auth/login` (to `/dashboard`).
+Supabase Auth uses passwordless Magic Links. Protected application routes are enforced by src/proxy.ts in development and production.
 
-**Login/Logout Behavior:**
+Manual gate: real Magic Link email delivery, callback exchange, session persistence, and authenticated-route behavior must be verified against the target Supabase project.
 
-- Magic link login flows correctly.
-- The `user_metadata.full_name` mapping on the dashboard has been patched to reject cases where the "full_name" is just the email prefix, falling back to a generic greeting as requested ("Hey, welcome back").
-- Added a `try/catch` to `supabase.auth.getSession()` inside the Voice Assistant global dispatcher to prevent unhandled promise rejections that could silently crash the Voice Assistant logic upon network issues or browser strict-mode cookie blocking.
+## Voice pipeline
 
-## 2. Voice Pipeline Trace
+The active path is:
 
-**Trace:**
-`SpeechRecognition` → `onresult` → `transcript` → `normalization` → `deterministic intent parser` (`commandParser.ts`) → `Optional LLM fallback if used` (`intentRouter.ts`) → `returned intent` → `SafeAction` (`GlobalVoiceAssistant.tsx`) → `current context` → `authorization` (`SafeActionRegistry.ts`) → `action dispatch` → `router navigation` → `TTS response`.
+SpeechRecognition -> VoiceProvider -> GlobalVoiceAssistant -> deterministic parser / optional Gemini intent fallback -> SafeActionRegistry -> page action handler -> state/navigation -> TTS confirmation.
 
-**Findings & Fixes:**
+Core English, Hindi, and Telugu command paths are implemented. The deterministic parser has explicit Telugu mode/analysis coverage.
 
-- **Issue:** User speaks "Sign in", but gets no response.
-- **Root Cause 1:** The `SIGN_IN` intent was missing from the Gemini LLM schema (`api/intent/route.ts`). If deterministic parsing missed the exact phrase, the LLM fallback failed to categorize it. This was fixed by adding `SIGN_IN` and `SIGN_UP` to the Zod schema and system prompt.
-- **Root Cause 2:** Client-side network/Supabase errors inside the `SIGN_IN` action dispatch were unhandled, resulting in a silent failure (no TTS, no navigation). This was patched with a `try/catch` wrapper and error logging in `GlobalVoiceAssistant.tsx`.
-- **Root Cause 3 (Web Speech API limits):** If the volume is low, the native browser `SpeechRecognition` VAD fails to trigger `onresult`. Because we cannot change the browser's internal engine, this is mitigated by our auto-restart logic in `VoiceProvider.tsx` (`recognition.onend`), ensuring it recovers gracefully.
+## Exam integrity
 
-## 3. Route & Context Safety
+- Correct-answer data remains server-side.
+- Client exam-session INSERT and UPDATE writes are disabled; session creation/finalization use privileged server actions.
+- Migration 00008_lock_exam_session_inserts.sql removes the client session INSERT policy.
+- Final submission updates require an owned in_progress session.
+- Answers are validated against the session/question boundary before server persistence.
+- Active-exam voice navigation is restricted and blocked navigation now produces an explicit spoken boundary.
+- Real biometric/speaker verification is intentionally not faked.
 
-- The `SafeActionRegistry` strict context boundary was verified.
-- `OPEN_DASHBOARD` is NOT allowed on the landing page, preventing users from bypassing the auth checks via voice commands.
-- All actions are securely mapped and verified against `getContextName()`.
+Manual gate: apply all migrations through 00008 to the target Supabase project and perform a real end-to-end exam.
 
-## Status: STABILIZED
+## Persistence
 
-The application runtime code is stable. The voice flow properly guides the user through the unauthenticated -> authenticated lifecycle.
+Answers are stored in IndexedDB for immediate local recovery and are also incrementally persisted through saveAnswer while the session is in progress. Reconnection replays the locally persisted answers.
+
+Manual gate: perform a real network interruption/recovery test.
+
+## AI services
+
+Both /api/intent and /api/vision use the shared getGeminiKey helper and pass the resolved key into the Google provider.
+
+## Accessibility
+
+The automated target is WCAG 2.1 AA. The application includes semantic structure, focus management, live announcements, keyboard support, reduced motion, voice control, and image descriptions.
+
+Manual gate: NVDA/VoiceOver walkthrough across landing, onboarding, dashboard, practice, exam, results, analysis, history, and settings.
+
+## PWA
+
+A web manifest and production static-asset service worker are present. The service worker deliberately does not cache authenticated navigation, /auth/*, or /api/*.
+
+Manual gate: verify browser installability and update behavior on the production deployment.
+
+## Visual system
+
+The current routes use the black/editorial visual language. Login, Results, History, Analysis, and Settings are on the same visual family as the redesigned landing/dashboard/practice/exam experience.
+
+## Evidence policy
+
+Build results, automated E2E results, static code inspection, and manual browser observations are separate evidence classes. A manual gate is not marked PASS until it has been observed in the target environment.

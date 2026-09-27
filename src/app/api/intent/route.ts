@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { generateObject } from 'ai';
-import { google } from '@ai-sdk/google';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { getGeminiKey } from '@/lib/ai/getGeminiKey';
@@ -15,9 +15,12 @@ export async function POST(req: Request) {
 
     const { transcript, lang, context } = await req.json();
 
-    if (!getGeminiKey()) {
+    const apiKey = getGeminiKey();
+    if (!apiKey) {
       return NextResponse.json({ intent: 'UNKNOWN_COMMAND' });
     }
+
+    const google = createGoogleGenerativeAI({ apiKey });
 
     // Call Gemini to parse intent
     const { object } = await generateObject({

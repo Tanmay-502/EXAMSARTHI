@@ -5,7 +5,7 @@ import { useAccessibility } from '@/lib/accessibility/AccessibilityProvider';
 import { useVoice } from '@/lib/voice/VoiceProvider';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 import { SafeAction } from '@/lib/voice/safeActionRegistry';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useExamStore } from '@/lib/store/examStore';
 import { Mic, MicOff, CheckCircle, AlertTriangle } from 'lucide-react';
@@ -198,12 +198,49 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     return () => stopSpeaking();
   }, [stopSpeaking]);
 
+  const syncPersistedAnswers = useCallback(async () => {
+    if (!sessionId || typeof navigator === 'undefined' || !navigator.onLine) return;
+
+    try {
+      const { saveAnswer } = await import('@/app/exam/actions');
+      const state = useExamStore.getState();
+      await Promise.allSettled(
+        Object.values(state.answers).map((answer) =>
+          saveAnswer(
+            sessionId,
+            answer.question_id,
+            answer.answer_data ?? null,
+            answer.is_marked_for_review
+          )
+        )
+      );
+    } catch (error) {
+      console.error('Failed to replay persisted answers:', error);
+    }
+  }, [sessionId]);
+
+  useEffect(() => {
+    void syncPersistedAnswers();
+
+    const handleOnline = () => {
+      void syncPersistedAnswers();
+    };
+
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [syncPersistedAnswers]);
+
   const handleOptionSelect = (optionIndex: number) => {
     if (!currentQuestion) return;
     setAnswer(currentQuestion.id, optionIndex);
     if (sessionId) {
-      import('@/app/exam/actions').then(({ recordAnswerEvent }) => {
-        recordAnswerEvent(sessionId, currentQuestion.id).catch(console.error);
+      import('@/app/exam/actions').then(({ saveAnswer }) => {
+        void saveAnswer(
+          sessionId,
+          currentQuestion.id,
+          optionIndex,
+          answers[currentQuestion.id]?.is_marked_for_review ?? false
+        ).catch(console.error);
       });
     }
   };
@@ -228,15 +265,24 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
 
   const handleToggleMarkForReview = () => {
     if (!currentQuestion) return;
+    const currentAnswer = answers[currentQuestion.id];
+    const nextMarked = !(currentAnswer?.is_marked_for_review ?? false);
     toggleMarkForReview(currentQuestion.id);
-    const isMarked = answers[currentQuestion.id]?.is_marked_for_review;
-    if (isMarked) {
-      announce(t('removed_mark'));
-      if (interactionMode === 'voice-first' || isContinuous) speak(t('removed_mark'));
-    } else {
-      announce(t('marked_for_review'));
-      if (interactionMode === 'voice-first' || isContinuous) speak(t('marked_for_review'));
+
+    if (sessionId) {
+      import('@/app/exam/actions').then(({ saveAnswer }) => {
+        void saveAnswer(
+          sessionId,
+          currentQuestion.id,
+          currentAnswer?.answer_data ?? null,
+          nextMarked
+        ).catch(console.error);
+      });
     }
+
+    const message = nextMarked ? t('marked_for_review') : t('removed_mark');
+    announce(message);
+    if (interactionMode === 'voice-first' || isContinuous) speak(message);
   };
 
   const jumpToUnanswered = () => {
@@ -306,14 +352,33 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     router.push('/results');
   };
 
-  const voiceHandler = (action: SafeAction, payload?: Record<string, unknown> | null, transcript?: string) => {
+  const voiceHandler = (action: SafeAction, payload?: Record<string, unknown> | null) => {
     switch (action) {
       case 'START_EXAM':
       case 'OPEN_EXAM':
-      case 'START_PRACTICE':
-      case 'OPEN_PRACTICE':
+        if (mode !== 'exam') return false;
         if (engineState === 'READY') {
           setEngineState('EXAM');
+          return true;
+        }
+        if (engineState === 'CONFIRM_ANSWER' || engineState === 'CONFIRM_SUBMIT') {
+          speak('Please finish the current confirmation before continuing.');
+        } else if (engineState === 'PROCESSING') {
+          speak('Your exam is already being submitted.');
+        } else {
+          speak('The exam is already in progress. You can say next, back, time left, or submit.');
+        }
+        return true;
+
+      case 'START_PRACTICE':
+      case 'OPEN_PRACTICE':
+        if (mode !== 'practice') return false;
+        if (engineState === 'READY') {
+          setEngineState('EXAM');
+        } else if (engineState === 'PROCESSING') {
+          speak('Your practice session is already being submitted.');
+        } else {
+          speak('Practice is already in progress. You can continue with the current questions.');
         }
         return true;
 
@@ -322,13 +387,15 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         if (engineState === 'CONFIRM_ANSWER' && pendingAnswer !== null) {
           handleOptionSelect(pendingAnswer);
           setPendingAnswer(null);
-          spokenStateKey.current = `EXAM-${currentQuestionIndex}`; // prevent re-announcing the question
+          spokenStateKey.current = `EXAM-${currentQuestionIndex}`;
           setEngineState('EXAM');
           const msg = t('answer_saved') + ' ' + t('say_next_continue');
           speak(msg);
           announce(msg);
         } else if (engineState === 'CONFIRM_SUBMIT') {
           executeSubmit();
+        } else {
+          speak(lang === 'hi-IN' ? 'अभी पुष्टि करने के लिए कुछ नहीं है।' : lang === 'te-IN' ? 'ప్రస్తుతం నిర్ధారించడానికి ఏమీ లేదు.' : 'There is nothing to confirm right now.');
         }
         return true;
         
@@ -348,6 +415,8 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             }
           }
           speak(announcement);
+        } else {
+          speak(lang === 'hi-IN' ? 'अभी बदलने के लिए कोई चयन नहीं है।' : lang === 'te-IN' ? 'ప్రస్తుతం మార్చడానికి ఏ ఎంపిక లేదు.' : 'There is nothing to change right now.');
         }
         return true;
 
@@ -407,6 +476,8 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             }
           }
           speak(announcement);
+        } else {
+          speak(lang === 'hi-IN' ? 'कृपया पहले शुरू करें।' : lang === 'te-IN' ? 'దయచేసి ముందుగా ప్రారంభించండి.' : 'Please start the session first.');
         }
         return true;
         
@@ -419,16 +490,26 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         return true;
         
       case 'REVIEW_UNANSWERED':
-        if (engineState === 'EXAM') jumpToUnanswered();
+        if (engineState === 'EXAM') {
+          jumpToUnanswered();
+        } else {
+          speak(lang === 'hi-IN' ? 'कृपया पहले शुरू करें।' : lang === 'te-IN' ? 'దయచేసి ముందుగా ప్రారంభించండి.' : 'Please start the session first.');
+        }
         return true;
         
       case 'REVIEW_MARKED':
-        if (engineState === 'EXAM') jumpToMarked();
+        if (engineState === 'EXAM') {
+          jumpToMarked();
+        } else {
+          speak(lang === 'hi-IN' ? 'कृपया पहले शुरू करें।' : lang === 'te-IN' ? 'దయచేసి ముందుగా ప్రారంభించండి.' : 'Please start the session first.');
+        }
         return true;
         
       case 'JUMP_TO_QUESTION':
         if (engineState === 'EXAM' && typeof payload?.index === 'number') {
           jumpToQuestion(payload.index);
+        } else {
+          speak(lang === 'hi-IN' ? 'कृपया पहले शुरू करें और फिर प्रश्न संख्या बताएं।' : lang === 'te-IN' ? 'దయచేసి ముందుగా ప్రారంభించి, తరువాత ప్రశ్న సంఖ్య చెప్పండి.' : 'Please start the session first, then say the question number.');
         }
         return true;
         
@@ -451,6 +532,8 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           } else {
             speak(tParams('time_remaining', { time: `${durationMinutes ?? 60} ${t('minutes')}` }));
           }
+        } else {
+          speak(lang === 'hi-IN' ? 'अभ्यास मोड में समय सीमा नहीं है।' : lang === 'te-IN' ? 'ప్రాక్టీస్ మోడ్‌లో సమయ పరిమితి లేదు.' : 'Practice mode has no time limit.');
         }
         return true;
         
@@ -467,6 +550,8 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           } else {
             speak(t('invalid_option'));
           }
+        } else {
+          speak(lang === 'hi-IN' ? 'कृपया पहले शुरू करें और फिर विकल्प चुनें।' : lang === 'te-IN' ? 'దయచేసి ముందుగా ప్రారంభించి, తరువాత ఒక ఎంపికను చెప్పండి.' : 'Please start the session first, then choose an option.');
         }
         return true;
         

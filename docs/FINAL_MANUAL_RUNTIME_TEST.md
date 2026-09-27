@@ -1,111 +1,71 @@
-# FINAL MANUAL RUNTIME TEST REPORT
+# Final Manual Runtime Test Plan
 
-This document represents the outcome of Phase 20: Real Browser Voice Validation. The objective was to prove the real user journey in an actual Chromium browser with a real authenticated Supabase session.
+Snapshot: 2026-09-27
+Purpose: target-environment validation after the 2026-09-27 code audit. This document records required observations; it does not claim PASS when a test has not been executed.
 
-**Core Blocking Issue:**
-All end-to-end functionality of EXAMSAARTHI requires an authenticated session. During **Step 2 (Real Authentication)**, the application successfully contacted the Supabase backend, but the Supabase instance rejected the attempt to send the Magic Link email (returning `"Your sign-in link could not be sent. Please try again."`).
-Because we are strictly adhering to the rule: *"Do NOT bypass authentication with fake cookies or mocks"*, no further authenticated routes (`/dashboard`, `/practice`, `/exam`, `/results`) could be accessed by the browser agent.
+## Gate 1 — Clean browser startup
+- Start the app and open `/`.
+- Confirm the landing page loads.
+- Confirm the gateway welcome is spoken automatically and continuous voice listening is available.
 
----
+## Gate 2 — Real authentication
+- Open `/auth/login`.
+- Send a Magic Link using the target Supabase project.
+- Verify the message is received and the callback establishes a real session.
+- Verify authenticated routes redirect correctly when no session exists and load correctly when a session exists.
 
-## STEP 1 — START CLEAN
+## Gate 3 — Dashboard → Practice
+- From `/dashboard`, say “I want to practice”.
+- Say a real subject from the database.
+- Provide count and difficulty.
+- Verify real questions load and the first question is spoken.
 
-- **TEST**: Start Next.js dev server (`npm run dev`) and open Chromium without mocks.
-- **EXPECTED**: Server starts on localhost:3000, landing page loads.
-- **ACTUAL**: Server successfully started. Chromium loaded the landing page.
-- **STATUS**: PASS
+## Gate 4 — Active exam
+- Start a real exam.
+- Verify question text and options are spoken.
+- Select an option by voice, confirm it, navigate, mark review, and query time left.
 
-## STEP 2 — REAL AUTHENTICATION
+## Gate 5 — Exam security
+- While an exam is active, attempt to open dashboard, history, analysis, settings, practice, or logout.
+- Verify the assistant speaks an explicit boundary and does not navigate away.
+- Ask it to solve the active question.
+- Verify it refuses to provide the answer/solution.
 
-- **TEST**: User opens `/auth/login`, enters a real email (via temp inbox `mailinator.com`), receives Magic Link, clicks it, and `/dashboard` loads.
-- **EXPECTED**: Email dispatch succeeds, link is received, user authenticates, redirection to `/dashboard`.
-- **ACTUAL**: The email input was filled (`examsaarthitest123@mailinator.com`) and the form was submitted. The Supabase backend rejected the request with the error: *"Your sign-in link could not be sent. Please try again."* No email was dispatched to the inbox.
-- **STATUS**: BLOCKED
+## Gate 6 — Server persistence
+- Answer at least two questions.
+- Confirm an answer is persisted while the session is in_progress.
+- Temporarily disconnect the browser network and reconnect.
+- Verify local state survives and pending answers are replayed.
 
-## STEP 3 — AUTHENTICATED SIGN-IN REGRESSION
+## Gate 7 — Submit → Results → Analysis
+- Submit using the spoken confirmation flow.
+- Verify server-side grading and `/results?session_id=...`.
+- Verify subject breakdown is present for practice sessions when data supports it.
+- Say “give me my analysis”.
+- Verify `/analysis` loads and speaks its summary.
+- Say “I want to practice” and verify navigation to `/practice`.
 
-- **TEST**: From landing page while already authenticated, say "Sign in".
-- **EXPECTED**: "You are already signed in. Taking you to your dashboard." and URL becomes `/dashboard`.
-- **ACTUAL**: Cannot test authenticated state regressions without an active session.
-- **STATUS**: BLOCKED
+## Gate 8 — History
+- Open `/history` directly.
+- Test All, Exams, and Practice filters.
+- Open a completed result.
+- Say “I want to practice” and verify the voice action is accepted.
 
-## STEP 4 — DASHBOARD PRACTICE COMMAND
+## Gate 9 — Language
+- Explicitly select English, Hindi, and Telugu on non-exam screens.
+- Verify UI, recognition, and TTS use the selected locale.
+- Verify simply speaking Hindi or Telugu does not switch the application language unless a language-selection command is intended.
 
-- **TEST**: Voice command: "I wanna practice" -> "DBMS" -> "20 questions" -> "Medium".
-- **EXPECTED**: UI and internal state update correctly based on captured entities.
-- **ACTUAL**: Cannot reach `/dashboard`.
-- **STATUS**: BLOCKED
+## Gate 10 — PWA
+- Check `/manifest.json` and browser installability on the production deployment.
+- Confirm the service worker registers in production.
+- Confirm static assets can be served from cache.
+- Confirm authenticated navigation, auth routes, and API requests are not cached.
 
-## STEP 5 — REAL DATABASE PROOF
+## Gate 11 — Accessibility
+- Keyboard-only navigation.
+- NVDA and/or VoiceOver.
+- Focus order, headings, labels, announcements, contrast, and reduced-motion behavior.
 
-- **TEST**: Resulting practice questions are real DB rows (correct IDs, subject, difficulty, count).
-- **EXPECTED**: Database rows populate the ExamEngine without mocks.
-- **ACTUAL**: Cannot trigger the practice workflow without an authenticated session.
-- **STATUS**: BLOCKED
-
-## STEP 6 — MIC TEST
-
-- **TEST**: Voice flows for "next", "skip test", and unknown speech during mic check.
-- **EXPECTED**: Transitions to READY or spoken retry instructions.
-- **ACTUAL**: Cannot reach ExamEngine components.
-- **STATUS**: BLOCKED
-
-## STEP 7 — ORIENTATION
-
-- **TEST**: Concise spoken orientation, then "start".
-- **EXPECTED**: Active exam/practice question screen loads without silent failure.
-- **ACTUAL**: Cannot reach ExamEngine components.
-- **STATUS**: BLOCKED
-
-## STEP 8 — QUESTION
-
-- **TEST**: Voice reads options, user selects "Option B", says "Confirm", then "Next".
-- **EXPECTED**: Selection saved, moves to Question 2.
-- **ACTUAL**: Cannot reach active exam state.
-- **STATUS**: BLOCKED
-
-## STEP 9 — ACTIVE EXAM SAFETY
-
-- **TEST**: Prompts: "What is the answer?", "Solve this question.", "Go to dashboard."
-- **EXPECTED**: Explicit refusals and blocked navigation.
-- **ACTUAL**: Cannot reach active exam state.
-- **STATUS**: BLOCKED
-
-## STEP 10 — SUBMIT
-
-- **TEST**: "Submit" -> warning -> "Yes" -> submit to server.
-- **EXPECTED**: Server submission succeeds, redirects to `/results?session_id=<real-session-id>`.
-- **ACTUAL**: Cannot reach active exam state.
-- **STATUS**: BLOCKED
-
-## STEP 11 — RESULTS
-
-- **TEST**: "Read my results", page refresh, open History.
-- **EXPECTED**: Summary matches backend, correct session appears in History.
-- **ACTUAL**: Cannot reach results or history routes.
-- **STATUS**: BLOCKED
-
-## STEP 12 — VISION
-
-- **TEST**: Real `image_url` triggers Vision API and spoken description without fabrication.
-- **EXPECTED**: Spoken description matches image, fallback handles missing config.
-- **ACTUAL**: Cannot load questions.
-- **STATUS**: BLOCKED
-
-## STEP 13 — VOICE FAILURE CASES
-
-- **TEST**: Deliberate tests for quiet speech, no speech, duplicates, interruptions, denied mic.
-- **EXPECTED**: Clear recovery paths for all failure modes.
-- **ACTUAL**: Cannot reach authenticated voice components.
-- **STATUS**: BLOCKED
-
-## STEP 14 — ACCESSIBILITY
-
-- **TEST**: Keyboard navigation, focus, screen reader labels, aria-live, prefers-reduced-motion across the app.
-- **EXPECTED**: Full manual compliance on all routes.
-- **ACTUAL**: Landing page and Auth page are compliant, but authenticated routes (`/dashboard`, `/practice`, `/exam`, `/results`) cannot be manually audited in the browser.
-- **STATUS**: BLOCKED
-
----
-
-**FINAL NOTE:** No application code was modified during this phase because no runtime failures in the application code itself were discovered; the failure point lies entirely within the external Supabase project's email authentication configuration/rate-limits preventing test accounts from receiving Magic Links.
+## Gate 12 — Evidence
+For every gate, record: date/time, browser, OS, deployment URL, observed result, and any remaining issue. Separate automated test results from manual observations.

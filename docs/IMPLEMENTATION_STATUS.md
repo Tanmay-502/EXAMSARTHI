@@ -1,48 +1,49 @@
-# EXAMSAARTHI V2 - Implementation Status
+# EXAMSAARTHI V2 — Implementation Status
 
-This document tracks the actual, verified implementation state of features advertised in `PRODUCT_REQUIREMENTS.md` to ensure full transparency and correctness before final demonstration.
+**Snapshot:** 2026-09-27
+**Canonical audit:** docs/AUDIT_RESOLUTION_2026-09-27.md
+
+This document records the current implementation state, not an unverified historical checklist.
 
 ## 1. Authentication
 
-**Advertised:** Email/Password or Passkeys.
-**Actual:** REAL (Passwordless Magic Links). Implemented strictly via Passwordless Magic Links using Supabase Auth. Passkeys and Voice Passwords are NOT IMPLEMENTED and were removed to ensure security and prevent fake functionality. Magic links are fully operational and secure.
+**Actual:** REAL passwordless Magic Link authentication via Supabase Auth. Passkeys and voice passwords are not implemented.
 
-## 2. Voice & Audio Interaction
+Protected application routes are enforced by src/proxy.ts in development and production.
 
-**Advertised:** Voice-first interface, spoken output, voice commands.
-**Actual:** REAL. The `GlobalVoiceAssistant` handles continuous listening (with user consent). `commandParser.ts` maps natural language to actionable tasks (`SafeActionRegistry`). TTS and STT are functioning.
-**TTS Mute distinct from Screen Reader:** NOT IMPLEMENTED. Muting the TTS mutes the entire voice engine, there is no separate toggle to only mute custom TTS while keeping screen-reader announcements active without overlapping.
+## 2. Voice & Audio
 
-## 3. Visual & Structural Accessibility
+**Actual:** REAL. VoiceProvider owns SpeechRecognition/SpeechSynthesis; GlobalVoiceAssistant owns intent dispatch and contextual action authorization; page handlers subscribe through useVoiceAction.
 
-**Advertised:** Screen reader compatibility, keyboard navigation, Vision AI for images, prefers-reduced-motion.
-**Actual:**
+## 3. Accessibility
 
-- Keyboard Navigation: REAL (tested via Playwright).
-- Screen Reader Support: PARTIAL. Tested with AxeBuilder for basic HTML semantics, but manual testing required for NVDA/VoiceOver to confirm rich ARIA experiences.
-- Vision AI: REAL. Questions with images retrieve `image_url` and `image_alt_text` directly from Supabase. The UI renders images with proper alt text.
-- Animations: REAL. `prefers-reduced-motion` is fully supported across the app via Framer Motion `MotionConfig`.
+**Actual:** PARTIAL / MANUAL-VERIFICATION REQUIRED.
+
+Keyboard navigation, focus management, live announcements, reduced motion, and voice interaction are implemented. Automated accessibility checks target WCAG 2.1 AA. NVDA/VoiceOver verification is still required before claiming complete conformance.
 
 ## 4. Practice Mode
 
-**Advertised:** Safe environment to learn interface, select subject and difficulty.
-**Actual:** REAL. Practice mode pulls actual questions from the database matching the requested subject and difficulty. It creates an `is_practice: true` authenticated session in the database.
+**Actual:** REAL. Practice questions come from Supabase using subject, difficulty, and requested count. Practice sessions are real authenticated exam_sessions rows with is_practice = true.
 
 ## 5. Exam Engine
 
-**Advertised:** Start exam, listen to instructions, navigate, ask time, review, submit.
-**Actual:** REAL. The `ExamEngine` accurately manages state. Server-side grading bypasses RLS via Admin Client to prevent cheating. Duplicate submissions and invalid answers are safely ignored.
+**Actual:** REAL. The shared ExamEngine handles spoken orientation, question reading, answer confirmation, navigation, review, timed submission, and server-side grading.
 
 ## 6. Language Support
 
-**Advertised:** English and Hindi.
-**Actual:** REAL. UI, voice commands, and routing correctly respond to the `I18nProvider`.
+**Actual:** REAL for English, Hindi, and Telugu. UI, speech recognition, speech synthesis, and deterministic core command parsing support the three locales.
 
 ## 7. Security & Persistence
 
-**Advertised:** Audit logs, local autosave, no fake systems.
 **Actual:**
 
-- Local Autosave: REAL. Local IndexedDB autosaves answers.
-- Fake Systems Purged: REAL. All fake systems and mock databases have been completely purged from the codebase.
-- Audit Logs: NOT IMPLEMENTED. The `audit_logs` table exists in the schema, but there is no application logic currently writing `exam_started`, `answer_saved`, or `exam_submitted` events to it.
+- Correct-answer protection: server-only grading data.
+- Session creation: privileged server action only; client INSERT policy removed by migration 00008.
+- Answer persistence: local IndexedDB plus incremental server-backed saveAnswer with replay on reconnect.
+- Submission lock: update requires an owned in_progress session.
+- Audit logs: application code records started, answer-saved, and submitted events.
+- Fake security systems: none; biometric/speaker verification is intentionally not faked.
+
+## 8. PWA
+
+**Actual:** PWA manifest + production service worker are implemented. Authenticated HTML and API responses are deliberately not cached.

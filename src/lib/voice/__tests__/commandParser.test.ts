@@ -63,5 +63,12 @@ describe('Voice Command Parser', () => {
       assert.deepStrictEqual(parseCommand('నిర్ధారించు', 'te-IN'), { type: 'CONFIRM' });
       assert.deepStrictEqual(parseCommand('కాదు', 'te-IN'), { type: 'CHANGE' });
     });
+
+    test('should parse Telugu mode and analysis fallbacks', () => {
+      assert.deepStrictEqual(parseCommand('వాయిస్', 'te-IN'), { type: 'SELECT_MODE_VOICE' });
+      assert.deepStrictEqual(parseCommand('స్టాండర్డ్', 'te-IN'), { type: 'SELECT_MODE_STANDARD' });
+      assert.deepStrictEqual(parseCommand('విశ్లేషణ', 'te-IN'), { type: 'OPEN_ANALYSIS' });
+      assert.deepStrictEqual(parseCommand('నా పనితీరు ఎలా ఉంది', 'te-IN'), { type: 'OPEN_ANALYSIS' });
+    });
   });
 });

@@ -43,6 +43,42 @@ function PracticeContent() {
   
   const hasStartedRef = useRef(false);
 
+  const parseQuestionCount = (transcript: string): string | null => {
+    const normalized = transcript.trim().toLowerCase().replace(/[.,!?।]/g, ' ');
+    const numericMatch = normalized.match(/\b(5|10|15|20|25|30|40|50|100)\b/);
+    if (numericMatch) return numericMatch[1];
+
+    const wordCounts: Array<[string, string]> = [
+      ['one hundred', '100'],
+      ['hundred', '100'],
+      ['fifty', '50'],
+      ['forty', '40'],
+      ['thirty', '30'],
+      ['twenty five', '25'],
+      ['twenty-five', '25'],
+      ['twenty', '20'],
+      ['fifteen', '15'],
+      ['ten', '10'],
+      ['five', '5'],
+      ['१००', '100'],
+      ['५०', '50'],
+      ['४०', '40'],
+      ['३०', '30'],
+      ['२५', '25'],
+      ['२०', '20'],
+      ['१५', '15'],
+      ['१०', '10'],
+      ['५', '5'],
+    ];
+
+    for (const [phrase, value] of wordCounts) {
+      if (normalized.split(/\s+/).includes(phrase) || normalized.includes(phrase)) {
+        return value;
+      }
+    }
+    return null;
+  };
+
   useEffect(() => {
     if (!isContinuous && !hasStartedRef.current) {
       hasStartedRef.current = true;
@@ -133,17 +169,7 @@ function PracticeContent() {
       }
 
       if (setupState === 'ASK_COUNT') {
-        const numMatch = transcript.match(/\d+/);
-        const wordMatch = transcript.toLowerCase().match(/(five|ten|fifteen|twenty|५|१०|१५|२०)/);
-        let countVal = '';
-        if (numMatch) countVal = numMatch[0];
-        else if (wordMatch) {
-           const word = wordMatch[0];
-           if (word === 'five' || word === '५') countVal = '5';
-           if (word === 'ten' || word === '१०') countVal = '10';
-           if (word === 'fifteen' || word === '१५') countVal = '15';
-           if (word === 'twenty' || word === '२०') countVal = '20';
-        }
+        const countVal = parseQuestionCount(transcript);
 
         if (!countVal) {
            handleVoiceFallback("Please say the number of questions, such as 10 or 20.", "How many questions would you like?");

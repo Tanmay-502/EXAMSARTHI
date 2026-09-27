@@ -42,15 +42,14 @@ export async function updateSession(request: NextRequest) {
     !user &&
     !request.nextUrl.pathname.startsWith('/auth') &&
     !request.nextUrl.pathname.startsWith('/onboarding') &&
-    request.nextUrl.pathname !== '/' &&
-    process.env.NODE_ENV !== 'development'
+    request.nextUrl.pathname !== '/'
   ) {
     // Return 401 for API routes instead of redirecting
     if (request.nextUrl.pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // If no user and not on an auth route or root, redirect to login
+    // Protected routes require authentication in development and production.
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
     return NextResponse.redirect(url)
