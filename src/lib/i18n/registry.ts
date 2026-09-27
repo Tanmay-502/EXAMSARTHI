@@ -168,6 +168,8 @@ export const LANGUAGE_REGISTRY: Record<Locale, LanguageDefinition> = {
       already_signed_in: 'You are already signed in. You are going to your dashboard.',
       say_dashboard_or_history: 'You can say Dashboard or History.',
       weakest_subject: 'Your weakest area was {subject} with {percentage} percent accuracy.',
+      minutes: 'minutes',
+      option: 'option',
     }
   },
   'hi-IN': {
@@ -406,6 +408,8 @@ export const LANGUAGE_REGISTRY: Record<Locale, LanguageDefinition> = {
       already_signed_in: 'మీరు ఇప్పటికే సైన్ ఇన్ చేసారు. మీరు మీ డాష్బోర్డ్ కు వెళ్తున్నారు.',
       say_dashboard_or_history: 'మీరు డాష్బోర్డ్ లేదా చరిత్ర అని చెప్పవచ్చు.',
       weakest_subject: 'మీ బలహీనమైన సబ్జెక్ట్ {subject}, {percentage} శాతం ఖచ్చితత్వంతో.',
+      minutes: 'నిమిషాలు',
+      option: 'ఎంపిక',
     }
   }
 };
