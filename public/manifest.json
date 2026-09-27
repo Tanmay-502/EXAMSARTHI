@@ -1,0 +1,19 @@
+{
+  "name": "ExamSaarthi V2",
+  "short_name": "ExamSaarthi",
+  "description": "Accessible, voice-first examination and practice platform.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "lang": "en-IN",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
