@@ -60,6 +60,14 @@ function LoginForm() {
     const raw = transcript?.trim() || '';
 
     if ((action as string) === 'RAW_TRANSCRIPT' && raw) {
+      const lowerRaw = raw.toLowerCase();
+
+      // Let global commands reach the normal parser instead of treating them
+      // as malformed email input.
+      if (/\b(help|sign in|login|log in|sign up|signup|register|create an account)\b/.test(lowerRaw)) {
+        return false;
+      }
+
       const parsedEmail = normalizeSpokenEmail(raw);
 
       if (voiceStep === 'confirming_email') {
