@@ -136,16 +136,56 @@ async function ensureCandidateProfile(supabase: SupabaseClient, user: User) {
 }
 
 export async function startExamSession(examId: string) {
-  const supabase = await createClient()
-  const adminClient = await createAdminClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    throw new Error('Unauthorized')
+  const supabase = await createClient();
+  const adminClient = await createAdminClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Unauthorized');
+
+  await ensureCandidateProfile(supabase, user);
+
+  const { data: exam, error: examError } = await supabase
+    .from('exams')
+    .select('id, duration_minutes')
+    .eq('id', examId)
+    .single();
+
+  if (examError || !exam) {
+    throw new Error('Exam not found');
   }
 
-  // Provision profile if it doesn't exist
-  await ensureCandidateProfile(supabase, user)
+  // Refreshing the selection page must resume the candidate's active session
+  // instead of creating duplicate in-progress attempts.
+  const { data: existing } = await adminClient
+    .from('exam_sessions')
+    .select('id, started_at')
+    .eq('exam_id', examId)
+    .eq('candidate_id', user.id)
+    .eq('status', 'in_progress')
+    .order('started_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existing) {
+    const startedAt = new Date(existing.started_at).getTime();
+    const elapsedSeconds = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+    const durationSeconds = Math.max(0, Number(exam.duration_minutes || 0) * 60);
+
+    if (durationSeconds === 0 || elapsedSeconds < durationSeconds) {
+      return existing.id;
+    }
+
+    await adminClient
+      .from('exam_sessions')
+      .update({
+        status: 'abandoned',
+        completed_at: new Date().toISOString(),
+        time_remaining_seconds: 0,
+      })
+      .eq('id', existing.id)
+      .eq('candidate_id', user.id)
+      .eq('status', 'in_progress');
+  }
 
   const { data, error } = await adminClient
     .from('exam_sessions')
@@ -153,65 +193,90 @@ export async function startExamSession(examId: string) {
       exam_id: examId,
       candidate_id: user.id,
       status: 'in_progress',
+      is_practice: false,
     })
     .select('id')
-    .single()
+    .single();
 
   if (error) {
-    throw new Error(`Failed to start session: ${error.message}`)
+    throw new Error(`Failed to start session: ${error.message}`);
   }
 
-  await supabase.from('audit_logs').insert({
+  await adminClient.from('audit_logs').insert({
     session_id: data.id,
     candidate_id: user.id,
     action: 'started_exam',
-  })
+  });
 
-  return data.id
+  return data.id;
 }
-
 export async function startPracticeSession() {
-  const supabase = await createClient()
-  const adminClient = await createAdminClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    throw new Error('Unauthorized')
-  }
+  const supabase = await createClient();
+  const adminClient = await createAdminClient();
 
-  await ensureCandidateProfile(supabase, user)
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Unauthorized');
+
+  await ensureCandidateProfile(supabase, user);
+
+  const { data: existing } = await adminClient
+    .from('exam_sessions')
+    .select('id')
+    .eq('candidate_id', user.id)
+    .eq('is_practice', true)
+    .eq('status', 'in_progress')
+    .order('started_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existing) {
+    return existing.id;
+  }
 
   const { data, error } = await adminClient
     .from('exam_sessions')
     .insert({
-      exam_id: null, // No specific exam for practice
+      exam_id: null,
       candidate_id: user.id,
       status: 'in_progress',
       is_practice: true,
     })
     .select('id')
-    .single()
+    .single();
 
   if (error) {
-    throw new Error(`Failed to start practice session: ${error.message}`)
+    throw new Error(`Failed to start practice session: ${error.message}`);
   }
 
-  await supabase.from('audit_logs').insert({
+  await adminClient.from('audit_logs').insert({
     session_id: data.id,
     candidate_id: user.id,
-    action: 'started_exam',
+    action: 'started_practice',
     metadata: { is_practice: true }
-  })
+  });
 
-  return data.id
+  return data.id;
 }
-
 export async function fetchPracticeQuestions(subject: string, difficulty: string, count: number, lang: string = 'en-IN') {
   const supabase = await createClient()
-  
+
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     throw new Error('Unauthorized')
+  }
+
+  const normalizedSubject = subject?.trim() || '';
+  const normalizedDifficulty = difficulty?.trim().toLowerCase() || '';
+  const normalizedCount = Number.isFinite(Number(count))
+    ? Math.max(1, Math.min(100, Math.trunc(Number(count))))
+    : 5;
+
+  if (!normalizedSubject) {
+    throw new Error('Practice subject is required');
+  }
+
+  if (!['easy', 'medium', 'hard'].includes(normalizedDifficulty)) {
+    throw new Error('Invalid practice difficulty');
   }
 
   let query = supabase
@@ -219,13 +284,13 @@ export async function fetchPracticeQuestions(subject: string, difficulty: string
     .select('id, exam_id, order_index, content_text, options, content_translations, options_translations, subject, difficulty, image_url, image_alt_text')
     
   if (subject) {
-    query = query.ilike('subject', `%${subject}%`)
+    query = query.ilike('subject', normalizedSubject)
   }
   if (difficulty) {
-    query = query.eq('difficulty', difficulty)
+    query = query.eq('difficulty', normalizedDifficulty)
   }
 
-  const { data: questions, error } = await query.limit(count)
+  const { data: questions, error } = await query.limit(normalizedCount)
 
   if (error) {
     throw new Error(`Failed to fetch practice questions: ${error.message}`)
@@ -570,9 +635,14 @@ export async function updateLearningProfileConsent(consent: boolean) {
   return { success: true };
 }
 
-export async function buildLearningProfile(userId: string) {
+export async function buildLearningProfile() {
+  const supabase = await createClient();
   const adminClient = await createAdminClient();
-  
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Unauthorized');
+
+  const userId = user.id;
+
   const { data: profile } = await adminClient
     .from('profiles')
     .select('accessibility_prefs, learning_profile_consent')
