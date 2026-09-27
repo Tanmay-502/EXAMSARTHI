@@ -161,18 +161,25 @@ function PracticeContent() {
 
   useEffect(() => {
     if (!hasHydrated || setupState !== 'STARTING') return;
-      const actualCount = fetchedQuestions.length;
-      const confirmMsg = lang === 'hi-IN' 
-        ? `${actualCount} प्रश्नों का ${difficulty} स्तर का ${subject} अभ्यास शुरू हो रहा है।` 
-        : lang === 'te-IN' 
-        ? `${actualCount} ప్రశ్నల ${difficulty} స్థాయి ${subject} అభ్యాసం ప్రారంభమవుతోంది.` 
+
+    const actualCount = fetchedQuestions.length;
+    const confirmMsg = lang === 'hi-IN'
+      ? `${actualCount} प्रश्नों का ${difficulty} स्तर का ${subject} अभ्यास शुरू हो रहा है।`
+      : lang === 'te-IN'
+        ? `${actualCount} प्रश्नల ${difficulty} స్థాయి ${subject} అభ్యాసం ప్రారంభమవుతోంది.`
         : `Starting a ${actualCount}-question ${difficulty} ${subject} practice session.`;
-      
-      speak(confirmMsg);
-      startPracticeSession(fetchedQuestions.map(question => question.id), subject, difficulty).then(sessionId => {
+
+    speak(confirmMsg);
+    startPracticeSession(
+      fetchedQuestions.map(question => question.id),
+      subject,
+      difficulty
+    )
+      .then(sessionId => {
         initializeExam(sessionId, 'practice-exam', fetchedQuestions);
         setSetupState('READY');
-      }).catch(err => {
+      })
+      .catch(err => {
         console.error(err);
         setSetupError(
           err instanceof Error ? err.message : 'Failed to create practice session.'
@@ -180,7 +187,6 @@ function PracticeContent() {
         setSetupState('ERROR');
         speak("I couldn't start that practice session. You can retry.");
       });
-    }
   }, [hasHydrated, setupState, fetchedQuestions, subject, difficulty, lang, initializeExam, speak]);
 
   useEffect(() => {
