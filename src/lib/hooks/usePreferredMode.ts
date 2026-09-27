@@ -15,17 +15,26 @@ export function usePreferredMode(): {
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY) as InteractionMode | null
-    if (saved === 'standard' || saved === 'voice-first') {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setModeState(saved)
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY) as InteractionMode | null
+      if (saved === 'standard' || saved === 'voice-first') {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setModeState(saved)
+      }
+    } catch {
+      // Continue with the safe default when storage is unavailable.
+    } finally {
+      setIsLoaded(true)
     }
-    setIsLoaded(true)
   }, [])
 
   const setMode = (newMode: InteractionMode) => {
     setModeState(newMode)
-    localStorage.setItem(STORAGE_KEY, newMode)
+    try {
+      localStorage.setItem(STORAGE_KEY, newMode)
+    } catch {
+      // In-memory preference still applies for the current session.
+    }
   }
 
   return { mode, setMode, isLoaded }
