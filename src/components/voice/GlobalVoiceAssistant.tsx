@@ -169,8 +169,18 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
     }
 
     if (action === 'CHANGE_LANGUAGE' && typeof payload?.lang === 'string') {
-      setLang(payload.lang as Locale);
-      const msg = payload.lang === 'hi-IN' ? 'हिंदी चुनी गई।' : payload.lang === 'te-IN' ? 'తెలుగు ఎంచుకోబడింది.' : 'Language changed successfully.';
+      const requestedLang = payload.lang;
+      if (!['en-IN', 'hi-IN', 'te-IN'].includes(requestedLang)) {
+        speak('Please choose English, Hindi, or Telugu.');
+        return;
+      }
+
+      setLang(requestedLang as Locale);
+      const msg = requestedLang === 'hi-IN'
+        ? 'हिंदी चुनी गई।'
+        : requestedLang === 'te-IN'
+          ? 'తెలుగు ఎంచుకోబడింది.'
+          : 'Language changed successfully.';
       speak(msg);
     }
     
