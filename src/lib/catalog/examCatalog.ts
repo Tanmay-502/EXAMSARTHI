@@ -64,18 +64,42 @@ export async function resolveSubject(spokenText: string): Promise<SupportedSubje
   
   const mappings: { key: string, value: SupportedSubject }[] = [
     { key: 'database management systems', value: 'DBMS' },
+    { key: 'dbms', value: 'DBMS' },
+    { key: 'डेटाबेस मैनेजमेंट', value: 'DBMS' },
+    { key: 'डेटाबेस', value: 'DBMS' },
+    { key: 'डीबीएमएस', value: 'DBMS' },
+
     { key: 'computer science', value: 'Computer Science' },
-    { key: 'mathematics', value: 'Mathematics' },
-    { key: 'geography', value: 'Geography' },
-    { key: 'reasoning', value: 'Reasoning' },
     { key: 'computer', value: 'Computer Science' },
-    { key: 'science', value: 'Science' },
-    { key: 'history', value: 'History' },
+    { key: 'कंप्यूटर साइंस', value: 'Computer Science' },
+    { key: 'कंप्यूटर विज्ञान', value: 'Computer Science' },
+    { key: 'కంప్యూటర్ సైన్స్', value: 'Computer Science' },
+
+    { key: 'mathematics', value: 'Mathematics' },
     { key: 'maths', value: 'Mathematics' },
     { key: 'math', value: 'Mathematics' },
-    { key: 'dbms', value: 'DBMS' },
+    { key: 'गणित', value: 'Mathematics' },
+    { key: 'గణితం', value: 'Mathematics' },
+    { key: 'మాథ్స్', value: 'Mathematics' },
+
+    { key: 'geography', value: 'Geography' },
     { key: 'geo', value: 'Geography' },
-    { key: 'cs', value: 'Computer Science' },
+    { key: 'भूगोल', value: 'Geography' },
+    { key: 'భూగోళ శాస్త్రం', value: 'Geography' },
+
+    { key: 'reasoning', value: 'Reasoning' },
+    { key: 'तर्क', value: 'Reasoning' },
+    { key: 'रीजनिंग', value: 'Reasoning' },
+    { key: 'రీజనింగ్', value: 'Reasoning' },
+
+    { key: 'science', value: 'Science' },
+    { key: 'विज्ञान', value: 'Science' },
+    { key: 'సైన్స్', value: 'Science' },
+    { key: 'విజ్ఞానం', value: 'Science' },
+
+    { key: 'history', value: 'History' },
+    { key: 'इतिहास', value: 'History' },
+    { key: 'చరిత్ర', value: 'History' },
   ];
 
   try {
