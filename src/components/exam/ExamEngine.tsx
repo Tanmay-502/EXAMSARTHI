@@ -298,7 +298,10 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   };
 
   const jumpToUnanswered = () => {
-    const index = questions.findIndex(q => answers[q.id]?.answer_data === undefined);
+    const index = questions.findIndex(q => {
+      const answer = answers[q.id]?.answer_data;
+      return answer === undefined || answer === null;
+    });
     if (index !== -1) {
       setCurrentQuestionIndex(index);
     } else {
@@ -324,7 +327,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   };
 
   const confirmSubmitFlow = () => {
-    const answeredCount = Object.values(answers).filter(a => a.answer_data !== undefined).length;
+    const answeredCount = Object.values(answers).filter(a => typeof a.answer_data === 'number' && Number.isInteger(a.answer_data)).length;
     const markedCount = Object.values(answers).filter(a => a.is_marked_for_review).length;
     const unansweredCount = questions.length - answeredCount;
 
