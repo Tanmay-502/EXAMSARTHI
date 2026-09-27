@@ -210,7 +210,7 @@ export async function startExamSession(examId: string) {
 
   return data.id;
 }
-export async function startPracticeSession() {
+export async function startPracticeSession(questionIds?: string[]) {
   const supabase = await createClient();
   const adminClient = await createAdminClient();
 
@@ -219,9 +219,23 @@ export async function startPracticeSession() {
 
   await ensureCandidateProfile(supabase, user);
 
+  const requestedQuestionIds = Array.from(new Set(questionIds || [])).filter(Boolean);
+  if (requestedQuestionIds.length === 0) {
+    throw new Error('Practice question set is required');
+  }
+
+  const { data: validQuestions, error: questionError } = await adminClient
+    .from('questions')
+    .select('id')
+    .in('id', requestedQuestionIds);
+
+  if (questionError || !validQuestions || validQuestions.length !== requestedQuestionIds.length) {
+    throw new Error('Practice question set is invalid');
+  }
+
   const { data: existing } = await adminClient
     .from('exam_sessions')
-    .select('id')
+    .select('id, question_ids')
     .eq('candidate_id', user.id)
     .eq('is_practice', true)
     .eq('status', 'in_progress')
@@ -230,7 +244,10 @@ export async function startPracticeSession() {
     .maybeSingle();
 
   if (existing) {
-    return existing.id;
+    const existingQuestionIds = Array.isArray(existing.question_ids)
+      ? existing.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+      : [];
+    if (existingQuestionIds.length > 0) return existing.id;
   }
 
   const { data, error } = await adminClient
@@ -240,11 +257,24 @@ export async function startPracticeSession() {
       candidate_id: user.id,
       status: 'in_progress',
       is_practice: true,
+      question_ids: requestedQuestionIds,
     })
     .select('id')
     .single();
 
   if (error) {
+    if (error.code === '23505') {
+      const { data: raced } = await adminClient
+        .from('exam_sessions')
+        .select('id')
+        .eq('candidate_id', user.id)
+        .eq('is_practice', true)
+        .eq('status', 'in_progress')
+        .order('started_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (raced) return raced.id;
+    }
     throw new Error(`Failed to start practice session: ${error.message}`);
   }
 
@@ -252,7 +282,7 @@ export async function startPracticeSession() {
     session_id: data.id,
     candidate_id: user.id,
     action: 'started_practice',
-    metadata: { is_practice: true }
+    metadata: { is_practice: true, question_count: requestedQuestionIds.length }
   });
 
   return data.id;
@@ -353,7 +383,7 @@ export async function saveAnswer(
 
   const { data: session, error: sessionError } = await supabase
     .from('exam_sessions')
-    .select('id, exam_id, is_practice, status')
+    .select('id, exam_id, is_practice, status, question_ids')
     .eq('id', sessionId)
     .eq('candidate_id', user.id)
     .single();
@@ -378,6 +408,16 @@ export async function saveAnswer(
 
   if (!session.is_practice && question.exam_id !== session.exam_id) {
     throw new Error('Question does not belong to this exam session');
+  }
+
+  if (session.is_practice) {
+    const practiceQuestionIds = Array.isArray((session as { question_ids?: unknown }).question_ids)
+      ? (session as { question_ids: string[] }).question_ids
+      : [];
+
+    if (!practiceQuestionIds.includes(questionId)) {
+      throw new Error('Question does not belong to this practice session');
+    }
   }
 
   const selectedOptionIndex =
@@ -429,7 +469,7 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
   // 1. Fetch the exam session to get exam_id and check if practice
   const { data: session, error: sessionErr } = await supabase
     .from('exam_sessions')
-    .select('exam_id, status, is_practice')
+    .select('exam_id, status, is_practice, question_ids')
     .eq('id', sessionId)
     .eq('candidate_id', user.id)
     .single()
@@ -455,14 +495,15 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     .select('id, question_answers(correct_answer_index)');
 
   if (session.is_practice) {
-    if (!questionIds || questionIds.length === 0) {
-      if (answerKeys.length === 0) {
-        throw new Error('No questions provided for practice session');
-      }
-      query = query.in('id', answerKeys);
-    } else {
-      query = query.in('id', questionIds);
+    const serverQuestionIds = Array.isArray(session.question_ids)
+      ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+      : [];
+
+    if (serverQuestionIds.length === 0) {
+      throw new Error('Practice session has no question set');
     }
+
+    query = query.in('id', serverQuestionIds);
   } else {
     query = query.eq('exam_id', session.exam_id);
   }
