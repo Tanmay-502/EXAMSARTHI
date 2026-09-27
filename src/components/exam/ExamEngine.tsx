@@ -234,10 +234,13 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     if (!currentQuestion) return;
     setAnswer(currentQuestion.id, optionIndex);
     if (sessionId) {
-      import('@/app/exam/actions').then(({ saveAnswer, recordAnswerEvent }) => {
-        void saveAnswer(sessionId, currentQuestion.id, optionIndex, answers[currentQuestion.id]?.is_marked_for_review ?? false)
-          .catch(console.error);
-        void recordAnswerEvent(sessionId, currentQuestion.id).catch(console.error);
+      import('@/app/exam/actions').then(({ saveAnswer }) => {
+        void saveAnswer(
+          sessionId,
+          currentQuestion.id,
+          optionIndex,
+          answers[currentQuestion.id]?.is_marked_for_review ?? false
+        ).catch(console.error);
       });
     }
   };
