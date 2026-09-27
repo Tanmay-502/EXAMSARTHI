@@ -97,7 +97,7 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
         
         {!allClear && (micStatus !== 'pending' && browserStatus !== 'pending') && (
            <div className="pt-8 text-zinc-500 font-light text-lg">
-             Voice features are currently unavailable. The exam will start in Standard mode.
+             Voice features are currently unavailable. You can retry voice access or continue with keyboard and screen reader controls.
            </div>
         )}
 
@@ -292,7 +292,25 @@ function ExamSelection({
       return true;
     }
 
-    return false;
+    // Treat natural "take/give/start [exam name]" speech as exam selection
+    // before allowing the generic START_EXAM action to reach global routing.
+    resolveExam(raw).then((matched) => {
+      if (!matched) return;
+      const availableMatch = exams.find(exam => exam.id === matched.id);
+      if (!availableMatch) return;
+
+      setSelectedExam(availableMatch);
+      speak(
+        availableMatch.title +
+        " selected. It has " +
+        availableMatch.question_count +
+        " questions and " +
+        availableMatch.duration_minutes +
+        " minutes. Say yes to start or say change to choose another."
+      );
+    });
+    lastHandledTranscriptRef.current = normalized;
+    return true;
   });
 
 
