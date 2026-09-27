@@ -36,7 +36,7 @@ export default function HistoryPageContent({ filter, displayedSessions }: { filt
         <div className="mb-24 flex items-end justify-between gap-8 border-b border-zinc-900 pb-8">
           <div>
             <h1 className="text-[clamp(3rem,6vw,7rem)] leading-[0.9] font-light tracking-tighter mb-4 text-zinc-100" tabIndex={-1}>Exam History</h1>
-            <p className="text-2xl md:text-4xl font-light text-zinc-500">Review your past attempts.</p>
+            <p className="text-2xl md:text-4xl font-light text-zinc-400">Review your past attempts.</p>
           </div>
           <VoiceCore size="sm" />
         </div>
@@ -66,14 +66,14 @@ export default function HistoryPageContent({ filter, displayedSessions }: { filt
         </div>
 
         {(!displayedSessions || displayedSessions.length === 0) ? (
-          <div className="border border-zinc-900 p-12 text-center text-zinc-500">
+          <div className="border border-zinc-900 p-12 text-center text-zinc-400">
             <p className="text-xl font-light">No {filter !== 'all' ? filter : ''} sessions found.</p>
           </div>
         ) : (
           <div className="border-t border-zinc-900 overflow-x-auto">
             <table className="w-full border-collapse text-left" aria-label="Exam History">
               <thead>
-                <tr className="border-b border-zinc-900 text-zinc-500">
+                <tr className="border-b border-zinc-900 text-zinc-400">
                   <th scope="col" className="p-6 font-bold tracking-[0.2em] text-xs uppercase">Date</th>
                   <th scope="col" className="p-6 font-bold tracking-[0.2em] text-xs uppercase">Type</th>
                   <th scope="col" className="p-6 font-bold tracking-[0.2em] text-xs uppercase">Exam Title</th>
@@ -99,7 +99,7 @@ export default function HistoryPageContent({ filter, displayedSessions }: { filt
                         ? 'Practice' + (session.practice_subject ? ' — ' + session.practice_subject : '')
                         : (Array.isArray(session.exams) ? session.exams[0]?.title : session.exams?.title) || 'Unknown Exam'}
                     </td>
-                    <td className="p-6 text-zinc-500 font-light">
+                    <td className="p-6 text-zinc-400 font-light">
                       {session.started_at && session.completed_at ? formatDuration(session.started_at, session.completed_at) : '-'}
                     </td>
                     <td className="p-6 font-light">
