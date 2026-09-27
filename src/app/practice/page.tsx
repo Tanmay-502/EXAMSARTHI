@@ -27,7 +27,7 @@ function PracticeContent() {
   
   const { mode: interactionMode, isLoaded } = usePreferredMode();
 
-  const [setupState, setSetupState] = useState<'ASK_SUBJECT' | 'ASK_COUNT' | 'ASK_DIFFICULTY' | 'FETCHING' | 'CONFIRM_SHORTFALL' | 'STARTING' | 'READY'>(() => {
+  const [setupState, setSetupState] = useState<'ASK_SUBJECT' | 'ASK_COUNT' | 'ASK_DIFFICULTY' | 'FETCHING' | 'CONFIRM_SHORTFALL' | 'STARTING' | 'ERROR' | 'READY'>(() => {
     if (initialSubject && initialCount && initialDifficulty) {
       return 'FETCHING';
     }
@@ -41,6 +41,7 @@ function PracticeContent() {
   const [fetchedQuestions, setFetchedQuestions] = useState<Question[]>([]);
   const [availableCount, setAvailableCount] = useState<number>(0);
   const [availableSubjects, setAvailableSubjects] = useState<string[]>([]);
+  const [setupError, setSetupError] = useState('');
   
   const hasStartedRef = useRef(false);
 
@@ -99,6 +100,7 @@ function PracticeContent() {
   useEffect(() => {
     if (setupState === 'FETCHING') {
       const qCount = parseInt(count, 10) || 5;
+      setSetupError('');
       fetchPracticeQuestions(subject, difficulty, qCount, lang)
         .then(res => {
           setFetchedQuestions(res.questions);
@@ -115,7 +117,13 @@ function PracticeContent() {
         })
         .catch(err => {
           console.error(err);
-          speak("Sorry, there was an error loading practice questions.");
+          setSetupError(
+            err instanceof Error
+              ? err.message
+              : "Sorry, there was an error loading practice questions."
+          );
+          setSetupState('ERROR');
+          speak("I couldn't load those practice questions. I can retry or you can choose another subject.");
         });
     }
   }, [setupState, subject, count, difficulty, lang, speak]);
@@ -135,7 +143,11 @@ function PracticeContent() {
         setSetupState('READY');
       }).catch(err => {
         console.error(err);
-        speak("Failed to create practice session.");
+        setSetupError(
+          err instanceof Error ? err.message : 'Failed to create practice session.'
+        );
+        setSetupState('ERROR');
+        speak("I couldn't start that practice session. You can retry.");
       });
     }
   }, [setupState, fetchedQuestions, subject, difficulty, lang, initializeExam, speak]);
@@ -163,6 +175,25 @@ function PracticeContent() {
     const handleVoiceFallback = (errorMsg: string, repromptMsg: string) => {
       speak(`${errorMsg} ${repromptMsg}`);
     };
+
+    if (setupState === 'ERROR') {
+      const lower = transcript?.trim().toLowerCase() || '';
+      if (/\b(retry|again|try again|yes|start)\b/.test(lower)) {
+        setSetupState('FETCHING');
+        speak('Retrying the practice question load.');
+        return true;
+      }
+      if (/\b(change|subject|different)\b/.test(lower)) {
+        setSetupError('');
+        setSubject('');
+        setCount('');
+        setDifficulty('');
+        setSetupState('ASK_SUBJECT');
+        speak('Okay. What subject would you like to practice?');
+        return true;
+      }
+      return true;
+    }
 
     if ((action as string === 'RAW_TRANSCRIPT' || action === 'UNKNOWN_COMMAND') && transcript) {
       const raw = transcript.trim();
@@ -263,6 +294,42 @@ function PracticeContent() {
   });
 
   if (setupState !== 'READY') {
+    if (setupState === 'ERROR') {
+      return (
+        <div className="relative flex flex-col min-h-screen w-full max-w-4xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
+          <div className="flex-1 flex flex-col justify-center space-y-10">
+            <p className="text-zinc-500 tracking-[0.2em] text-sm uppercase">PRACTICE</p>
+            <h1 className="text-[clamp(3rem,6vw,6rem)] font-light tracking-tighter">Something went wrong.</h1>
+            <p className="text-xl text-zinc-400 font-light" aria-live="assertive">
+              {setupError || 'I could not start the practice session.'}
+            </p>
+            <div className="flex flex-wrap gap-4 border-t border-zinc-900 pt-10">
+              <button
+                type="button"
+                onClick={() => setSetupState('FETCHING')}
+                className="px-10 py-4 rounded-full bg-white text-black uppercase tracking-widest text-sm font-bold"
+              >
+                Retry
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSetupError('');
+                  setSubject('');
+                  setCount('');
+                  setDifficulty('');
+                  setSetupState('ASK_SUBJECT');
+                }}
+                className="px-10 py-4 rounded-full border border-zinc-800 text-zinc-300 uppercase tracking-widest text-sm font-medium"
+              >
+                Choose another subject
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="relative flex flex-col min-h-screen w-full max-w-7xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
         
