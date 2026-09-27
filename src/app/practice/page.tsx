@@ -16,6 +16,11 @@ import { SafeAction } from '@/lib/voice/safeActionRegistry';
 
 function PracticeContent() {
   const initializeExam = useExamStore(state => state.initializeExam);
+  const persistedSessionId = useExamStore(state => state.sessionId);
+  const persistedExamId = useExamStore(state => state.examId);
+  const persistedStatus = useExamStore(state => state.status);
+  const persistedQuestions = useExamStore(state => state.questions);
+  const hasHydrated = useExamStore(state => state.hasHydrated);
   const { t, lang } = useI18n();
   const searchParams = useSearchParams();
   const { speak, startContinuousListening, isContinuous } = useVoice();
@@ -44,6 +49,7 @@ function PracticeContent() {
   const [setupError, setSetupError] = useState('');
   
   const hasStartedRef = useRef(false);
+  const hasAnnouncedResumeRef = useRef(false);
 
   const parseQuestionCount = (transcript: string): string | null => {
     const normalized = transcript.trim().toLowerCase().replace(/[.,!?।]/g, ' ');
@@ -96,6 +102,31 @@ function PracticeContent() {
         setAvailableSubjects([]);
       });
   }, []);
+
+  useEffect(() => {
+    const canResume =
+      hasHydrated &&
+      persistedStatus === 'IN_PROGRESS' &&
+      persistedExamId === 'practice-exam' &&
+      Boolean(persistedSessionId) &&
+      persistedQuestions.length > 0;
+
+    if (!canResume) return;
+
+    setSetupState('READY');
+
+    if (!hasAnnouncedResumeRef.current) {
+      hasAnnouncedResumeRef.current = true;
+      speak('Resuming your current practice session.');
+    }
+  }, [
+    hasHydrated,
+    persistedStatus,
+    persistedExamId,
+    persistedSessionId,
+    persistedQuestions.length,
+    speak
+  ]);
 
   useEffect(() => {
     if (setupState === 'FETCHING') {
@@ -164,10 +195,30 @@ function PracticeContent() {
   }, [setupState, confirmedShortfall, subject, availableCount, lang, speak]);
 
   useEffect(() => {
+    const canResume =
+      hasHydrated &&
+      persistedStatus === 'IN_PROGRESS' &&
+      persistedExamId === 'practice-exam' &&
+      Boolean(persistedSessionId) &&
+      persistedQuestions.length > 0;
+
+    if (!hasHydrated || canResume) return;
+
     if (setupState === 'ASK_SUBJECT' && !subject) speak("What subject would you like to practice?");
     if (setupState === 'ASK_COUNT' && !count) speak("How many questions would you like?");
     if (setupState === 'ASK_DIFFICULTY' && !difficulty) speak("What difficulty? Easy, medium, or hard?");
-  }, [setupState, subject, count, difficulty, speak]);
+  }, [
+    hasHydrated,
+    persistedStatus,
+    persistedExamId,
+    persistedSessionId,
+    persistedQuestions.length,
+    setupState,
+    subject,
+    count,
+    difficulty,
+    speak
+  ]);
 
   useVoiceAction((action: SafeAction, payload?: Record<string, unknown> | null, transcript?: string) => {
     if (setupState === 'READY') return false;
