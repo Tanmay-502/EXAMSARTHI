@@ -32,8 +32,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, [lang, mounted]);
 
   const setLang = (newLang: Lang) => {
+    if (newLang !== 'en-IN' && newLang !== 'hi-IN' && newLang !== 'te-IN') return;
     setLangState(newLang);
-    localStorage.setItem('examsarthi_lang', newLang);
+    try {
+      localStorage.setItem('examsarthi_lang', newLang);
+    } catch {
+      // Preference persistence is best-effort.
+    }
   };
 
   const t = (key: keyof typeof dictionaries['en-IN']) => dictionaries[lang][key] || key;
