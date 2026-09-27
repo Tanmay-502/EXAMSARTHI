@@ -9,7 +9,7 @@ import { useVoice } from '@/lib/voice/VoiceProvider';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 import { VoiceCore } from '@/components/voice/VoiceCore';
 import { motion } from 'framer-motion';
-import { normalizeSpokenEmail } from '@/lib/voice/emailParser';
+import { formatEmailForSpeech, normalizeSpokenEmail } from '@/lib/voice/emailParser';
 import { usePreferredMode } from '@/lib/hooks/usePreferredMode';
 
 function LoginForm() {
@@ -107,10 +107,10 @@ function LoginForm() {
         setVoiceStep('confirming_email');
         setVoiceStatus(
           lang === 'hi-IN'
-            ? `मैंने ${parsedEmail} सुना। भेजने के लिए हाँ कहें, बदलने के लिए नहीं कहें।`
+            ? `मैंने ${formatEmailForSpeech(parsedEmail)} सुना। भेजने के लिए हाँ कहें, बदलने के लिए नहीं कहें।`
             : lang === 'te-IN'
-              ? `${parsedEmail} అని విన్నాను. పంపడానికి అవును, మార్చడానికి కాదు అని చెప్పండి.`
-              : `I heard ${parsedEmail}. Say yes to send the Magic Link, or say no to change it.`
+              ? `${formatEmailForSpeech(parsedEmail)} అని విన్నాను. పంపడానికి అవును, మార్చడానికి కాదు అని చెప్పండి.`
+              : `I heard ${formatEmailForSpeech(parsedEmail)}. Say yes to send the Magic Link, or say no to change it.`
         );
         speak(
           lang === 'hi-IN'
