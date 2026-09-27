@@ -53,3 +53,13 @@ Update the **Message body** of the **Confirm signup** template:
 This ensures the user is securely redirected to:
 `http://localhost:3000/auth/confirm?token_hash=...&type=email` (or `type=signup`)
 which our application will then exchange for a secure server-side session cookie.
+
+### 3. Migration order
+
+For an existing Supabase project, apply every file in supabase/migrations/ in filename order through 00011_harden_audit_logs.sql.
+
+The two 00006_* files are distinct historical migrations and should both be applied. Do not rename already-applied migrations.
+
+### 4. Audit log security
+
+Candidate clients can view their own audit records but cannot insert or modify audit records directly. Application events are written by trusted server actions using the server/admin client.
