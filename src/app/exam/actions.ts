@@ -569,9 +569,6 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     )
   }
 
-  // Extract question IDs from answers
-  const answerKeys = Object.values(answers).map((a: unknown) => (a as { question_id: string }).question_id);
-  
   // 2. Fetch correct answers via admin client (bypasses RLS)
   let query = adminClient
     .from('questions')
@@ -619,27 +616,52 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
 
   const validQuestionIds = new Set(questions.map((q) => q.id));
 
-  const answersToInsert = Object.values(answers)
-    .map((ans: unknown) => ans as { question_id: string; answer_data: unknown; is_marked_for_review: boolean; })
-    .filter((ansTyped) => validQuestionIds.has(ansTyped.question_id))
-    .map((ansTyped) => {
-    
-    // Grading
-    const isAttempted = typeof ansTyped.answer_data === 'number' && Number.isInteger(ansTyped.answer_data) && ansTyped.answer_data >= 0;
-    if (isAttempted) {
+  const answerMap = new Map<string, {
+    answer_data: unknown;
+    is_marked_for_review: boolean;
+  }>();
+
+  Object.values(answers).forEach((rawAnswer: unknown) => {
+    if (!rawAnswer || typeof rawAnswer !== 'object') return;
+    const candidate = rawAnswer as {
+      question_id?: unknown;
+      answer_data?: unknown;
+      is_marked_for_review?: unknown;
+    };
+
+    if (typeof candidate.question_id !== 'string' || !validQuestionIds.has(candidate.question_id)) {
+      return;
+    }
+
+    answerMap.set(candidate.question_id, {
+      answer_data: candidate.answer_data,
+      is_marked_for_review: Boolean(candidate.is_marked_for_review),
+    });
+  });
+
+  const answersToInsert = questions.map((question) => {
+    const answer = answerMap.get(question.id);
+    const selectedOptionIndex =
+      typeof answer?.answer_data === 'number' &&
+      Number.isInteger(answer.answer_data) &&
+      answer.answer_data >= 0
+        ? answer.answer_data
+        : null;
+
+    if (selectedOptionIndex !== null) {
       attempted_questions += 1;
-      if (questionMap.get(ansTyped.question_id) === ansTyped.answer_data) {
+      if (questionMap.get(question.id) === selectedOptionIndex) {
         correct_questions += 1;
       } else {
         incorrect_questions += 1;
       }
     }
-    
+
     return {
       session_id: sessionId,
-      question_id: ansTyped.question_id,
-      selected_option_index: (typeof ansTyped.answer_data === 'number' && Number.isInteger(ansTyped.answer_data) && ansTyped.answer_data >= 0) ? ansTyped.answer_data : null,
-      marked_for_review: ansTyped.is_marked_for_review
+      question_id: question.id,
+      selected_option_index: selectedOptionIndex,
+      marked_for_review: answer?.is_marked_for_review ?? false,
     };
   })
 
