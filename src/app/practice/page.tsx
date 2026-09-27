@@ -187,10 +187,30 @@ function PracticeContent() {
   }, [setupState, confirmedShortfall, subject, availableCount, lang, speak]);
 
   useEffect(() => {
+    const resumingPersistedPractice =
+      hasHydrated &&
+      persistedStatus === 'IN_PROGRESS' &&
+      persistedExamId === 'practice-exam' &&
+      Boolean(persistedSessionId) &&
+      persistedQuestions.length > 0;
+
+    if (!hasHydrated || resumingPersistedPractice) return;
+
     if (setupState === 'ASK_SUBJECT' && !subject) speak("What subject would you like to practice?");
     if (setupState === 'ASK_COUNT' && !count) speak("How many questions would you like?");
     if (setupState === 'ASK_DIFFICULTY' && !difficulty) speak("What difficulty? Easy, medium, or hard?");
-  }, [setupState, subject, count, difficulty, speak]);
+  }, [
+    hasHydrated,
+    persistedStatus,
+    persistedExamId,
+    persistedSessionId,
+    persistedQuestions.length,
+    setupState,
+    subject,
+    count,
+    difficulty,
+    speak
+  ]);
 
   useVoiceAction((action: SafeAction, payload?: Record<string, unknown> | null, transcript?: string) => {
     if (setupState === 'READY') return false;
