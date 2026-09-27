@@ -147,7 +147,7 @@ function PracticeContent() {
         : `Starting a ${actualCount}-question ${difficulty} ${subject} practice session.`;
       
       speak(confirmMsg);
-      startPracticeSession().then(sessionId => {
+      startPracticeSession(fetchedQuestions.map(question => question.id)).then(sessionId => {
         initializeExam(sessionId, 'practice-exam', fetchedQuestions);
         setSetupState('READY');
       }).catch(err => {
