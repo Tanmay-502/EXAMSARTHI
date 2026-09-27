@@ -199,6 +199,10 @@ function PracticeContent() {
       const raw = transcript.trim();
       const lower = raw.toLowerCase();
 
+      if (/\b(help|support|dashboard|home|history|analysis|settings|logout|log out)\b/.test(lower)) {
+        return false;
+      }
+
       if (setupState === 'ASK_SUBJECT') {
         const countVal = parseQuestionCount(raw);
         const diff = /\b(easy|medium|hard)\b/.exec(lower)?.[1] || '';
