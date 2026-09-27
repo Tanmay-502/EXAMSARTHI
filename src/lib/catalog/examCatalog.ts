@@ -32,11 +32,11 @@ function matchesPhrase(text: string, phrase: string): boolean {
   const normalizedPhrase = normalizeSpokenText(phrase);
   if (!normalizedText || !normalizedPhrase) return false;
 
-  if (normalizedText === normalizedPhrase || normalizedText.includes(normalizedPhrase)) {
+  if (normalizedText === normalizedPhrase) {
     return true;
   }
 
-  const textTokens = normalizedText.split(' ');
+  const textTokens = normalizedText.split(' ').filter(Boolean);
   const phraseTokens = normalizedPhrase.split(' ').filter(
     token => !['the', 'a', 'an', 'and', 'of', 'to', 'for', 'my', 'me'].includes(token)
   );
