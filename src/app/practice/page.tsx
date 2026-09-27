@@ -353,7 +353,7 @@ function PracticeContent() {
       return (
         <div className="relative flex flex-col min-h-screen w-full max-w-4xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
           <div className="flex-1 flex flex-col justify-center space-y-10">
-            <p className="text-zinc-500 tracking-[0.2em] text-sm uppercase">PRACTICE</p>
+            <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase">PRACTICE</p>
             <h1 className="text-[clamp(3rem,6vw,6rem)] font-light tracking-tighter">Something went wrong.</h1>
             <p className="text-xl text-zinc-400 font-light" aria-live="assertive">
               {setupError || 'I could not start the practice session.'}
@@ -390,7 +390,7 @@ function PracticeContent() {
         
         <div className="mb-24 flex items-center justify-between border-b border-zinc-900 pb-8">
           <div className="flex flex-col">
-            <span className="text-zinc-500 tracking-[0.2em] text-xs uppercase mb-2">MODE</span>
+            <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">MODE</span>
             <span className="text-xl font-light tracking-wide">PRACTICE</span>
           </div>
           <VoiceCore size="sm" />
@@ -410,7 +410,7 @@ function PracticeContent() {
                 <div className="space-y-16">
                   <div>
                     <h2 className="text-[clamp(2.5rem,5vw,5rem)] font-light tracking-tighter leading-tight mb-4">Practice Subject</h2>
-                    <p className="text-2xl text-zinc-500 font-light">&quot;What subject would you like to practice?&quot;</p>
+                    <p className="text-2xl text-zinc-400 font-light">&quot;What subject would you like to practice?&quot;</p>
                   </div>
                   <div className="flex flex-wrap gap-4">
                     {availableSubjects.length > 0 ? availableSubjects.map(subj => (
@@ -422,7 +422,7 @@ function PracticeContent() {
                         {subj}
                       </button>
                     )) : (
-                      <p className="text-zinc-500 text-base">
+                      <p className="text-zinc-400 text-base">
                         Subjects will appear here once questions are available.
                       </p>
                     )}
@@ -434,7 +434,7 @@ function PracticeContent() {
                 <div className="space-y-16">
                   <div>
                     <h2 className="text-[clamp(2.5rem,5vw,5rem)] font-light tracking-tighter leading-tight mb-4">Question Count</h2>
-                    <p className="text-2xl text-zinc-500 font-light">&quot;How many questions would you like?&quot;</p>
+                    <p className="text-2xl text-zinc-400 font-light">&quot;How many questions would you like?&quot;</p>
                   </div>
                   <div className="flex flex-wrap gap-4">
                     {['5', '10', '15'].map(num => (
@@ -454,7 +454,7 @@ function PracticeContent() {
                 <div className="space-y-16">
                   <div>
                     <h2 className="text-[clamp(2.5rem,5vw,5rem)] font-light tracking-tighter leading-tight mb-4">Difficulty Level</h2>
-                    <p className="text-2xl text-zinc-500 font-light">&quot;What difficulty? Easy, medium, or hard?&quot;</p>
+                    <p className="text-2xl text-zinc-400 font-light">&quot;What difficulty? Easy, medium, or hard?&quot;</p>
                   </div>
                   <div className="flex flex-wrap gap-4">
                     {['easy', 'medium', 'hard'].map(diff => (
@@ -474,7 +474,7 @@ function PracticeContent() {
                 <div className="space-y-16">
                   <div>
                     <h2 className="text-[clamp(2.5rem,5vw,5rem)] font-light tracking-tighter leading-tight mb-4 text-zinc-100">Insufficient Questions</h2>
-                    <p className="text-2xl text-zinc-500 font-light">&quot;Would you like me to start with the available questions?&quot;</p>
+                    <p className="text-2xl text-zinc-400 font-light">&quot;Would you like me to start with the available questions?&quot;</p>
                   </div>
                   <div className="flex flex-wrap gap-4">
                     <button 
@@ -500,19 +500,19 @@ function PracticeContent() {
         <div className="mt-24 pt-8 border-t border-zinc-900 flex gap-12">
           {subject && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col">
-              <span className="text-zinc-600 uppercase tracking-[0.2em] text-xs mb-2">Subject</span>
+              <span className="text-zinc-400 uppercase tracking-[0.2em] text-xs mb-2">Subject</span>
               <span className="text-zinc-300 font-light capitalize">{subject}</span>
             </motion.div>
           )}
           {count && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col">
-              <span className="text-zinc-600 uppercase tracking-[0.2em] text-xs mb-2">Count</span>
+              <span className="text-zinc-400 uppercase tracking-[0.2em] text-xs mb-2">Count</span>
               <span className="text-zinc-300 font-light">{count} Questions</span>
             </motion.div>
           )}
           {difficulty && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col">
-              <span className="text-zinc-600 uppercase tracking-[0.2em] text-xs mb-2">Difficulty</span>
+              <span className="text-zinc-400 uppercase tracking-[0.2em] text-xs mb-2">Difficulty</span>
               <span className="text-zinc-300 font-light capitalize">{difficulty}</span>
             </motion.div>
           )}
