@@ -141,44 +141,25 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
        return;
     }
 
-    // 3. Handle global actions directly
+    // Authentication is an explicit step in the public flow.
+    // Never silently skip the visible Sign In / Create Account screen just
+    // because the browser already has an existing session.
     if (action === 'SIGN_IN' || action === 'SIGN_UP') {
-      try {
-        const supabase = createClient();
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('[VOICE] Auth getSession error:', error);
-        }
-        
-        if (session) {
-          if (pathname !== '/dashboard') {
-            speak(lang === 'hi-IN' ? 'मैं आपको डैशबोर्ड पर ले जा रहा हूँ।' : lang === 'te-IN' ? 'నేను మిమ్మల్ని డాష్బోర్డ్కి తీసుకెళ్తున్నాను.' : "Taking you to your dashboard.");
-            isNavigatingRef.current = true;
-            setTimeout(() => {
-              router.push('/dashboard');
-            }, 500);
-          } else {
-            if (action === 'SIGN_IN') {
-              speak(lang === 'hi-IN' ? 'आप पहले से ही साइन इन हैं। मैं आपकी कैसे मदद कर सकता हूँ?' : lang === 'te-IN' ? 'మీరు ఇప్పటికే సైన్ ఇన్ చేసారు. నేను మీకు ఎలా సహాయం చేయగలను?' : "You're already signed in. How can I help you?");
-            } else {
-              speak(lang === 'hi-IN' ? 'आप पहले से ही साइन इन हैं। मैं आपको डैशबोर्ड पर ले जा सकता हूँ या अभ्यास शुरू करने में मदद कर सकता हूँ।' : lang === 'te-IN' ? 'మీరు ఇప్పటికే సైన్ ఇన్ చేసారు. నేను మిమ్మల్ని డాష్బోర్డ్కు తీసుకెళ్లగలను లేదా ప్రాక్టీస్ ప్రారంభించడంలో సహాయపడగలను.' : "You're already signed in. I can take you to your dashboard or help you start a practice session.");
-            }
-          }
-        } else {
-          const msg = action === 'SIGN_IN' 
-            ? (lang === 'hi-IN' ? 'ठीक है। मैं आपको साइन इन करने में मदद करूँगा।' : lang === 'te-IN' ? 'సరే. సైన్ ఇన్ చేయడంలో నేను మీకు సహాయం చేస్తాను.' : "Sure. I'll help you sign in.")
-            : (lang === 'hi-IN' ? 'ठीक है। मैं आपका अकाउंट बनाने में मदद करूँगा।' : lang === 'te-IN' ? 'సరే. మీ ఖాతాను సృష్టించడంలో నేను మీకు సహాయం చేస్తాను.' : "Sure. I'll help you create your account.");
-          speak(msg);
-          isNavigatingRef.current = true;
-          setTimeout(() => {
-            router.push('/onboarding/mode');
-          }, 500);
-        }
-      } catch (err) {
-        console.error('[VOICE] Critical failure in SIGN_IN handler:', err);
-        speak("I encountered an error trying to sign you in. Please try again.");
-      }
+      const message = action === 'SIGN_IN'
+        ? (lang === 'hi-IN'
+            ? 'साइन इन पेज खोल रहा हूँ।'
+            : lang === 'te-IN'
+              ? 'సైన్ ఇన్ పేజీని తెరుస్తున్నాను.'
+              : 'Opening the sign in and account page.')
+        : (lang === 'hi-IN'
+            ? 'साइन इन और अकाउंट बनाने का पेज खोल रहा हूँ।'
+            : lang === 'te-IN'
+              ? 'సైన్ ఇన్ లేదా ఖాతా సృష్టించే పేజీని తెరుస్తున్నాను.'
+              : 'Opening the sign in and create account page.');
+
+      speak(message);
+      isNavigatingRef.current = true;
+      router.push('/auth/login?from=voice');
       return;
     }
 
