@@ -454,7 +454,7 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
   // 1. Fetch the exam session to get exam_id and check if practice
   const { data: session, error: sessionErr } = await supabase
     .from('exam_sessions')
-    .select('exam_id, status, is_practice')
+    .select('exam_id, status, is_practice, question_ids')
     .eq('id', sessionId)
     .eq('candidate_id', user.id)
     .single()
@@ -538,7 +538,7 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     return {
       session_id: sessionId,
       question_id: ansTyped.question_id,
-      selected_option_index: (typeof ansTyped.answer_data === 'number' && ansTyped.answer_data >= 0) ? ansTyped.answer_data : null,
+      selected_option_index: (typeof ansTyped.answer_data === 'number' && Number.isInteger(ansTyped.answer_data) && ansTyped.answer_data >= 0 && ansTyped.answer_data <= 3) ? ansTyped.answer_data : null,
       marked_for_review: ansTyped.is_marked_for_review
     };
   })
@@ -558,9 +558,9 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
   }
 
   // 5. Complete session with comprehensive analytics using adminClient to bypass disabled UPDATE policy
-  const { error: sessionError } = await adminClient
+  const { data: updatedSession, error: sessionError } = await adminClient
     .from('exam_sessions')
-    .update({ 
+    .update({
       status: 'submitted',
       completed_at: new Date().toISOString(),
       score: correct_questions,
@@ -574,9 +574,15 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     .eq('id', sessionId)
     .eq('candidate_id', user.id)
     .eq('status', 'in_progress')
+    .select('id')
+    .maybeSingle()
 
   if (sessionError) {
     throw new Error(`Failed to complete session: ${sessionError.message}`)
+  }
+
+  if (!updatedSession) {
+    throw new Error('Exam session was already submitted or is no longer active')
   }
 
   await supabase.from('audit_logs').insert({
