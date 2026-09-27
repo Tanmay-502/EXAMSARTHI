@@ -46,6 +46,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
     if (pathname.startsWith('/results')) return 'results';
     if (pathname.startsWith('/history')) return 'history';
     if (pathname.startsWith('/auth')) return 'auth';
+    if (pathname.startsWith('/settings')) return 'settings';
     if (pathname.startsWith('/analysis')) return 'analysis';
     return 'unknown';
   }, [pathname]);
