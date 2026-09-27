@@ -178,7 +178,7 @@ export async function startExamSession(examId: string) {
   return data.id
 }
 
-export async function startPracticeSession(questionIds: string[] = [], practiceSubject = '') {
+export async function startPracticeSession(questionIds: string[] = [], practiceSubject = '', practiceDifficulty = '') {
   const supabase = await createClient()
   const adminClient = await createAdminClient()
   
@@ -194,13 +194,30 @@ export async function startPracticeSession(questionIds: string[] = [], practiceS
   const uniqueQuestionIds = [...new Set(questionIds)].slice(0, 100)
   await ensureCandidateProfile(supabase, user)
 
+  const normalizedSubject = practiceSubject.trim()
+  const normalizedDifficulty = practiceDifficulty.trim().toLowerCase()
+
+  if (!normalizedSubject || !['easy', 'medium', 'hard'].includes(normalizedDifficulty)) {
+    throw new Error('Practice session parameters are invalid')
+  }
+
   const { data: rosterQuestions, error: rosterError } = await adminClient
     .from('questions')
-    .select('id')
+    .select('id, subject, difficulty')
     .in('id', uniqueQuestionIds)
 
   if (rosterError || !rosterQuestions || rosterQuestions.length !== uniqueQuestionIds.length) {
     throw new Error('Practice question roster is invalid')
+  }
+
+  const rosterIsValid = rosterQuestions.every(
+    question =>
+      question.subject === normalizedSubject &&
+      question.difficulty === normalizedDifficulty
+  )
+
+  if (!rosterIsValid) {
+    throw new Error('Practice question roster does not match the selected parameters')
   }
 
   const { data, error } = await adminClient
@@ -211,7 +228,7 @@ export async function startPracticeSession(questionIds: string[] = [], practiceS
       status: 'in_progress',
       is_practice: true,
       question_ids: uniqueQuestionIds,
-      practice_subject: practiceSubject.trim() || null,
+      practice_subject: normalizedSubject,
     })
     .select('id')
     .single()
