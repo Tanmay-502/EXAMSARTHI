@@ -469,14 +469,19 @@ function ExamPageContent() {
       setLoading(true);
       setError('');
       try {
-        const sessionId = await startExamSession(examId);
-        const questions = await fetchExamQuestions(examId, sessionId, lang);
+        const session = await startExamSession(examId);
+        const questions = await fetchExamQuestions(examId, session.id, lang);
 
         if (questions.length === 0) {
           throw new Error('This exam has no available questions.');
         }
 
-        initializeExam(sessionId, examId, questions);
+        initializeExam(
+          session.id,
+          examId,
+          questions,
+          new Date(session.startedAt).getTime()
+        );
         setExamStarted(true);
       } catch (err: unknown) {
         if (err instanceof Error && err.message === 'Unauthorized') {
