@@ -61,7 +61,8 @@ CREATE TABLE exam_sessions (
   incorrect_questions INTEGER NOT NULL DEFAULT 0,
   unanswered_questions INTEGER NOT NULL DEFAULT 0,
   percentage NUMERIC(5,2) NOT NULL DEFAULT 0.00,
-  is_practice BOOLEAN NOT NULL DEFAULT false
+  is_practice BOOLEAN NOT NULL DEFAULT false,
+  question_ids JSONB NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(question_ids) = 'array')
 );
 
 CREATE TABLE answers (
