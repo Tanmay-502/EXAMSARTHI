@@ -3,3 +3,6 @@
 -- grading and answer writes must use this roster as the source of truth.
 ALTER TABLE exam_sessions
   ADD COLUMN IF NOT EXISTS question_ids JSONB NOT NULL DEFAULT '[]'::jsonb;
+
+ALTER TABLE exam_sessions
+  ADD COLUMN IF NOT EXISTS practice_subject TEXT;
