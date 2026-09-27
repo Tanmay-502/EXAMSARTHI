@@ -223,15 +223,15 @@ function LoginForm() {
       >
         <div className="flex items-center justify-between border-b border-zinc-900 pb-8">
           <div>
-            <p className="text-zinc-500 tracking-[0.2em] text-xs uppercase mb-2">EXAMSAARTHI</p>
+            <p className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">EXAMSAARTHI</p>
             <h1 className="text-[clamp(3rem,6vw,6rem)] leading-[0.9] font-light tracking-tighter text-zinc-100">{t('login')}</h1>
           </div>
           <VoiceCore size="sm" />
         </div>
 
-        <p className="text-2xl md:text-3xl font-light text-zinc-500 max-w-xl">{t('magic_link_desc')}</p>
+        <p className="text-2xl md:text-3xl font-light text-zinc-400 max-w-xl">{t('magic_link_desc')}</p>
 
-        <p className="text-base md:text-lg text-zinc-500 max-w-xl" aria-live="polite">
+        <p className="text-base md:text-lg text-zinc-400 max-w-xl" aria-live="polite">
           {voiceStatus || 'New email addresses can create an account automatically through the same Magic Link flow.'}
         </p>
 
@@ -251,7 +251,7 @@ function LoginForm() {
           }}
         >
           <div className="space-y-4 border-t border-zinc-900 pt-8">
-            <label htmlFor="email" className="text-zinc-500 tracking-[0.2em] text-xs uppercase font-bold peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            <label htmlFor="email" className="text-zinc-400 tracking-[0.2em] text-xs uppercase font-bold peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               {t('email')}
             </label>
             <input
@@ -266,7 +266,7 @@ function LoginForm() {
               }}
               required
               autoComplete="email"
-              className="flex h-14 w-full rounded-none border-0 border-b border-zinc-800 bg-transparent px-0 py-1 text-xl font-light text-white shadow-none transition-colors placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-zinc-400 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-14 w-full rounded-none border-0 border-b border-zinc-800 bg-transparent px-0 py-1 text-xl font-light text-white shadow-none transition-colors placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-0 focus-visible:border-zinc-400 disabled:cursor-not-allowed disabled:opacity-50"
               aria-label={t('email')}
             />
           </div>
