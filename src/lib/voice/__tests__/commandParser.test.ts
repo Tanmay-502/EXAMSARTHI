@@ -35,6 +35,12 @@ describe('Voice Command Parser', () => {
       assert.deepStrictEqual(parseCommand('I want to give exam', 'en-IN'), { type: 'DASHBOARD_EXAM' });
     });
 
+    test('does not treat ordinary speech as an option outside exam context', () => {
+      assert.deepStrictEqual(parseCommand('who is first', 'en-IN', 'mode_selection'), { type: 'UNKNOWN' });
+      assert.deepStrictEqual(parseCommand('who is first', 'en-IN', 'dashboard'), { type: 'UNKNOWN' });
+      assert.deepStrictEqual(parseCommand('first', 'en-IN', 'exam'), { type: 'SELECT_OPTION', index: 0 });
+    });
+
     test('should parse Review commands', () => {
       assert.deepStrictEqual(parseCommand('mark for review', 'en-IN'), { type: 'MARK_REVIEW' });
       assert.deepStrictEqual(parseCommand('unmark it', 'en-IN'), { type: 'REMOVE_REVIEW' });
