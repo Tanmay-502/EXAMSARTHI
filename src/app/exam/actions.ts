@@ -289,7 +289,7 @@ export async function startExamSession(examId: string) {
     throw new Error(`Failed to start session: ${error.message}`)
   }
 
-  await supabase.from('audit_logs').insert({
+  await adminClient.from('audit_logs').insert({
     session_id: data.id,
     candidate_id: user.id,
     action: 'started_exam',
@@ -421,7 +421,7 @@ export async function startPracticeSession(questionIds: string[] = [], practiceS
   await supabase.from('audit_logs').insert({
     session_id: data.id,
     candidate_id: user.id,
-    action: 'started_exam',
+    action: 'started_practice',
     metadata: { is_practice: true, question_count: uniqueQuestionIds.length }
   })
 
@@ -851,6 +851,7 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
 
 export async function recordAnswerEvent(sessionId: string, questionId: string) {
   const supabase = await createClient()
+  const adminClient = await createAdminClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false }
 
