@@ -3,6 +3,13 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/server'
 
+type ServerQuestionWithAnswer = {
+  id: string;
+  exam_id: string | null;
+  subject: string | null;
+  question_answers: { correct_answer_index: number } | { correct_answer_index: number }[] | null;
+};
+
 export type DashboardStats = {
   totalExams: number;
   totalPractice: number;
@@ -108,14 +115,15 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
     const answerMap = new Map(
       (answers || []).map(answer => [`${answer.session_id}:${answer.question_id}`, answer.selected_option_index])
     );
-    const questionMap = new Map((questions || []).map(question => [question.id, question]));
+    const typedQuestions = (questions || []) as ServerQuestionWithAnswer[];
+    const questionMap = new Map(typedQuestions.map(question => [question.id, question]));
 
     for (const session of completedSessions) {
       let ids = Array.isArray(session.question_ids)
         ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
         : [];
       if (ids.length === 0 && session.exam_id) {
-        ids = (questions || []).filter(question => question.exam_id === session.exam_id).map(question => question.id);
+        ids = typedQuestions.filter(question => question.exam_id === session.exam_id).map(question => question.id);
       }
 
       for (const questionId of ids) {
