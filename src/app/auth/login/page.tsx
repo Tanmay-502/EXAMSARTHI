@@ -57,6 +57,84 @@ function LoginForm() {
   useVoiceAction((action, _payload, transcript) => {
     const raw = transcript?.trim() || '';
 
+    const handleConfirmation = (spoken: string): boolean => {
+      const normalized = spoken.toLowerCase();
+      const yes =
+        /\b(yes|yeah|yep|confirm|send|send it|okay|ok|haan|हाँ|అవును)\b/.test(normalized) ||
+        action === 'CONFIRM';
+      const no =
+        /\b(no|nope|change|wrong|different|नहीं|नही|కాదు|మార్చు)\b/.test(normalized) ||
+        action === 'CHANGE';
+
+      if (yes && lastVoiceEmailRef.current) {
+        setVoiceStep('sending');
+        setVoiceStatus('Sending Magic Link...');
+        requestAnimationFrame(() => formRef.current?.requestSubmit());
+        return true;
+      }
+
+      if (no) {
+        setVoiceStep('awaiting_email');
+        setVoiceEmail('');
+        lastVoiceEmailRef.current = '';
+        setVoiceStatus('');
+        speak('Okay. Please say your email address again.');
+        emailRef.current?.focus();
+        return true;
+      }
+
+      return false;
+    };
+
+    const handleEmailTranscript = (spoken: string): boolean => {
+      const parsedEmail = normalizeSpokenEmail(spoken);
+
+      if (parsedEmail && voiceStep !== 'sending') {
+        lastVoiceEmailRef.current = parsedEmail;
+        setVoiceEmail(parsedEmail);
+        setVoiceStep('confirming_email');
+        const spokenEmail = formatEmailForSpeech(parsedEmail);
+
+        setVoiceStatus(
+          lang === 'hi-IN'
+            ? `मैंने ${spokenEmail} सुना। भेजने के लिए हाँ कहें, बदलने के लिए नहीं कहें।`
+            : lang === 'te-IN'
+              ? `${spokenEmail} అని నేను విన్నాను. పంపడానికి అవును, మార్చడానికి కాదు అని చెప్పండి.`
+              : `I heard ${spokenEmail}. Say yes to send the Magic Link, or say no to change it.`
+        );
+
+        speak(
+          lang === 'hi-IN'
+            ? `मैंने ${spokenEmail} सुना। सही है तो हाँ कहें, बदलना है तो नहीं कहें।`
+            : lang === 'te-IN'
+              ? `${spokenEmail} అని విన్నాను. సరైతే అవును అని, మార్చాలంటే కాదు అని చెప్పండి.`
+              : `I heard ${spokenEmail}. Say yes to confirm, or say no to change it.`
+        );
+        return true;
+      }
+
+      return false;
+    };
+
+    // Email capture is deterministic. Do not send email text through Gemini:
+    // names, digits, "at", dots, and domain words must reach the email parser
+    // exactly as spoken.
+    if (action as string === 'RAW_TRANSCRIPT' && raw) {
+      if (voiceStep === 'confirming_email' && handleConfirmation(raw)) return true;
+      if (voiceStep === 'awaiting_email') {
+        if (handleEmailTranscript(raw)) return true;
+
+        speak(
+          lang === 'hi-IN'
+            ? 'मैं उस ईमेल को नहीं समझ पाया। कृपया उसे अक्षर-अक्षर बोलें, और एट, डॉट, या जीमेल कहें।'
+            : lang === 'te-IN'
+              ? 'ఆ ఇమెయిల్‌ను నేను గుర్తించలేకపోయాను. దయచేసి అక్షరం అక్షరంగా చెప్పండి, మరియు at, dot, లేదా gmail అని చెప్పండి.'
+              : 'I could not verify that email. Please spell the address, and say at, dot, or gmail clearly.'
+        );
+        return true;
+      }
+    }
+
     if (action === 'HELP') {
       speak(lang === 'hi-IN'
         ? 'ईमेल बताएं। मैं उसे भरकर पहले आपसे पुष्टि करूँगा, फिर मैजिक लिंक भेजूँगा।'
@@ -76,52 +154,8 @@ function LoginForm() {
       return true;
     }
 
-    const parsedEmail = raw ? normalizeSpokenEmail(raw) : null;
-
-    if (parsedEmail && voiceStep !== 'sending') {
-      lastVoiceEmailRef.current = parsedEmail;
-      setVoiceEmail(parsedEmail);
-      setVoiceStep('confirming_email');
-      setVoiceStatus(
-        lang === 'hi-IN'
-          ? `मैंने ${parsedEmail} सुना। भेजने के लिए हाँ कहें, बदलने के लिए नहीं कहें।`
-          : lang === 'te-IN'
-            ? `${parsedEmail} అని నేను విన్నాను. పంపడానికి అవును, మార్చడానికి కాదు అని చెప్పండి.`
-            : `I heard ${parsedEmail}. Say yes to send the Magic Link, or say no to change it.`
-      );
-      emailRef.current?.focus();
-      speak(
-        lang === 'hi-IN'
-          ? `मैंने ${formatEmailForSpeech(parsedEmail)} सुना। सही है तो हाँ कहें, बदलना है तो नहीं कहें।`
-          : lang === 'te-IN'
-            ? `${formatEmailForSpeech(parsedEmail)} అని విన్నాను. సరైతే అవును అని, మార్చాలంటే కాదు అని చెప్పండి.`
-            : `I heard ${formatEmailForSpeech(parsedEmail)}. Say yes to confirm, or say no to change it.`
-      );
-      return true;
-    }
-
     if (voiceStep === 'confirming_email') {
-      const normalized = raw.toLowerCase();
-      const yes = /\b(yes|yeah|yep|confirm|send|send it|okay|ok|haan|हाँ|అవును)\b/.test(normalized) || action === 'CONFIRM';
-      const no = /\b(no|nope|change|wrong|different|नहीं|नही|కాదు|మార్చు)\b/.test(normalized) || action === 'CHANGE';
-
-      if (yes && lastVoiceEmailRef.current) {
-        setVoiceStep('sending');
-        setVoiceStatus('Sending Magic Link...');
-        requestAnimationFrame(() => formRef.current?.requestSubmit());
-        return true;
-      }
-
-      if (no) {
-        setVoiceStep('awaiting_email');
-        setVoiceEmail('');
-        lastVoiceEmailRef.current = '';
-        setVoiceStatus('');
-        speak('Okay. Please say your email address again.');
-        emailRef.current?.focus();
-        return true;
-      }
-
+      if (raw && handleConfirmation(raw)) return true;
       if (raw) {
         speak('Please say yes to confirm the email, or no to change it.');
         return true;
@@ -129,6 +163,7 @@ function LoginForm() {
     }
 
     if (voiceStep === 'awaiting_email') {
+      if (raw && handleEmailTranscript(raw)) return true;
       if (raw) {
         speak('Please say your email address. You can say it normally, or say at, dot, underscore, and gmail.');
         return true;
