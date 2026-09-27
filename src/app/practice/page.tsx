@@ -108,7 +108,7 @@ function PracticeContent() {
 
     if (!canResume) return;
 
-    setSetupState('READY');
+    setTimeout(() => setSetupState('READY'), 0);
 
     if (!hasAnnouncedResumeRef.current) {
       hasAnnouncedResumeRef.current = true;
@@ -127,7 +127,6 @@ function PracticeContent() {
     if (!hasHydrated || setupState !== 'FETCHING') return;
 
     const qCount = parseInt(count, 10) || 5;
-    setSetupError('');
       fetchPracticeQuestions(subject, difficulty, qCount, lang)
         .then(res => {
           setFetchedQuestions(res.questions);
