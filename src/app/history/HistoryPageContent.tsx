@@ -45,21 +45,21 @@ export default function HistoryPageContent({ filter, displayedSessions }: { filt
           <Link 
             href="/history?filter=all" 
             className={`px-6 py-3 rounded-full border uppercase tracking-widest text-xs font-bold transition-colors ${filter === 'all' ? 'bg-white text-black border-white' : 'border-zinc-800 text-zinc-400 hover:border-zinc-500 hover:text-white'}`}
-            aria-pressed={filter === 'all'}
+            aria-current={filter === 'all' ? 'page' : undefined}
           >
             All Sessions
           </Link>
           <Link 
             href="/history?filter=exam" 
             className={`px-6 py-3 rounded-full border uppercase tracking-widest text-xs font-bold transition-colors ${filter === 'exam' ? 'bg-white text-black border-white' : 'border-zinc-800 text-zinc-400 hover:border-zinc-500 hover:text-white'}`}
-            aria-pressed={filter === 'exam'}
+            aria-current={filter === 'exam' ? 'page' : undefined}
           >
             Exams
           </Link>
           <Link 
             href="/history?filter=practice" 
             className={`px-6 py-3 rounded-full border uppercase tracking-widest text-xs font-bold transition-colors ${filter === 'practice' ? 'bg-white text-black border-white' : 'border-zinc-800 text-zinc-400 hover:border-zinc-500 hover:text-white'}`}
-            aria-pressed={filter === 'practice'}
+            aria-current={filter === 'practice' ? 'page' : undefined}
           >
             Practice
           </Link>
