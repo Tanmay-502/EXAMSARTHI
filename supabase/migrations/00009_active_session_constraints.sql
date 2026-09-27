@@ -1,5 +1,40 @@
 -- Migration 00009: Prevent duplicate active sessions for a candidate
 
+-- Clean up any legacy duplicate active sessions before adding unique indexes.
+WITH ranked_exam_sessions AS (
+  SELECT
+    id,
+    ROW_NUMBER() OVER (
+      PARTITION BY candidate_id, exam_id
+      ORDER BY started_at DESC, id DESC
+    ) AS rn
+  FROM exam_sessions
+  WHERE status = 'in_progress' AND is_practice = false
+)
+UPDATE exam_sessions AS sessions
+SET
+  status = 'abandoned',
+  completed_at = COALESCE(completed_at, NOW())
+FROM ranked_exam_sessions AS ranked
+WHERE sessions.id = ranked.id AND ranked.rn > 1;
+
+WITH ranked_practice_sessions AS (
+  SELECT
+    id,
+    ROW_NUMBER() OVER (
+      PARTITION BY candidate_id
+      ORDER BY started_at DESC, id DESC
+    ) AS rn
+  FROM exam_sessions
+  WHERE status = 'in_progress' AND is_practice = true
+)
+UPDATE exam_sessions AS sessions
+SET
+  status = 'abandoned',
+  completed_at = COALESCE(completed_at, NOW())
+FROM ranked_practice_sessions AS ranked
+WHERE sessions.id = ranked.id AND ranked.rn > 1;
+
 ALTER TABLE exam_sessions
   ADD CONSTRAINT exam_session_mode_consistency
   CHECK (
