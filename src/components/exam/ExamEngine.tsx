@@ -639,7 +639,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         
         <div className="mb-24 flex items-center justify-between border-b border-zinc-900 pb-8 relative z-10">
           <div className="flex flex-col">
-            <span className="text-zinc-500 tracking-[0.2em] text-xs uppercase mb-2">MODE</span>
+            <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">MODE</span>
             <span className="text-xl font-light tracking-wide">{mode === 'exam' ? 'EXAMINATION' : 'PRACTICE'}</span>
           </div>
           <VoiceCore size="sm" />
@@ -659,7 +659,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           </p>
           
           <div className="pt-16 border-t border-zinc-900 flex justify-between items-center">
-            <p className="text-zinc-500 font-light uppercase tracking-widest text-sm">
+            <p className="text-zinc-400 font-light uppercase tracking-widest text-sm">
               {t('say_start_exam')}
             </p>
             <button
@@ -764,7 +764,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         <div className="flex items-center gap-6">
           <VoiceCore size="sm" />
           <div className="flex flex-col">
-            <span className="text-zinc-500 tracking-[0.2em] text-xs uppercase mb-2">
+            <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">
               {mode === 'exam' ? 'Real Exam' : 'Practice Mode'}
             </span>
             <span className="text-2xl font-light tracking-wide" aria-live="polite">
@@ -776,7 +776,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         <div className="flex flex-row-reverse md:flex-row items-center justify-between md:justify-end gap-8 w-full md:w-auto">
           {mode === 'exam' && (
             <div className="flex flex-col md:items-end">
-              <span className="text-zinc-500 tracking-[0.2em] text-xs uppercase mb-2">{t('time_left')}</span>
+              <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">{t('time_left')}</span>
               <span className="text-3xl font-light tracking-tight text-zinc-100" aria-live="polite">
                 {timeRemainingStr}
               </span>
@@ -897,7 +897,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
                       </div>
                       
                       <div className="flex-1 flex flex-col md:flex-row md:items-baseline gap-2 md:gap-8">
-                        <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest shrink-0">Opt {String.fromCharCode(65 + idx)}</span>
+                        <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest shrink-0">Opt {String.fromCharCode(65 + idx)}</span>
                         <span className={`text-xl md:text-2xl font-light leading-relaxed ${isSelected ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-200'}`}>{option}</span>
                       </div>
                     </div>
