@@ -210,7 +210,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
         speak(lang === 'hi-IN' ? 'आप पहले से ही अभ्यास मोड में हैं।' : lang === 'te-IN' ? 'మీరు ఇప్పటికే ప్రాక్టీస్ మోడ్‌లో ఉన్నారు.' : 'You are already in practice mode.');
       }
     }
-    if (action === 'OPEN_HISTORY' || action === 'READ_PROGRESS' || action === 'READ_HISTORY' || action === 'READ_RESULTS') {
+    if (action === 'OPEN_HISTORY' || action === 'READ_HISTORY' || action === 'READ_RESULTS') {
       speak(lang === 'hi-IN' ? 'आपका इतिहास खोल रहा हूँ।' : lang === 'te-IN' ? 'మీ చరిత్రను తెరుస్తున్నాను.' : 'Opening your results and history.');
       isNavigatingRef.current = true;
       router.push('/history');
