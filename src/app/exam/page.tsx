@@ -274,8 +274,8 @@ function ExamPageContent() {
           setExamMeta({ title: currentExam.title, duration_minutes: currentExam.duration_minutes });
         }
         
-        const questions = await fetchExamQuestions(examId!, lang);
         const sessionId = await startExamSession(examId!);
+        const questions = await fetchExamQuestions(examId!, sessionId, lang);
         
         initializeExam(sessionId, examId!, questions);
         setExamStarted(true);

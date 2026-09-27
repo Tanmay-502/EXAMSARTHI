@@ -32,7 +32,7 @@ export async function fetchAvailableExams() {
   }) as { id: string; title: string; description: string | null; duration_minutes: number; question_count: number }[];
 }
 
-export async function fetchExamQuestions(examId: string, lang: string = 'en-IN') {
+export async function fetchExamQuestions(examId: string, sessionId: string, lang: string = 'en-IN') {
   const supabase = await createClient()
   
   // Verify user is authenticated
@@ -52,8 +52,16 @@ export async function fetchExamQuestions(examId: string, lang: string = 'en-IN')
     throw new Error(`Failed to fetch questions: ${error.message}`)
   }
 
+  let seed = Array.from(sessionId).reduce((hash, char) => ((hash << 5) - hash + char.charCodeAt(0)) | 0, 0) >>> 0;
+  const shuffledQuestions = [...questions];
+  for (let i = shuffledQuestions.length - 1; i > 0; i -= 1) {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    const j = seed % (i + 1);
+    [shuffledQuestions[i], shuffledQuestions[j]] = [shuffledQuestions[j], shuffledQuestions[i]];
+  }
+
   // Map to the frontend Question type
-  return questions.map((q: { id: string; exam_id: string; order_index: number; content_text: string; options: string[]; content_translations: Record<string, string>; options_translations: Record<string, string[]>; image_url: string | null; image_alt_text: string | null }) => {
+  return shuffledQuestions.map((q: { id: string; exam_id: string; order_index: number; content_text: string; options: string[]; content_translations: Record<string, string>; options_translations: Record<string, string[]>; image_url: string | null; image_alt_text: string | null }) => {
     let questionText = q.content_text;
     let optionsList = q.options;
 
