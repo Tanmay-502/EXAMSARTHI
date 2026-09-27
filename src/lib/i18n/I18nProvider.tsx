@@ -17,12 +17,17 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const savedLang = localStorage.getItem('examsarthi_lang') as Lang;
-    if (savedLang && (savedLang === 'en-IN' || savedLang === 'hi-IN' || savedLang === 'te-IN')) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLangState(savedLang);
+    try {
+      const savedLang = localStorage.getItem('examsarthi_lang') as Lang;
+      if (savedLang && (savedLang === 'en-IN' || savedLang === 'hi-IN' || savedLang === 'te-IN')) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setLangState(savedLang);
+      }
+    } catch {
+      // Continue with English when browser storage is unavailable.
+    } finally {
+      setMounted(true);
     }
-    setMounted(true);
   }, []);
 
   useEffect(() => {
