@@ -13,7 +13,7 @@ export default function ModeSelectionPage() {
   const standardButtonRef = useRef<HTMLButtonElement>(null);
   const spokenRef = useRef(false);
   
-  const { speak, startContinuousListening } = useVoice();
+  const { speak, startContinuousListening, pauseListening } = useVoice();
   const { useVoiceAction } = useGlobalVoice();
 
   useEffect(() => {
@@ -31,6 +31,13 @@ export default function ModeSelectionPage() {
 
   const handleSelectMode = (mode: InteractionMode) => {
     setMode(mode);
+
+    if (mode === 'standard') {
+      pauseListening();
+    } else {
+      startContinuousListening();
+    }
+
     router.push('/onboarding/language');
   };
 
