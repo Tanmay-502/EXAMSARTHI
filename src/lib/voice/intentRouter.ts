@@ -8,8 +8,8 @@ export interface IntentProvider {
 }
 
 export class DeterministicIntentProvider implements IntentProvider {
-  async parse(transcript: string, lang: Locale): Promise<Intent> {
-    return deterministicParse(transcript, lang);
+  async parse(transcript: string, lang: Locale, context?: Record<string, unknown> | null): Promise<Intent> {
+    return deterministicParse(transcript, lang, typeof context?.context === 'string' ? context.context : undefined);
   }
 }
 
@@ -18,7 +18,7 @@ export class OptionalLLMIntentProvider implements IntentProvider {
 
   async parse(transcript: string, lang: Locale, context?: Record<string, unknown> | null): Promise<Intent> {
     // 1. Try deterministic first for fast actions (next, back, etc)
-    const cmd = await this.deterministic.parse(transcript, lang);
+    const cmd = await this.deterministic.parse(transcript, lang, context);
     if (cmd.type !== 'UNKNOWN') {
       return cmd;
     }
