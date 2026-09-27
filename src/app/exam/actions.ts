@@ -523,17 +523,17 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     .from('questions')
     .select('id, question_answers(correct_answer_index)');
 
-  if (session.is_practice) {
-    const rosterIds = Array.isArray(session.question_ids)
-      ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
-      : [];
+  const rosterIds = Array.isArray(session.question_ids)
+    ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+    : [];
 
-    if (rosterIds.length === 0) {
-      throw new Error('Practice session has no question roster');
-    }
-
+  if (rosterIds.length > 0) {
     query = query.in('id', rosterIds);
+  } else if (session.is_practice) {
+    throw new Error('Practice session has no question roster');
   } else {
+    // Legacy exam sessions created before roster persistence can still be graded
+    // against the exam's then-current question set.
     query = query.eq('exam_id', session.exam_id);
   }
 
