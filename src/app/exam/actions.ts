@@ -320,7 +320,7 @@ export async function saveAnswer(
 
   const { data: session, error: sessionError } = await supabase
     .from('exam_sessions')
-    .select('id, exam_id, is_practice, status')
+    .select('id, exam_id, is_practice, status, question_ids')
     .eq('id', sessionId)
     .eq('candidate_id', user.id)
     .single();
@@ -343,7 +343,15 @@ export async function saveAnswer(
     throw new Error('Question not found');
   }
 
-  if (!session.is_practice && question.exam_id !== session.exam_id) {
+  const practiceQuestionIds = Array.isArray(session.question_ids)
+    ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+    : [];
+
+  if (session.is_practice) {
+    if (!practiceQuestionIds.includes(questionId)) {
+      throw new Error('Question does not belong to this practice session');
+    }
+  } else if (question.exam_id !== session.exam_id) {
     throw new Error('Question does not belong to this exam session');
   }
 
@@ -405,8 +413,8 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     throw new Error('Exam session not found or unauthorized')
   }
 
-  if (session.status === 'submitted') {
-    throw new Error('Exam session already submitted')
+  if (session.status !== 'in_progress') {
+    throw new Error('Exam session is not active')
   }
 
   // Extract question IDs from answers
@@ -418,14 +426,15 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     .select('id, question_answers(correct_answer_index)');
 
   if (session.is_practice) {
-    if (!questionIds || questionIds.length === 0) {
-      if (answerKeys.length === 0) {
-        throw new Error('No questions provided for practice session');
-      }
-      query = query.in('id', answerKeys);
-    } else {
-      query = query.in('id', questionIds);
+    const rosterIds = Array.isArray(session.question_ids)
+      ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+      : [];
+
+    if (rosterIds.length === 0) {
+      throw new Error('Practice session has no question roster');
     }
+
+    query = query.in('id', rosterIds);
   } else {
     query = query.eq('exam_id', session.exam_id);
   }
@@ -463,8 +472,10 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     .filter((ansTyped) => validQuestionIds.has(ansTyped.question_id))
     .map((ansTyped) => {
     
-    // Grading
-    const isAttempted = typeof ansTyped.answer_data === 'number' && ansTyped.answer_data >= 0;
+    const isAttempted = typeof ansTyped.answer_data === 'number'
+      && Number.isInteger(ansTyped.answer_data)
+      && ansTyped.answer_data >= 0
+      && ansTyped.answer_data <= 3;
     if (isAttempted) {
       attempted_questions += 1;
       if (questionMap.get(ansTyped.question_id) === ansTyped.answer_data) {
