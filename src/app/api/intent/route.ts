@@ -14,7 +14,7 @@ export async function POST(req: Request) {
 
     const { transcript, lang, context } = await req.json();
 
-    if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+    if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY && !process.env.GEMINI_API_KEY) {
       return NextResponse.json({ intent: 'UNKNOWN_COMMAND' });
     }
 

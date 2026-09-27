@@ -17,7 +17,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing image URL' }, { status: 400 });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY && !process.env.GEMINI_API_KEY) {
       return NextResponse.json({ 
         description: "This question contains an image or diagram, but the vision accessibility service is not currently configured. I cannot describe it for you at this time." 
       });
