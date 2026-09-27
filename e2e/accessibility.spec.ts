@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 test.describe('Accessibility & Keyboard Navigation', () => {
@@ -55,6 +55,11 @@ test.describe('Accessibility & Keyboard Navigation', () => {
 const authStatePath = process.env.PLAYWRIGHT_AUTH_STATE;
 const readyExamId = process.env.PLAYWRIGHT_READY_EXAM_ID;
 const resultSessionId = process.env.PLAYWRIGHT_RESULT_SESSION_ID;
+
+async function expectNoAxeViolations(page: Page) {
+  const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+  expect(accessibilityScanResults.violations).toEqual([]);
+}
 
 test.describe('Authenticated route accessibility coverage', () => {
   test.use({ storageState: authStatePath || undefined });
