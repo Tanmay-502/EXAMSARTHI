@@ -245,7 +245,7 @@ export async function startExamSession(examId: string) {
       Date.now() <= startedAt + (durationSeconds + 5) * 1000;
 
     if (stillActive) {
-      return existing.id;
+      return { id: existing.id, startedAt: existing.started_at };
     }
 
     await adminClient
@@ -267,7 +267,7 @@ export async function startExamSession(examId: string) {
       status: 'in_progress',
       question_ids: questionIds,
     })
-    .select('id')
+    .select('id, started_at')
     .single()
 
   if (error) {
@@ -283,7 +283,7 @@ export async function startExamSession(examId: string) {
         .limit(1)
         .maybeSingle();
 
-      if (raced) return raced.id;
+      if (raced) return { id: raced.id, startedAt: raced.started_at };
     }
 
     throw new Error(`Failed to start session: ${error.message}`)
@@ -295,7 +295,7 @@ export async function startExamSession(examId: string) {
     action: 'started_exam',
   })
 
-  return data.id
+  return { id: data.id, startedAt: data.started_at }
 }
 
 export async function startPracticeSession(questionIds: string[] = [], practiceSubject = '', practiceDifficulty = '') {
