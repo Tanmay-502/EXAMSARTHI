@@ -31,6 +31,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
       )
     `)
     .eq('candidate_id', user.id)
+    .eq('status', 'submitted')
     .order('completed_at', { ascending: false });
 
   let displayedSessions = sessions || [];

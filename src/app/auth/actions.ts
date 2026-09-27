@@ -22,9 +22,6 @@ export async function loginWithMagicLink(formData: FormData) {
     origin = `${protocol}://${host}`
   }
 
-  console.error('--- SERVER ACTION CALLED ---', email);
-
-
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {

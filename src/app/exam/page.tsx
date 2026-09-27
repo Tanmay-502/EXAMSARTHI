@@ -15,30 +15,39 @@ import { SafeAction } from '@/lib/voice/safeActionRegistry';
 import { resolveExam } from '@/lib/catalog/examCatalog';
 
 function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onComplete: () => void, interactionMode: InteractionMode, setInteractionMode: (m: InteractionMode) => void }) {
-  const [micStatus, setMicStatus] = useState<'pending' | 'success' | 'error'>('pending');
-  const [browserStatus, setBrowserStatus] = useState<'pending' | 'success' | 'error'>('pending');
+  const [micStatus, setMicStatus] = useState<'pending' | 'success' | 'error' | 'not-required'>('pending');
+  const [browserStatus, setBrowserStatus] = useState<'pending' | 'success' | 'error' | 'not-required'>('pending');
   const { announce } = useAccessibility();
   const { speak } = useVoice();
   const hasSpoken = useRef(false);
 
   useEffect(() => {
     let isMounted = true;
+
     const checkDevices = async () => {
-      // Browser speech check
+      // Standard mode does not need microphone or browser speech permission.
+      if (interactionMode === 'standard') {
+        setBrowserStatus('not-required');
+        setMicStatus('not-required');
+        return;
+      }
+
       interface WindowWithSpeech extends Window {
         SpeechRecognition?: unknown;
         webkitSpeechRecognition?: unknown;
       }
+
       const win = window as unknown as WindowWithSpeech;
       const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        setBrowserStatus('success');
-      } else {
-        setBrowserStatus('error');
+      if (isMounted) {
+        setBrowserStatus(SpeechRecognition ? 'success' : 'error');
       }
 
-      // Mic check
       try {
+        if (!navigator.mediaDevices?.getUserMedia) {
+          throw new Error('Microphone API unavailable');
+        }
+
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         if (isMounted) setMicStatus('success');
         stream.getTracks().forEach(track => track.stop());
@@ -47,16 +56,21 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
         if (isMounted) setMicStatus('error');
       }
     };
-    checkDevices();
-    return () => { isMounted = false; };
-  }, []);
+
+    void checkDevices();
+    return () => {
+      isMounted = false;
+    };
+  }, [interactionMode]);
 
   useEffect(() => {
     if (micStatus === 'pending' || browserStatus === 'pending' || hasSpoken.current) return;
     hasSpoken.current = true;
     
     let msg = '';
-    if (micStatus === 'success' && browserStatus === 'success') {
+    if (interactionMode === 'standard') {
+      msg = 'Keyboard and screen reader controls are ready. You can start the exam using the button.';
+    } else if (micStatus === 'success' && browserStatus === 'success') {
       msg = 'Microphone and speech services are ready. You can start the exam by saying start exam, or use the button.';
     } else if (browserStatus === 'error') {
       msg = 'This browser does not provide speech recognition. Voice mode cannot be used here. You can continue with keyboard and screen reader mode.';
@@ -67,7 +81,9 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
     speak(msg);
   }, [micStatus, browserStatus, announce, speak, interactionMode, setInteractionMode]);
 
-  const allClear = micStatus === 'success' && browserStatus === 'success';
+  const allClear =
+    (micStatus === 'success' && browserStatus === 'success') ||
+    (micStatus === 'not-required' && browserStatus === 'not-required');
 
   return (
     <div className="flex flex-col min-h-screen w-full max-w-4xl mx-auto pt-32 pb-24 px-6 bg-black text-white">
@@ -85,13 +101,15 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
             <span className="text-2xl font-light text-zinc-400">Browser Speech Services</span>
             {browserStatus === 'pending' && <span className="text-zinc-600 uppercase tracking-widest text-sm animate-pulse">Checking</span>}
             {browserStatus === 'success' && <span className="text-white uppercase tracking-widest text-sm font-medium">Ready</span>}
+            {browserStatus === 'not-required' && <span className="text-zinc-500 uppercase tracking-widest text-sm font-medium">Not required</span>}
             {browserStatus === 'error' && <span className="text-red-500 uppercase tracking-widest text-sm font-medium">Unavailable</span>}
           </div>
           <div className="flex items-center justify-between border-t border-zinc-900 pt-8">
             <span className="text-2xl font-light text-zinc-400">Microphone Access</span>
             {micStatus === 'pending' && <span className="text-zinc-600 uppercase tracking-widest text-sm animate-pulse">Checking</span>}
             {micStatus === 'success' && <span className="text-white uppercase tracking-widest text-sm font-medium">Granted</span>}
-            {micStatus === 'error' && <span className="text-red-500 uppercase tracking-widest text-sm font-medium">Denied</span>}
+            {micStatus === 'not-required' && <span className="text-zinc-500 uppercase tracking-widest text-sm font-medium">Not required</span>}
+            {micStatus === 'error' && <span className="text-red-500 uppercase tracking-widest text-sm font-medium">Unavailable</span>}
           </div>
         </div>
         
@@ -102,7 +120,7 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
         )}
 
         <div className="pt-16 border-t border-zinc-900 flex flex-wrap justify-end gap-4">
-          {!(micStatus === 'success' && browserStatus === 'success') && (
+          {!allClear && (
             <button
               type="button"
               onClick={() => window.location.reload()}
@@ -271,6 +289,12 @@ function ExamSelection({
       return true;
     }
 
+    if (!selectedExam && (action === 'START_EXAM' || action === 'OPEN_EXAM')) {
+      lastHandledTranscriptRef.current = normalized;
+      speak("Please say the name of an available exam first.");
+      return true;
+    }
+
     if (
       /\b(list|available|show|what|which)\b/.test(normalized) &&
       /\b(exam|exams)\b/.test(normalized)
@@ -359,9 +383,23 @@ function ExamSelection({
 
         <div className="flex flex-col">
           {exams.map((exam, i) => (
-            <div 
-              key={exam.id} 
-              className={`group flex flex-col md:flex-row md:items-center justify-between py-8 transition-colors ${i === 0 ? 'border-t border-zinc-900' : 'border-t border-zinc-900'} ${selectedExam?.id === exam.id ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+            <button
+              type="button"
+              key={exam.id}
+              onClick={() => {
+                setSelectedExam(exam);
+                speak(
+                  exam.title +
+                  " selected. It has " +
+                  exam.question_count +
+                  " questions and " +
+                  exam.duration_minutes +
+                  " minutes. Say yes to start or say change to choose another."
+                );
+              }}
+              className={`group flex w-full text-left flex-col md:flex-row md:items-center justify-between py-8 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-inset ${selectedExam?.id === exam.id ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+              aria-pressed={selectedExam?.id === exam.id}
+              aria-label={`${exam.title}, ${exam.question_count} questions, ${exam.duration_minutes} minutes`}
             >
               <div className="flex-1 pr-8">
                 <h3 className="text-3xl md:text-4xl font-light tracking-tight mb-2">{exam.title}</h3>
@@ -372,8 +410,8 @@ function ExamSelection({
                 <span className="hidden md:inline">•</span>
                 <span>{exam.duration_minutes} mins</span>
               </div>
-            </div>
-          ))}
+            </button>
+          ))})}
         </div>
         
         {selectedExam && (
@@ -389,6 +427,7 @@ function ExamSelection({
 
 function ExamPageContent() {
   const initializeExam = useExamStore(state => state.initializeExam);
+  const hasHydrated = useExamStore(state => state.hasHydrated);
   const { lang } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -440,7 +479,7 @@ function ExamPageContent() {
 
   // Only create the server session after the device check is complete.
   useEffect(() => {
-    if (!examId || !examMeta || !deviceCheckComplete || !preferenceLoaded || examStarted) {
+    if (!hasHydrated || !examId || !examMeta || !deviceCheckComplete || !preferenceLoaded || examStarted) {
       return;
     }
 
@@ -448,14 +487,19 @@ function ExamPageContent() {
       setLoading(true);
       setError('');
       try {
-        const sessionId = await startExamSession(examId);
-        const questions = await fetchExamQuestions(examId, sessionId, lang);
+        const session = await startExamSession(examId);
+        const questions = await fetchExamQuestions(examId, session.id, lang);
 
         if (questions.length === 0) {
           throw new Error('This exam has no available questions.');
         }
 
-        initializeExam(sessionId, examId, questions);
+        initializeExam(
+          session.id,
+          examId,
+          questions,
+          new Date(session.startedAt).getTime()
+        );
         setExamStarted(true);
       } catch (err: unknown) {
         if (err instanceof Error && err.message === 'Unauthorized') {
@@ -470,7 +514,11 @@ function ExamPageContent() {
     }
 
     startSelectedExam();
-  }, [examId, examMeta, deviceCheckComplete, preferenceLoaded, examStarted, initializeExam, lang, router]);
+  }, [hasHydrated, examId, examMeta, deviceCheckComplete, preferenceLoaded, examStarted, initializeExam, lang, router]);
+
+  if (!hasHydrated) {
+    return <div className="flex flex-col items-center justify-center min-h-screen flex-1 p-6 text-xl">Preparing exam state...</div>;
+  }
 
   if (!examId) {
     return <ExamSelection onSelect={(id) => {

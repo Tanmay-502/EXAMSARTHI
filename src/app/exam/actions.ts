@@ -218,6 +218,47 @@ export async function startExamSession(examId: string) {
     throw new Error('This exam currently has no available questions')
   }
 
+  const { data: existing } = await adminClient
+    .from('exam_sessions')
+    .select('id, started_at')
+    .eq('exam_id', examId)
+    .eq('candidate_id', user.id)
+    .eq('status', 'in_progress')
+    .eq('is_practice', false)
+    .order('started_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existing) {
+    const { data: exam } = await adminClient
+      .from('exams')
+      .select('duration_minutes')
+      .eq('id', examId)
+      .single();
+
+    const startedAt = new Date(existing.started_at).getTime();
+    const durationSeconds = Number(exam?.duration_minutes || 0) * 60;
+    const stillActive =
+      Number.isFinite(startedAt) &&
+      Number.isFinite(durationSeconds) &&
+      durationSeconds > 0 &&
+      Date.now() <= startedAt + (durationSeconds + 5) * 1000;
+
+    if (stillActive) {
+      return { id: existing.id, startedAt: existing.started_at };
+    }
+
+    await adminClient
+      .from('exam_sessions')
+      .update({
+        status: 'abandoned',
+        completed_at: new Date().toISOString(),
+      })
+      .eq('id', existing.id)
+      .eq('candidate_id', user.id)
+      .eq('status', 'in_progress');
+  }
+
   const { data, error } = await adminClient
     .from('exam_sessions')
     .insert({
@@ -226,10 +267,25 @@ export async function startExamSession(examId: string) {
       status: 'in_progress',
       question_ids: questionIds,
     })
-    .select('id')
+    .select('id, started_at')
     .single()
 
   if (error) {
+    if (error.code === '23505') {
+      const { data: raced } = await adminClient
+        .from('exam_sessions')
+        .select('id')
+        .eq('exam_id', examId)
+        .eq('candidate_id', user.id)
+        .eq('status', 'in_progress')
+        .eq('is_practice', false)
+        .order('started_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (raced) return { id: raced.id, startedAt: raced.started_at };
+    }
+
     throw new Error(`Failed to start session: ${error.message}`)
   }
 
@@ -239,7 +295,7 @@ export async function startExamSession(examId: string) {
     action: 'started_exam',
   })
 
-  return data.id
+  return { id: data.id, startedAt: data.started_at }
 }
 
 export async function startPracticeSession(questionIds: string[] = [], practiceSubject = '', practiceDifficulty = '') {
@@ -284,6 +340,41 @@ export async function startPracticeSession(questionIds: string[] = [], practiceS
     throw new Error('Practice question roster does not match the selected parameters')
   }
 
+  const { data: existing } = await adminClient
+    .from('exam_sessions')
+    .select('id, question_ids, practice_subject')
+    .eq('candidate_id', user.id)
+    .eq('status', 'in_progress')
+    .eq('is_practice', true)
+    .order('started_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existing) {
+    const existingQuestionIds = Array.isArray(existing.question_ids)
+      ? existing.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+      : [];
+
+    const requestedSet = new Set(uniqueQuestionIds);
+    const existingSet = new Set(existingQuestionIds);
+    const sameRoster =
+      requestedSet.size === existingSet.size &&
+      uniqueQuestionIds.every(id => existingSet.has(id)) &&
+      existing.practice_subject === normalizedSubject;
+
+    if (sameRoster) return existing.id;
+
+    await adminClient
+      .from('exam_sessions')
+      .update({
+        status: 'abandoned',
+        completed_at: new Date().toISOString(),
+      })
+      .eq('id', existing.id)
+      .eq('candidate_id', user.id)
+      .eq('status', 'in_progress');
+  }
+
   const { data, error } = await adminClient
     .from('exam_sessions')
     .insert({
@@ -298,6 +389,32 @@ export async function startPracticeSession(questionIds: string[] = [], practiceS
     .single()
 
   if (error) {
+    if (error.code === '23505') {
+      const { data: raced } = await adminClient
+        .from('exam_sessions')
+        .select('id, question_ids, practice_subject')
+        .eq('candidate_id', user.id)
+        .eq('status', 'in_progress')
+        .eq('is_practice', true)
+        .order('started_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const racedQuestionIds = Array.isArray(raced?.question_ids)
+        ? raced.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+        : [];
+
+      const sameRacedRoster =
+        Boolean(raced) &&
+        raced?.practice_subject === normalizedSubject &&
+        racedQuestionIds.length === uniqueQuestionIds.length &&
+        uniqueQuestionIds.every(id => racedQuestionIds.includes(id));
+
+      if (raced && sameRacedRoster) return raced.id;
+
+      throw new Error('A different practice session is already active. Please finish it before starting another.');
+    }
+
     throw new Error(`Failed to start practice session: ${error.message}`)
   }
 
@@ -769,12 +886,26 @@ export async function updatePreferences(prefs: { preferred_mode?: string; prefer
 
   if (fetchError) throw new Error(`Failed to fetch profile: ${fetchError.message}`)
 
-  // JSONB merge logic
   const currentPrefs = (profile.accessibility_prefs as Record<string, unknown>) || {}
-  
+  const sanitizedPrefs: Record<string, string> = {};
+
+  if (prefs.preferred_mode !== undefined) {
+    if (prefs.preferred_mode !== 'standard' && prefs.preferred_mode !== 'voice-first') {
+      throw new Error('Invalid preferred mode');
+    }
+    sanitizedPrefs.preferred_mode = prefs.preferred_mode;
+  }
+
+  if (prefs.preferred_lang !== undefined) {
+    if (!['en-IN', 'hi-IN', 'te-IN'].includes(prefs.preferred_lang)) {
+      throw new Error('Invalid preferred language');
+    }
+    sanitizedPrefs.preferred_lang = prefs.preferred_lang;
+  }
+
   const updatedPrefs = {
     ...currentPrefs,
-    ...prefs
+    ...sanitizedPrefs
   }
 
   // Update profile
@@ -926,7 +1057,7 @@ export async function buildLearningProfile(userId: string) {
   }));
 
   const strongSubjects = subjects.filter(s => s.accuracy >= 70).map(s => s.subject);
-  const weakSubjects = subjects.filter(s => s.accuracy < 50).map(s => s.subject);
+  const weakSubjects = subjects.filter(s => s.accuracy <= 50).map(s => s.subject);
 
   return {
     totalSessions,
