@@ -14,8 +14,29 @@ export async function POST(req: Request) {
 
     const { imageUrl } = await req.json();
 
-    if (!imageUrl) {
-      return NextResponse.json({ error: 'Missing image URL' }, { status: 400 });
+    if (typeof imageUrl !== 'string' || !imageUrl.trim() || imageUrl.length > 2048) {
+      return NextResponse.json({ error: 'Invalid image URL' }, { status: 400 });
+    }
+
+    let parsedImageUrl: URL;
+    try {
+      parsedImageUrl = new URL(imageUrl);
+    } catch {
+      return NextResponse.json({ error: 'Invalid image URL' }, { status: 400 });
+    }
+
+    const hostname = parsedImageUrl.hostname.toLowerCase();
+    const isPrivateHost =
+      hostname === 'localhost' ||
+      hostname === '::1' ||
+      /^127\./.test(hostname) ||
+      /^10\./.test(hostname) ||
+      /^192\.168\./.test(hostname) ||
+      /^169\.254\./.test(hostname) ||
+      /^172\.(1[6-9]|2\d|3[0-1])\./.test(hostname);
+
+    if (!['https:', 'http:'].includes(parsedImageUrl.protocol) || isPrivateHost) {
+      return NextResponse.json({ error: 'Image URL must be a public HTTP(S) resource' }, { status: 400 });
     }
 
     const apiKey = getGeminiKey();
@@ -34,7 +55,7 @@ export async function POST(req: Request) {
           role: 'user',
           content: [
             { type: 'text', text: 'Describe this diagram or image clearly and concisely for a visually impaired student taking an exam. Do not solve the question. Just describe the visual contents (e.g. shapes, text, structure, relationships). Start your response immediately with the description, do not say "Here is a description" or similar.' },
-            { type: 'image', image: imageUrl },
+            { type: 'image', image: parsedImageUrl.toString() },
           ],
         },
       ],
