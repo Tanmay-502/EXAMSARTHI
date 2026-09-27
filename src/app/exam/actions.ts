@@ -387,8 +387,30 @@ export async function fetchPracticeQuestions(subject: string, difficulty: string
     throw new Error(`Failed to fetch practice questions: ${error.message}`)
   }
 
+  const shuffledQuestions = [...(questions || [])];
+
+  // Deterministic per-candidate shuffle prevents every candidate from seeing
+  // the same first-N practice questions while remaining stable for a repeat.
+  const seedSource = `${normalizedSubject}:${normalizedDifficulty}:${user.id}:${shuffledQuestions.length}`;
+  let seed = Array.from(seedSource).reduce(
+    (hash, char) => ((hash << 5) - hash + char.charCodeAt(0)) | 0,
+    0
+  ) >>> 0;
+  const random = () => {
+    seed += 0x6D2B79F5;
+    let value = seed;
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+
+  for (let i = shuffledQuestions.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(random() * (i + 1));
+    [shuffledQuestions[i], shuffledQuestions[j]] = [shuffledQuestions[j], shuffledQuestions[i]];
+  }
+
   return {
-    questions: questions.map((qRaw: Record<string, unknown>, i: number) => {
+    questions: shuffledQuestions.map((qRaw: Record<string, unknown>, i: number) => {
       const q = qRaw as {
         id: string;
         content_text: string;
