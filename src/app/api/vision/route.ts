@@ -14,8 +14,17 @@ export async function POST(req: Request) {
 
     const { imageUrl } = await req.json();
 
-    if (!imageUrl) {
-      return NextResponse.json({ error: 'Missing image URL' }, { status: 400 });
+    if (typeof imageUrl !== 'string' || imageUrl.length > 2048) {
+      return NextResponse.json({ error: 'Invalid image URL' }, { status: 400 });
+    }
+
+    try {
+      const parsedUrl = new URL(imageUrl);
+      if (parsedUrl.protocol !== 'https:' && parsedUrl.protocol !== 'http:') {
+        return NextResponse.json({ error: 'Unsupported image URL protocol' }, { status: 400 });
+      }
+    } catch {
+      return NextResponse.json({ error: 'Invalid image URL' }, { status: 400 });
     }
 
     const apiKey = getGeminiKey();
