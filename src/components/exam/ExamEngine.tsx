@@ -115,11 +115,15 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     if (engineState === 'READY') {
       const actualDuration = durationMinutes ?? 60;
       const actualTitle = examTitle ?? (mode === 'exam' ? 'Selected Exam' : 'Practice');
-      const announcement = tParams('exam_orientation', { 
-        examName: actualTitle, 
-        total: questions.length, 
+      const nativeLanguageName =
+        lang === 'hi-IN' ? 'हिंदी' :
+        lang === 'te-IN' ? 'తెలుగు' :
+        'English';
+      const announcement = tParams('exam_orientation', {
+        examName: actualTitle,
+        total: questions.length,
         duration: actualDuration,
-        language: lang === 'en-IN' ? 'English' : lang === 'hi-IN' ? 'Hindi' : 'Telugu'
+        language: nativeLanguageName
       }) + ' ' + t('say_start_exam');
       announce(announcement, 'assertive');
       if (interactionMode === 'voice-first' || isContinuous) speak(announcement);
