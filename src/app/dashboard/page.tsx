@@ -29,7 +29,6 @@ function DashboardContent() {
   const [userName, setUserName] = useState<string | null>(null);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [insight, setInsight] = useState<string | null>(null);
-  const [learningProfileConsent, setLearningProfileConsent] = useState(false);
   const { mode: interactionMode, isLoaded: preferenceLoaded } = usePreferredMode();
   // Auto-scroll transcript
   useEffect(() => {
@@ -58,7 +57,6 @@ function DashboardContent() {
         if (data?.full_name) {
           name = data.full_name;
         }
-        setLearningProfileConsent(Boolean(data?.learning_profile_consent));
       }
 
       // If the name is just the email or the local part of the email, reject it
@@ -93,7 +91,6 @@ function DashboardContent() {
 
         if (!profile?.learning_profile_consent) return;
 
-        setLearningProfileConsent(true);
 
         const res = await fetch('/api/insights', { method: 'POST' });
         if (res.ok) {
