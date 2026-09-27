@@ -114,7 +114,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
 
     if (engineState === 'READY') {
       const actualDuration = durationMinutes ?? 60;
-      const actualTitle = examTitle ?? (mode === 'exam' ? 'Mock Exam' : 'Practice');
+      const actualTitle = examTitle ?? (mode === 'exam' ? 'Selected Exam' : 'Practice');
       const announcement = tParams('exam_orientation', { 
         examName: actualTitle, 
         total: questions.length, 
@@ -655,7 +655,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             {t('exam')} Orientation
           </h1>
           <p className="text-2xl text-zinc-400 font-light leading-relaxed max-w-2xl" aria-live="polite">
-            {tParams('exam_orientation', { examName: mode === 'exam' ? 'Mock Exam' : 'Practice', total: questions.length, duration: durationMinutes ?? 60, language: lang === 'en-IN' ? 'English' : lang === 'hi-IN' ? 'Hindi' : 'Telugu' })}
+            {tParams('exam_orientation', { examName: examTitle ?? (mode === 'exam' ? 'Selected Exam' : 'Practice'), total: questions.length, duration: durationMinutes ?? 60, language: lang === 'en-IN' ? 'English' : lang === 'hi-IN' ? 'Hindi' : 'Telugu' })}
           </p>
           
           <div className="pt-16 border-t border-zinc-900 flex justify-between items-center">
