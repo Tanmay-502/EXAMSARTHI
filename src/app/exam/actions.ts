@@ -606,6 +606,8 @@ export async function saveAnswer(
     }
   } else if (question.exam_id !== session.exam_id) {
     throw new Error('Question does not belong to this exam session');
+  } else if (practiceQuestionIds.length > 0 && !practiceQuestionIds.includes(questionId)) {
+    throw new Error('Question does not belong to this exam session');
   }
 
   const selectedOptionIndex =
