@@ -3,6 +3,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { Question } from '@/lib/store/examStore'
 import { SupabaseClient, User } from '@supabase/supabase-js'
+import { buildSubjectStats } from '@/lib/analytics/subjectStats'
 
 export async function fetchAvailableExams() {
   const supabase = await createClient()
@@ -873,52 +874,11 @@ export async function buildLearningProfile() {
   const examSessions = totalSessions - practiceSessions;
   const recentAccuracy = sessions.slice(0, 5).map((s: { percentage: number }) => s.percentage);
 
-  // Fetch answers to get subject-wise accuracy
-  const sessionIds = sessions.map((s: { id: string }) => s.id);
-  const { data: answersData } = await adminClient
-    .from('answers')
-    .select(`
-      session_id,
-      selected_option_index,
-      questions (
-        subject,
-        question_answers (
-          correct_answer_index
-        )
-      )
-    `)
-    .in('session_id', sessionIds);
-
-  const subjectStats = new Map<string, { correct: number; total: number }>();
-
-  if (answersData) {
-    answersData.forEach((ans: {
-      selected_option_index: number | null;
-      questions: {
-        subject: string | null;
-        question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
-      }[] | {
-        subject: string | null;
-        question_answers: { correct_answer_index: number }[] | { correct_answer_index: number } | null;
-      } | null;
-    }) => {
-      const qList = Array.isArray(ans.questions) ? ans.questions : (ans.questions ? [ans.questions] : []);
-      const q = qList[0];
-      if (!q) return;
-      const subject = q.subject || 'General';
-      const qa = q.question_answers;
-      const correctIndex = Array.isArray(qa) 
-        ? (qa.length > 0 ? qa[0].correct_answer_index : -1)
-        : qa?.correct_answer_index;
-      
-      const isCorrect = ans.selected_option_index !== null && ans.selected_option_index === correctIndex;
-      
-      const stat = subjectStats.get(subject) || { correct: 0, total: 0 };
-      stat.total += 1;
-      if (isCorrect) stat.correct += 1;
-      subjectStats.set(subject, stat);
-    });
-  }
+  const subjectStats = await buildSubjectStats(adminClient, sessions);
+  const subjects = Object.values(subjectStats).map(stat => ({
+    subject: stat.subject,
+    accuracy: stat.accuracy,
+  }));
 
   const subjects = Array.from(subjectStats.entries())
     .filter(([, stat]) => stat.total >= 2)
