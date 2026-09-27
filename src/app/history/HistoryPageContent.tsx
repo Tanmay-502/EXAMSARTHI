@@ -13,6 +13,7 @@ type HistorySession = {
   total_questions: number | null;
   percentage: number | null;
   is_practice: boolean | null;
+  practice_subject: string | null;
   exams: { title: string } | { title: string }[] | null;
 };
 
@@ -94,8 +95,9 @@ export default function HistoryPageContent({ filter, displayedSessions }: { filt
                       </span>
                     </td>
                     <td className="p-6 font-light text-lg">
-                      {/* @ts-expect-error supabase types nested object */}
-                      {session.exams?.title || 'Unknown Exam'}
+                      {session.is_practice
+                        ? 'Practice' + (session.practice_subject ? ' — ' + session.practice_subject : '')
+                        : (Array.isArray(session.exams) ? session.exams[0]?.title : session.exams?.title) || 'Unknown Exam'}
                     </td>
                     <td className="p-6 text-zinc-500 font-light">
                       {session.started_at && session.completed_at ? formatDuration(session.started_at, session.completed_at) : '-'}
