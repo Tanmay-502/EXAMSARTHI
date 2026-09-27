@@ -15,8 +15,8 @@ import { SafeAction } from '@/lib/voice/safeActionRegistry';
 import { resolveExam } from '@/lib/catalog/examCatalog';
 
 function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onComplete: () => void, interactionMode: InteractionMode, setInteractionMode: (m: InteractionMode) => void }) {
-  const [micStatus, setMicStatus] = useState<'pending' | 'success' | 'error'>('pending');
-  const [browserStatus, setBrowserStatus] = useState<'pending' | 'success' | 'error'>('pending');
+  const [micStatus, setMicStatus] = useState<'pending' | 'success' | 'error' | 'not-required'>('pending');
+  const [browserStatus, setBrowserStatus] = useState<'pending' | 'success' | 'error' | 'not-required'>('pending');
   const { announce } = useAccessibility();
   const { speak } = useVoice();
   const hasSpoken = useRef(false);
@@ -27,8 +27,8 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
     const checkDevices = async () => {
       // Standard mode does not need microphone or browser speech permission.
       if (interactionMode === 'standard') {
-        setBrowserStatus('success');
-        setMicStatus('success');
+        setBrowserStatus('not-required');
+        setMicStatus('not-required');
         return;
       }
 
@@ -81,7 +81,9 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
     speak(msg);
   }, [micStatus, browserStatus, announce, speak, interactionMode, setInteractionMode]);
 
-  const allClear = micStatus === 'success' && browserStatus === 'success';
+  const allClear =
+    (micStatus === 'success' && browserStatus === 'success') ||
+    (micStatus === 'not-required' && browserStatus === 'not-required');
 
   return (
     <div className="flex flex-col min-h-screen w-full max-w-4xl mx-auto pt-32 pb-24 px-6 bg-black text-white">
@@ -99,13 +101,15 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
             <span className="text-2xl font-light text-zinc-400">Browser Speech Services</span>
             {browserStatus === 'pending' && <span className="text-zinc-600 uppercase tracking-widest text-sm animate-pulse">Checking</span>}
             {browserStatus === 'success' && <span className="text-white uppercase tracking-widest text-sm font-medium">Ready</span>}
-            {browserStatus === 'error' && <span className="text-red-500 uppercase tracking-widest text-sm font-medium">Unavailable</span>}
+            {browserStatus === 'not-required' && <span className="text-zinc-500 uppercase tracking-widest text-sm font-medium">Not required</span>}
+            {browserStatus === 'error' && <span className="text-red-500 uppercase tracking-widest text-sm font-medium">Unavailable</span>
           </div>
           <div className="flex items-center justify-between border-t border-zinc-900 pt-8">
             <span className="text-2xl font-light text-zinc-400">Microphone Access</span>
             {micStatus === 'pending' && <span className="text-zinc-600 uppercase tracking-widest text-sm animate-pulse">Checking</span>}
             {micStatus === 'success' && <span className="text-white uppercase tracking-widest text-sm font-medium">Granted</span>}
-            {micStatus === 'error' && <span className="text-red-500 uppercase tracking-widest text-sm font-medium">Denied</span>}
+            {micStatus === 'not-required' && <span className="text-zinc-500 uppercase tracking-widest text-sm font-medium">Not required</span>}
+            {micStatus === 'error' && <span className="text-red-500 uppercase tracking-widest text-sm font-medium">Unavailable</span>
           </div>
         </div>
         
