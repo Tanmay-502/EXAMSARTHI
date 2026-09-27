@@ -874,12 +874,26 @@ export async function updatePreferences(prefs: { preferred_mode?: string; prefer
 
   if (fetchError) throw new Error(`Failed to fetch profile: ${fetchError.message}`)
 
-  // JSONB merge logic
   const currentPrefs = (profile.accessibility_prefs as Record<string, unknown>) || {}
-  
+  const sanitizedPrefs: Record<string, string> = {};
+
+  if (prefs.preferred_mode !== undefined) {
+    if (prefs.preferred_mode !== 'standard' && prefs.preferred_mode !== 'voice-first') {
+      throw new Error('Invalid preferred mode');
+    }
+    sanitizedPrefs.preferred_mode = prefs.preferred_mode;
+  }
+
+  if (prefs.preferred_lang !== undefined) {
+    if (!['en-IN', 'hi-IN', 'te-IN'].includes(prefs.preferred_lang)) {
+      throw new Error('Invalid preferred language');
+    }
+    sanitizedPrefs.preferred_lang = prefs.preferred_lang;
+  }
+
   const updatedPrefs = {
     ...currentPrefs,
-    ...prefs
+    ...sanitizedPrefs
   }
 
   // Update profile
