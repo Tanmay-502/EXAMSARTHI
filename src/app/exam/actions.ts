@@ -295,7 +295,8 @@ export async function startExamSession(examId: string) {
     action: 'started_exam',
   })
 
-  return { id: data.id, startedAt: data.started_at }
+  const insertedSession = data as { id: string; started_at: string };
+  return { id: insertedSession.id, startedAt: insertedSession.started_at }
 }
 
 export async function startPracticeSession(questionIds: string[] = [], practiceSubject = '', practiceDifficulty = '') {
@@ -1019,7 +1020,8 @@ export async function buildLearningProfile(userId: string) {
   }
 
   const { data: questions } = await questionQuery;
-  const questionMap = new Map((questions || []).map(question => [question.id, question]));
+  const typedQuestions = (questions || []) as ServerAnalyticsQuestion[];
+  const questionMap = new Map(typedQuestions.map(question => [question.id, question]));
   const subjectStats = new Map<string, { correct: number; total: number }>();
 
   for (const session of sessions) {
@@ -1028,7 +1030,7 @@ export async function buildLearningProfile(userId: string) {
       : [];
 
     if (sessionQuestionIds.length === 0 && session.exam_id) {
-      sessionQuestionIds = (questions || [])
+      sessionQuestionIds = typedQuestions
         .filter(question => question.exam_id === session.exam_id)
         .map(question => question.id);
     }
