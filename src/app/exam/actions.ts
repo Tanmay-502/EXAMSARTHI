@@ -798,13 +798,15 @@ export async function buildLearningProfile() {
     });
   }
 
-  const subjects = Array.from(subjectStats.entries()).map(([sub, stat]) => ({
-    subject: sub,
-    accuracy: Math.round((stat.correct / stat.total) * 100)
-  }));
+  const subjects = Array.from(subjectStats.entries())
+    .filter(([, stat]) => stat.total >= 2)
+    .map(([sub, stat]) => ({
+      subject: sub,
+      accuracy: Math.round((stat.correct / stat.total) * 100)
+    }));
 
   const strongSubjects = subjects.filter(s => s.accuracy >= 70).map(s => s.subject);
-  const weakSubjects = subjects.filter(s => s.accuracy < 50).map(s => s.subject);
+  const weakSubjects = subjects.filter(s => s.accuracy <= 50).map(s => s.subject);
 
   return {
     totalSessions,
