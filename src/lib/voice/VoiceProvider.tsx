@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect, useRef } from 'react';
 import { useI18n } from '../i18n/I18nProvider';
+import { useAccessibility } from '../accessibility/AccessibilityProvider';
 
 type VoiceState = 'IDLE' | 'REQUESTING_PERMISSION' | 'LISTENING' | 'PROCESSING' | 'SPEAKING' | 'PAUSED' | 'ERROR';
 
@@ -37,6 +38,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const [transcript, setTranscript] = useState<TranscriptMessage[]>([]);
   
   const { lang, t } = useI18n();
+  const { speechRate, voiceURI } = useAccessibility();
   
   const langRef = useRef(lang);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -118,6 +120,14 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     const sentence = utteranceQueueRef.current.shift()!;
     const utterance = new SpeechSynthesisUtterance(sentence);
     utterance.lang = langRef.current;
+    utterance.rate = speechRate;
+
+    if (voiceURI && typeof window !== 'undefined') {
+      const selectedVoice = window.speechSynthesis
+        .getVoices()
+        .find((voice) => voice.voiceURI === voiceURI);
+      if (selectedVoice) utterance.voice = selectedVoice;
+    }
     
     utterance.onstart = () => {
       updateVoiceState('SPEAKING');
@@ -142,7 +152,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     };
     
     window.speechSynthesis.speak(utterance);
-  }, [updateVoiceState]);
+  }, [speechRate, updateVoiceState, voiceURI]);
 
   const speak = useCallback((text: string) => {
     if (typeof window === 'undefined' || !window.speechSynthesis) return;
