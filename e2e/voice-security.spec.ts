@@ -21,4 +21,15 @@ test.describe('Voice Security Boundary (Phase 10)', () => {
     expect(registry.isActionAllowed('OPEN_EXAM', 'dashboard')).toBe(true);
     expect(registry.isActionAllowed('NEXT_QUESTION', 'dashboard')).toBe(false);
   });
+
+  test('study screens allow practice navigation', () => {
+    const registry = new SafeActionRegistry();
+
+    expect(registry.isActionAllowed('OPEN_PRACTICE', 'analysis')).toBe(true);
+    expect(registry.isActionAllowed('START_PRACTICE', 'analysis')).toBe(true);
+    expect(registry.isActionAllowed('OPEN_PRACTICE', 'history')).toBe(true);
+    expect(registry.isActionAllowed('START_PRACTICE', 'history')).toBe(true);
+    expect(registry.isActionAllowed('OPEN_ANALYSIS', 'analysis')).toBe(true);
+  });
+
 });
