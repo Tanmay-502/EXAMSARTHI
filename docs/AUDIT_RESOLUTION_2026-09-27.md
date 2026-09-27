@@ -5,7 +5,7 @@ This file supersedes the earlier pasted audit snapshot where its findings no lon
 ## Resolved in this checkpoint
 
 1. **Exam-session INSERT security**
-   - Added migration 00008_lock_exam_session_inserts.sql.
+   - Added migrations 00008_lock_exam_session_inserts.sql, 00009_active_session_constraints.sql, and 00010_practice_question_set.sql.
    - Client-side exam_sessions INSERT policy is removed.
    - startExamSession and startPracticeSession already create sessions through the privileged server client after verifying the signed-in candidate.
    - Submission remains server-side and only updates an owned in_progress session.
