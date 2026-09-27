@@ -20,3 +20,7 @@ Migration 00009_practice_question_roster.sql (which includes 00008 protection) m
 
 ### PWA verification
 The manifest and production static-asset service worker are implemented. Browser installability and update behavior still need target-deployment verification. Authenticated pages, API routes, and navigation responses are intentionally not cached.
+
+
+### Supabase migration history
+The repository currently contains two migration files with the same version prefix, `00006_*.sql`. Supabase documentation says migration versions/timestamps must be unique and are the identifiers used for migration history. Do not rename either file blindly if it may already be applied remotely; first compare local and remote history with `supabase migration list`, then repair or rename through a controlled migration-history procedure. citeturn860463search0turn860463search1
