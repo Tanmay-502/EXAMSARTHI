@@ -754,6 +754,12 @@ export async function updateLearningProfileConsent(consent: boolean) {
 }
 
 export async function buildLearningProfile(userId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user || user.id !== userId) {
+    throw new Error('Unauthorized');
+  }
+
   const adminClient = await createAdminClient();
   
   const { data: profile } = await adminClient
