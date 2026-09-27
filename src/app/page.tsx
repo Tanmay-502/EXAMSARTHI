@@ -90,22 +90,22 @@ export default function Home() {
             
             <div className="space-y-48 pb-32">
               <div className="space-y-8">
-                <div className="text-8xl font-light text-zinc-500">01</div>
+                <div className="text-8xl font-light text-zinc-400">01</div>
                 <h4 className="text-4xl font-medium tracking-tight">CHOOSE</h4>
                 <p className="text-xl text-zinc-400 font-light leading-relaxed">Select your exam, subject or preparation mode with simple voice commands or keyboard navigation.</p>
               </div>
               <div className="space-y-8">
-                <div className="text-8xl font-light text-zinc-500">02</div>
+                <div className="text-8xl font-light text-zinc-400">02</div>
                 <h4 className="text-4xl font-medium tracking-tight">PREPARE</h4>
                 <p className="text-xl text-zinc-400 font-light leading-relaxed">Practice using adaptive questions and voice interaction that listens to your needs.</p>
               </div>
               <div className="space-y-8">
-                <div className="text-8xl font-light text-zinc-500">03</div>
+                <div className="text-8xl font-light text-zinc-400">03</div>
                 <h4 className="text-4xl font-medium tracking-tight">ATTEMPT</h4>
                 <p className="text-xl text-zinc-400 font-light leading-relaxed">Take an accessible examination with real-time assistance and zero visual distractions.</p>
               </div>
               <div className="space-y-8">
-                <div className="text-8xl font-light text-zinc-500">04</div>
+                <div className="text-8xl font-light text-zinc-400">04</div>
                 <h4 className="text-4xl font-medium tracking-tight">UNDERSTAND</h4>
                 <p className="text-xl text-zinc-400 font-light leading-relaxed">Review your performance and learning insights through editorial, easy-to-read feedback.</p>
               </div>
