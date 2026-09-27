@@ -15,6 +15,16 @@ export async function POST(req: Request) {
 
     const { transcript, lang, context } = await req.json();
 
+    if (typeof transcript !== 'string' || transcript.length === 0 || transcript.length > 2000) {
+      return NextResponse.json({ intent: 'UNKNOWN_COMMAND' }, { status: 400 });
+    }
+
+    if (!['en-IN', 'hi-IN', 'te-IN'].includes(lang)) {
+      return NextResponse.json({ intent: 'UNKNOWN_COMMAND' }, { status: 400 });
+    }
+
+    const safeContext = context && typeof context === 'object' ? context : null;
+
     const apiKey = getGeminiKey();
     if (!apiKey) {
       return NextResponse.json({ intent: 'UNKNOWN_COMMAND' });
