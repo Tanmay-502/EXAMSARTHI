@@ -132,6 +132,37 @@ export async function fetchExamQuestions(examId: string, sessionId: string, lang
   return mappedQuestions;
 }
 
+async function ensureExamAnswerWindow(
+  adminClient: SupabaseClient,
+  session: { is_practice: boolean | null; exam_id: string | null; started_at: string }
+) {
+  if (session.is_practice || !session.exam_id) return;
+
+  const { data: exam, error } = await adminClient
+    .from('exams')
+    .select('duration_minutes')
+    .eq('id', session.exam_id)
+    .single();
+
+  if (error || !exam) {
+    throw new Error('Exam configuration could not be loaded');
+  }
+
+  const startedAt = new Date(session.started_at).getTime();
+  const durationSeconds = Number(exam.duration_minutes) * 60;
+
+  if (!Number.isFinite(startedAt) || !Number.isFinite(durationSeconds) || durationSeconds <= 0) {
+    throw new Error('Exam timing configuration is invalid');
+  }
+
+  // Five seconds of transport/browser scheduling tolerance prevents a valid
+  // answer at the boundary from being rejected solely because the request
+  // arrived a few milliseconds late.
+  if (Date.now() > startedAt + (durationSeconds + 5) * 1000) {
+    throw new Error('Exam time has expired');
+  }
+}
+
 async function ensureCandidateProfile(supabase: SupabaseClient, user: User) {
   const { data: profile } = await supabase
     .from('profiles')
@@ -418,7 +449,7 @@ export async function saveAnswer(
 
   const { data: session, error: sessionError } = await supabase
     .from('exam_sessions')
-    .select('id, exam_id, is_practice, status, question_ids')
+    .select('id, exam_id, is_practice, status, question_ids, started_at')
     .eq('id', sessionId)
     .eq('candidate_id', user.id)
     .single();
@@ -430,6 +461,8 @@ export async function saveAnswer(
   if (session.status !== 'in_progress') {
     throw new Error('Answers can only be saved while the session is in progress');
   }
+
+  await ensureExamAnswerWindow(adminClient, session);
 
   const { data: question, error: questionError } = await adminClient
     .from('questions')
