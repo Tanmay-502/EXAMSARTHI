@@ -230,6 +230,7 @@ function ExamSelection({
   const [selectedExam, setSelectedExam] = useState<AvailableExam | null>(null);
   const { speak, isContinuous, startContinuousListening } = useVoice();
   const { lang } = useI18n();
+  const { mode: voiceMode } = usePreferredMode();
   const setVoiceContext = useVoiceAppContext(state => state.setContext);
   const { announce } = useAccessibility();
   const hasSpokenWelcome = useRef(false);
@@ -263,7 +264,7 @@ function ExamSelection({
       hasSpokenWelcome.current = true;
       const examNames = exams.map(e => e.title).join(', ');
       const msg = `Which exam would you like to take? Available exams are ${examNames}. You can say an exam name or say list exams.`;
-      say(msg, interactionMode, speak, announce);
+      say(msg, voiceMode, speak, announce);
       
       if (!isContinuous) {
         startContinuousListening();
