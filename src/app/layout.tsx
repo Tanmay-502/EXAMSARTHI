@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import type { CSSProperties } from "react";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/I18nProvider";
 import { AccessibilityProvider } from "@/lib/accessibility/AccessibilityProvider";
@@ -24,9 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    import type { CSSProperties } from "react";
-
-<html lang="en" style={{ "--voice-dock-height": "56px" } as CSSProperties}>
+    <html lang="en" style={{ "--voice-dock-height": "56px" } as CSSProperties}>
       <body className={`${inter.className} antialiased dark`} style={{ paddingBottom: "var(--voice-dock-height)" }}>
         <MotionConfig reducedMotion="user">
           <I18nProvider>
