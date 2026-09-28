@@ -15,6 +15,7 @@ import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 import { parseCommand } from '@/lib/voice/commandParser';
 import { SafeAction } from '@/lib/voice/safeActionRegistry';
 import { shouldEscapeToGlobal } from '@/lib/voice/navigationEscape';
+import { useVoiceAppContext } from '@/lib/store/voiceContextStore';
 
 function PracticeContent() {
   const initializeExam = useExamStore(state => state.initializeExam);
@@ -24,6 +25,7 @@ function PracticeContent() {
   const persistedQuestions = useExamStore(state => state.questions);
   const hasHydrated = useExamStore(state => state.hasHydrated);
   const { t, lang } = useI18n();
+  const setVoiceContext = useVoiceAppContext(state => state.setContext);
   const searchParams = useSearchParams();
   const { speak, startContinuousListening, isContinuous } = useVoice();
   const { useVoiceAction } = useGlobalVoice();
@@ -83,6 +85,11 @@ function PracticeContent() {
     if (/\b(కఠినం|కష్టం|హార్డ్)\b/.test(normalized)) return 'hard';
     return null;
   };
+
+  useEffect(() => {
+    setVoiceContext('practice_setup');
+    return () => setVoiceContext('unknown');
+  }, [setVoiceContext]);
 
   useEffect(() => {
     if (!isContinuous && !hasStartedRef.current) {
