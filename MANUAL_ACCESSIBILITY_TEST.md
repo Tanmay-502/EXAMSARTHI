@@ -15,3 +15,16 @@ Verify voice email capture only activates for saved `voice-first` users. Verify 
 
 ## 4. Verification
 Automated axe checks are supplementary. Complete NVDA/VoiceOver verification in the target browser before release.
+
+## 5. Active exam keyboard shortcuts
+During an active exam or practice session, verify these shortcuts are visible and work when focus is outside form controls:
+
+- Esc: stop speech
+- R: repeat the current prompt/question
+- T: read time remaining
+- M: toggle mark for review
+- N / P: next / previous question
+- 1–4: select answer option and enter the existing confirmation flow
+- ?: read help
+
+Shortcuts must be ignored while focus is inside an input, select, textarea, or editable element.
