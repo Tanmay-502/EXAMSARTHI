@@ -4,36 +4,27 @@ import { createClient } from '@/lib/supabase/server'
 
 function getSafeNextPath(next: string, origin: string): string {
   try {
-    const resolved = new URL(next, origin);
-    if (resolved.origin !== origin) return '/dashboard';
-    if (!resolved.pathname.startsWith('/') || resolved.pathname.startsWith('//')) return '/dashboard';
-    return resolved.pathname + resolved.search + resolved.hash;
+    const resolved = new URL(next, origin)
+    if (resolved.origin !== origin) return '/welcome'
+    if (!resolved.pathname.startsWith('/') || resolved.pathname.startsWith('//')) return '/welcome'
+    return resolved.pathname + resolved.search + resolved.hash
   } catch {
-    return '/dashboard';
+    return '/welcome'
   }
 }
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
-  const token_hash = searchParams.get('token_hash')
+  const tokenHash = searchParams.get('token_hash')
   const type = searchParams.get('type') as EmailOtpType | null
-  const next = getSafeNextPath(searchParams.get('next') ?? '/dashboard', origin)
+  const next = getSafeNextPath(searchParams.get('next') ?? '/welcome', origin)
 
-  if (token_hash && type) {
+  if (tokenHash && type) {
     const supabase = await createClient()
-
-    const { error } = await supabase.auth.verifyOtp({
-      type,
-      token_hash,
-    })
-    
-    if (!error) {
-      // redirect user to specified redirect URL or root of app
-      return NextResponse.redirect(new URL(next, origin))
-    }
+    const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash })
+    if (!error) return NextResponse.redirect(new URL(next, origin))
     console.error('Verify OTP Error:', error)
   }
 
-  // redirect the user to an error page with some instructions
-  return NextResponse.redirect(`${origin}/auth/login?message=Your sign-in link could not be verified. Please request a new link.`)
+  return NextResponse.redirect(new URL('/auth/login?code=link_invalid', origin))
 }
