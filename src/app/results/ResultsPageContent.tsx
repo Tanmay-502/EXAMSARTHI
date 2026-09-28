@@ -179,14 +179,14 @@ export default function ResultsPageContent({
             className="inline-flex items-center justify-center px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest border border-zinc-800 hover:border-zinc-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)]"
           >
             <History className="mr-3 w-4 h-4" />
-            View History
+            {t('view_history')}
           </Link>
           <Link
             href="/dashboard"
             className="inline-flex items-center justify-center px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest border border-zinc-800 hover:border-zinc-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)]"
           >
             <Home className="mr-3 w-4 h-4" />
-            Dashboard
+            {t('dashboard')}
           </Link>
         </div>
       </div>

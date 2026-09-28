@@ -40,6 +40,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      <a href="#main-content" className="fixed left-4 top-4 z-[100] -translate-y-20 rounded-full bg-white px-4 py-3 text-sm font-bold text-black transition-transform focus:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-black">{t('skip_to_main')}</a>
       {showNav && (
         <header className="sticky top-0 z-40 border-b border-zinc-800 bg-black/95 supports-[backdrop-filter]:bg-black/80 supports-[backdrop-filter]:backdrop-blur">
           <nav aria-label={t("primary_navigation")} className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-4 px-4 py-2 md:px-8">

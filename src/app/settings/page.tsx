@@ -135,23 +135,17 @@ export default function SettingsPage() {
               onClick={() => handleLanguageChange('en-IN')}
               aria-pressed={lang === 'en-IN'}
               className={`flex-1 h-14 rounded-full border text-xs uppercase tracking-widest font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] ${lang === 'en-IN' ? 'bg-white text-black border-white' : 'bg-transparent text-zinc-400 hover:text-white hover:border-zinc-500 border-zinc-800'}`}
-            >
-              English
-            </button>
+            >{t('language_english')}</button>
             <button
               onClick={() => handleLanguageChange('hi-IN')}
               aria-pressed={lang === 'hi-IN'}
               className={`flex-1 h-14 rounded-full border text-xs uppercase tracking-widest font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] ${lang === 'hi-IN' ? 'bg-white text-black border-white' : 'bg-transparent text-zinc-400 hover:text-white hover:border-zinc-500 border-zinc-800'}`}
-            >
-              हिंदी
-            </button>
+            >{t('language_hindi')}</button>
             <button
               onClick={() => handleLanguageChange('te-IN')}
               aria-pressed={lang === 'te-IN'}
               className={`flex-1 h-14 rounded-full border text-xs uppercase tracking-widest font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] ${lang === 'te-IN' ? 'bg-white text-black border-white' : 'bg-transparent text-zinc-400 hover:text-white hover:border-zinc-500 border-zinc-800'}`}
-            >
-              తెలుగు
-            </button>
+            >{t('language_telugu')}</button>
           </div>
           </div>
 
