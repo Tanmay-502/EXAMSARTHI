@@ -36,7 +36,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
   const registry = React.useMemo(() => new SafeActionRegistry(), []);
 
   const getContextName = React.useCallback(() => {
-    if (pathname === '/') return 'landing';
+    if (pathname === '/' || pathname === '/welcome') return 'landing';
     if (pathname === '/onboarding/mode') return 'mode_selection';
     if (pathname === '/onboarding/language') return 'language_selection';
     if (pathname.startsWith('/onboarding')) return 'onboarding';
@@ -157,7 +157,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
 
       speak(message);
       isNavigatingRef.current = true;
-      router.push('/auth/login?from=voice');
+      router.push(action === 'SIGN_UP' ? '/auth/signup?from=voice' : '/auth/login?from=voice');
       return;
     }
 
