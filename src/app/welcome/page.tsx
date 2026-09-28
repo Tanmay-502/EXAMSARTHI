@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { useVoice } from '@/lib/voice/VoiceProvider';
 import { useI18n } from '@/lib/i18n/I18nProvider';
@@ -20,12 +20,8 @@ export default function WelcomePage() {
   const hasSpokenRef = useRef(false);
   const demoGuideTimerRef = useRef<number | null>(null);
   const [showVoicePrompt, setShowVoicePrompt] = useState(true);
-  const [hasPrefs, setHasPrefs] = useState(false);
+  const hasPrefs = useSyncExternalStore(() => () => {}, hasSavedPreferences, () => false);
   const { scrollYProgress } = useScroll({ target: containerRef });
-
-  useEffect(() => {
-    setHasPrefs(hasSavedPreferences());
-  }, []);
 
   const activateVoice = useCallback(() => {
     if (hasSpokenRef.current) return;
