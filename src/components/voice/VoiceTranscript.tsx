@@ -24,7 +24,7 @@ export function VoiceTranscript({ className }: { className?: string }) {
       )}
       ref={scrollRef}
       role="log"
-      tabIndex={-1}
+      tabIndex={0}
       aria-live="off"
       aria-atomic="false"
       aria-label="Conversation transcript"
