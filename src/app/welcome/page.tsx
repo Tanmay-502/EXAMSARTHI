@@ -74,7 +74,7 @@ export default function WelcomePage() {
         <div className="text-sm font-bold uppercase tracking-widest">EXAMSAARTHI</div>
         <button
           onClick={navigateFromHero}
-          className="inline-flex min-h-11 items-center rounded-full px-2 py-2 text-sm font-medium tracking-wide" transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-black"
+          className="inline-flex min-h-11 items-center rounded-full px-2 py-2 text-sm font-medium tracking-wide transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-black"
         >
           {hasPrefs ? 'Continue to dashboard ↗' : 'Get started ↗'}
         </button>
