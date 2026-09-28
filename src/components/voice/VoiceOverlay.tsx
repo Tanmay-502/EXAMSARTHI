@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { VoiceStatusIndicator } from './VoiceStatusIndicator';
 import { VoiceTranscript } from './VoiceTranscript';
 import { DemoGuide } from './DemoGuide';
@@ -9,6 +10,7 @@ import { useVoice } from '@/lib/voice/useVoice';
 const STORAGE_KEY = 'examsaarthi_voice_dock_expanded';
 
 export function VoiceOverlay() {
+  const pathname = usePathname();
   const { transcript } = useVoice();
   const [expanded, setExpanded] = useState(false);
   const dockRef = useRef<HTMLDivElement>(null);
@@ -105,7 +107,7 @@ export function VoiceOverlay() {
           </div>
         </div>
       </aside>
-      <DemoGuide />
+      <DemoGuide key={pathname} />
     </>
   );
 }
