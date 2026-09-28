@@ -10,10 +10,10 @@ function getOrigin(headersList: Headers) {
   const configuredOrigin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
   if (configuredOrigin) return configuredOrigin
 
-  const host = headersList.get('host') || 'localhost:3000'
-  const forwardedProto = headersList.get('x-forwarded-proto')
-  const protocol = forwardedProto?.split(',')[0]?.trim() || (host.includes('localhost') ? 'http' : 'https')
-  return protocol + '://' + host
+  const requestOrigin = headersList.get('origin')
+  if (requestOrigin) return requestOrigin.replace(/\/$/, '')
+
+  throw new Error('No trusted site origin is configured')
 }
 
 function isMissingUserError(error: { message?: string | null; code?: string | null; status?: number | null }) {
