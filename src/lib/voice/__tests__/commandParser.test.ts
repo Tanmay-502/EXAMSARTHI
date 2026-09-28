@@ -8,7 +8,7 @@ describe('Voice Command Parser', () => {
     test('should parse SELECT_OPTION correctly', () => {
       assert.deepStrictEqual(parseCommand('option a', 'en-IN'), { type: 'SELECT_OPTION', index: 0 });
       assert.deepStrictEqual(parseCommand('answer b', 'en-IN'), { type: 'SELECT_OPTION', index: 1 });
-      assert.deepStrictEqual(parseCommand('i choose c', 'en-IN'), { type: 'SELECT_OPTION', index: 2 });
+      assert.deepStrictEqual(parseCommand('i choose c', 'en-IN', 'exam'), { type: 'SELECT_OPTION', index: 2 });
       assert.deepStrictEqual(parseCommand('d is the correct answer', 'en-IN'), { type: 'SELECT_OPTION', index: 3 });
     });
 
