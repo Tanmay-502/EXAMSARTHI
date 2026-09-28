@@ -45,7 +45,7 @@ function LoginForm() {
       const supabase = createSupabaseBrowserClient()
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: window.location.origin + '/auth/callback', scopes: 'https://www.googleapis.com/auth/userinfo.email' },
+        options: { redirectTo: window.location.origin + '/auth/callback', scopes: 'openid profile email' },
       })
       if (error) throw error
     } catch (error) {
@@ -77,14 +77,20 @@ function LoginForm() {
           {authMessage ? <div data-testid="auth-message" role="status" aria-live="polite" className="border-y border-zinc-900 py-5 text-zinc-300">{authMessage}</div> : null}
           {code === 'no_account' ? <p className="text-sm text-zinc-400">{lang === 'hi-IN' ? 'नया अकाउंट बनाने के लिए ' : lang === 'te-IN' ? 'కొత్త ఖాతా కోసం ' : 'New to ExamSaarthi? '}<Link href="/auth/signup" className="font-semibold text-white underline underline-offset-4">{t('signup')}</Link></p> : null}
 
-          <button type="button" onClick={signInWithGoogle} disabled={googleLoading} className="inline-flex h-14 w-full items-center justify-center gap-3 rounded-full border border-zinc-700 bg-white px-8 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:opacity-60">
-            <span aria-hidden="true" className="text-lg font-semibold normal-case tracking-normal">G</span>
-            {googleLoading ? 'Opening Google...' : 'Continue with Google'}
-          </button>
-          {googleError ? <p role="alert" className="text-sm text-zinc-300">{googleError}</p> : null}
+          <section aria-labelledby="google-login-title" className="space-y-3">
+            <h2 id="google-login-title" className="text-sm font-bold uppercase tracking-[0.18em] text-zinc-200">Fast sign in</h2>
+            <button data-testid="google-auth-button" type="button" onClick={signInWithGoogle} disabled={googleLoading} className="inline-flex h-16 w-full items-center justify-center gap-3 rounded-full border border-zinc-600 bg-white px-8 text-sm font-bold text-black shadow-[0_10px_30px_rgba(255,255,255,0.08)] transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white disabled:opacity-60">
+              <span aria-hidden="true" className="text-xl font-semibold">G</span>
+              <span>{googleLoading ? 'Opening Google...' : 'Continue with Google'}</span>
+            </button>
+            <p className="text-sm text-zinc-400">Use your Google account without waiting for a Magic Link email.</p>
+            {googleError ? <p role="alert" className="text-sm text-zinc-300">{googleError}</p> : null}
+          </section>
 
-          <div className="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-zinc-400" aria-hidden="true"><span className="h-px flex-1 bg-zinc-900" /><span>or</span><span className="h-px flex-1 bg-zinc-900" /></div>
+          <div className="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-zinc-400" aria-hidden="true"><span className="h-px flex-1 bg-zinc-900" /><span>or use email</span><span className="h-px flex-1 bg-zinc-900" /></div>
 
+          <section aria-labelledby="magic-link-title" className="space-y-4">
+            <h2 id="magic-link-title" className="text-sm font-bold uppercase tracking-[0.18em] text-zinc-200">Magic Link</h2>
           <form ref={formRef} action={loginWithMagicLink} onSubmit={() => { setVoiceStep('sending'); setVoiceStatus('Sending Magic Link...') }} className="space-y-8">
             <div className="space-y-3">
               <label htmlFor="email" className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">{t('email')}</label>
@@ -93,6 +99,7 @@ function LoginForm() {
             <p id="voice-status" className="min-h-6 text-sm text-zinc-400" aria-live="polite">{voiceStatus}</p>
             <button type="submit" className="inline-flex h-14 w-full items-center justify-center rounded-full bg-white px-8 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">{t('send_magic_link')} ↗</button>
           </form>
+          </section>
 
           <p className="text-sm text-zinc-400">{lang === 'hi-IN' ? 'अकाउंट नया है? ' : lang === 'te-IN' ? 'కొత్త ఖాతా కావాలా? ' : 'Need a new account? '}<Link href="/auth/signup" className="text-zinc-100 underline underline-offset-4">{t('signup')}</Link></p>
         </div>

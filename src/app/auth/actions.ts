@@ -10,6 +10,10 @@ function getOrigin(headersList: Headers) {
   const configuredOrigin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
   if (configuredOrigin) return configuredOrigin
 
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('NEXT_PUBLIC_SITE_URL must be configured in production')
+  }
+
   const requestOrigin = headersList.get('origin')
   if (requestOrigin) return requestOrigin.replace(/\/$/, '')
 
