@@ -20,30 +20,26 @@ const rows: Array<{
 ];
 
 test.describe('Voice navigation escape decisions', () => {
-  test('maps "open practice exam" consistently across screens', () => {
+  test('lobby/setup may navigate away while active sessions are blocked', () => {
     const registry = new SafeActionRegistry();
-    const command = parseCommand('open practice exam', 'en-IN');
+    const rows = [
+      ['exam_lobby', true, shouldEscapeToGlobal('go to dashboard', 'en-IN', 'exam_lobby')],
+      ['exam_active', false, shouldEscapeToGlobal('go to dashboard', 'en-IN', 'exam_active')],
+      ['practice_setup', true, shouldEscapeToGlobal('go to dashboard', 'en-IN', 'practice_setup')],
+      ['practice_active', false, shouldEscapeToGlobal('go to dashboard', 'en-IN', 'practice_active')],
+    ] as const;
 
-    expect(command.type).toBe('DASHBOARD_PRACTICE');
-    const action = registry.getActionMapping(command.type);
-    expect(action).toBe('OPEN_PRACTICE');
+    for (const [context, allowed, escapes] of rows) {
+      expect(registry.isActionAllowed('OPEN_DASHBOARD', context)).toBe(allowed);
+      expect(escapes).toBe(allowed);
+    }
+  });
 
-    const results = rows.map((row) => ({
-      screen: row.screen,
-      allowed: registry.isActionAllowed(action!, row.context),
-      escapes: shouldEscapeToGlobal('open practice exam', row.language, row.screen),
-    }));
-
-    expect(results).toEqual([
-      { screen: 'dashboard', allowed: true, escapes: false },
-      { screen: 'results', allowed: true, escapes: false },
-      { screen: 'history', allowed: true, escapes: false },
-      { screen: 'analysis', allowed: true, escapes: false },
-      { screen: 'settings', allowed: true, escapes: false },
-      { screen: 'exam-selection', allowed: true, escapes: true },
-      { screen: 'practice-setup', allowed: true, escapes: false },
-      { screen: 'active-practice', allowed: true, escapes: false },
-      { screen: 'active-exam', allowed: false, escapes: false },
-    ]);
+  test('practice setup and active registries do not contradict the escape policy', () => {
+    const registry = new SafeActionRegistry();
+    expect(registry.isActionAllowed('OPEN_HISTORY', 'practice_setup')).toBe(true);
+    expect(registry.isActionAllowed('OPEN_HISTORY', 'practice_active')).toBe(false);
+    expect(registry.isActionAllowed('OPEN_SETTINGS', 'exam_lobby')).toBe(true);
+    expect(registry.isActionAllowed('OPEN_SETTINGS', 'exam_active')).toBe(false);
   });
 });
