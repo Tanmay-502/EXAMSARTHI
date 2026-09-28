@@ -39,6 +39,16 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
   const intentProvider = React.useMemo(() => new OptionalLLMIntentProvider(), []);
   const registry = React.useMemo(() => new SafeActionRegistry(), []);
 
+  const registerHandler = React.useCallback((handler: VoiceActionHandler) => {
+    if (!handlersRef.current.includes(handler)) {
+      handlersRef.current.push(handler);
+    }
+  }, []);
+
+  const unregisterHandler = React.useCallback((handler: VoiceActionHandler) => {
+    handlersRef.current = handlersRef.current.filter(x => x !== handler);
+  }, []);
+
   const getContextName = useCallback((): VoiceAppContext => {
     if (pathname === '/' || pathname === '/welcome') return 'landing';
     if (pathname === '/onboarding/mode') return 'mode_selection';
@@ -374,9 +384,9 @@ export function useGlobalVoice() {
       }, []);
 
       React.useEffect(() => {
-        context.registerHandler(stableHandler);
-        return () => context.unregisterHandler(stableHandler);
-      }, [context, stableHandler]);
+        registerHandler(stableHandler);
+        return () => unregisterHandler(stableHandler);
+      }, [registerHandler, unregisterHandler, stableHandler]);
     },
     dispatchAction: context.dispatchAction,
     getContextName: context.getContextName
