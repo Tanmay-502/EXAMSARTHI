@@ -56,7 +56,7 @@ which our application will then exchange for a secure server-side session cookie
 
 ### 3. Migration order
 
-For an existing Supabase project, apply every file in supabase/migrations/ in filename order through 00011_harden_audit_logs.sql.
+For an existing Supabase project, apply every file in supabase/migrations/ in filename order through 00012_practice_subjects.sql.
 
 The two 00006_* files are distinct historical migrations and should both be applied. Do not rename already-applied migrations.
 
