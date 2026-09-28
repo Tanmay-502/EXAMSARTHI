@@ -49,6 +49,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   const hasTriggeredExpiry = useRef(false);
   const isSubmittingRef = useRef(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [visionStatus, setVisionStatus] = useState<'idle' | 'analyzing' | 'failed'>('idle');
 
   useEffect(() => {
     let timer: ReturnType<typeof setInterval>;
@@ -159,6 +160,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         if (imageUrl) {
           const fetchVisionOrReadAlt = async () => {
             if (currentQuestion.image_alt_text) {
+              setVisionStatus('idle');
               const fullAnnouncement = announcement + ' Diagram description: ' + currentQuestion.image_alt_text + buildOptionsText();
               const currentKey = engineState === 'EXAM' ? `${engineState}-${currentQuestionIndex}` : engineState;
               if (spokenStateKey.current === currentKey) {
@@ -168,6 +170,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
               return;
             }
 
+            setVisionStatus('analyzing');
             const analysisMsg = "This question contains a diagram. Analyzing...";
             announce(analysisMsg, 'assertive');
             if (interactionMode === 'voice-first' || isContinuous) speak(analysisMsg);
@@ -178,8 +181,10 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ imageUrl })
               });
+              if (!res.ok) throw new Error(`Vision service returned ${res.status}`);
               const data = await res.json();
-              
+              setVisionStatus('idle');
+
               const fullAnnouncement = announcement + ' Diagram description: ' + (data.description || 'Unavailable.') + buildOptionsText();
               
               const currentKey = engineState === 'EXAM' ? `${engineState}-${currentQuestionIndex}` : engineState;
@@ -189,6 +194,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
               }
             } catch (err) {
               console.error('Vision fetch failed', err);
+              setVisionStatus('failed');
               const fallback = announcement + ' The diagram could not be analyzed. ' + buildOptionsText();
               announce(fallback, 'assertive');
               if (interactionMode === 'voice-first' || isContinuous) speak(fallback);
@@ -496,7 +502,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             examName: actualTitle, 
             total: questions.length, 
             duration: actualDuration,
-            language: lang === 'en-IN' ? 'English' : lang === 'hi-IN' ? 'Hindi' : 'Telugu'
+            language: lang === 'hi-IN' ? 'हिंदी' : lang === 'te-IN' ? 'తెలుగు' : 'English'
           });
           speak(announcement);
         } else if (engineState === 'EXAM' && currentQuestion) {
@@ -696,6 +702,18 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             {t('submit_confirm_msg')}
           </p>
 
+          {submissionError && (
+            <div
+              className="rounded-2xl border border-amber-900/60 bg-amber-950/20 p-6 text-base text-zinc-200 md:text-lg"
+              role="alert"
+              aria-live="assertive"
+            >
+              <p className="font-semibold">Previous submission attempt was not saved.</p>
+              <p className="mt-2 text-zinc-400">{submissionError}</p>
+              <p className="mt-2 text-zinc-300">Your current answers remain on this device. Check the connection and try again.</p>
+            </div>
+          )}
+
           <div className="pt-16 border-t border-zinc-900 flex flex-wrap gap-4">
             <button
               onClick={() => setEngineState('EXAM')}
@@ -859,6 +877,16 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
                   </h2>
                   {imgUrl && (
                     <div className="mt-12">
+                      {visionStatus === 'analyzing' && (
+                        <div className="mb-4 rounded-2xl border border-blue-900/60 bg-blue-950/20 px-5 py-4 text-base text-blue-100" role="status" aria-live="polite">
+                          Reading the diagram with Vision AI. The question itself is not being solved.
+                        </div>
+                      )}
+                      {visionStatus === 'failed' && (
+                        <div className="mb-4 rounded-2xl border border-amber-900/60 bg-amber-950/20 px-5 py-4 text-base text-zinc-200" role="alert" aria-live="assertive">
+                          Vision AI could not describe this diagram right now. The image remains available, and you can continue with the keyboard or screen reader.
+                        </div>
+                      )}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={imgUrl} alt={currentQuestion.image_alt_text || altText} className="max-w-full h-auto rounded-none border border-zinc-800" />
                     </div>
