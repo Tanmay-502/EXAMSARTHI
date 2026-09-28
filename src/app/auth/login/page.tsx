@@ -11,6 +11,7 @@ import { VoiceCore } from '@/components/voice/VoiceCore';
 import { motion } from 'framer-motion';
 import { formatEmailForSpeech, normalizeSpokenEmail } from '@/lib/voice/emailParser';
 import { usePreferredMode } from '@/lib/hooks/usePreferredMode';
+import { createClient as createSupabaseBrowserClient } from '@/lib/supabase/client';
 
 function LoginForm() {
   const { t, lang } = useI18n();
@@ -26,6 +27,8 @@ function LoginForm() {
   const [voiceStep, setVoiceStep] = useState<'idle' | 'awaiting_email' | 'confirming_email' | 'sending'>('awaiting_email');
   const [voiceEmail, setVoiceEmail] = useState('');
   const [voiceStatus, setVoiceStatus] = useState('');
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleError, setGoogleError] = useState('');
 
   useEffect(() => {
     emailRef.current?.focus();
@@ -53,6 +56,43 @@ function LoginForm() {
       speak(msg);
     }
   }, [message, lang, modeLoaded, preferredMode, isContinuous, startContinuousListening, speak]);
+
+  const signInWithGoogle = async () => {
+    setGoogleLoading(true);
+    setGoogleError('');
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) {
+        console.error('Google sign-in error:', error);
+        setGoogleError(
+          lang === 'hi-IN'
+            ? 'Google से साइन इन शुरू नहीं हो सका। कृपया फिर से कोशिश करें।'
+            : lang === 'te-IN'
+              ? 'Google సైన్-ఇన్ ప్రారంభం కాలేదు. దయచేసి మళ్లీ ప్రయత్నించండి.'
+              : 'Google sign-in could not be started. Please try again.'
+        );
+        setGoogleLoading(false);
+      }
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      setGoogleError(
+        lang === 'hi-IN'
+          ? 'Google से साइन इन शुरू नहीं हो सका। कृपया फिर से कोशिश करें।'
+          : lang === 'te-IN'
+            ? 'Google సైన్-ఇన్ ప్రారంభం కాలేదు. దయచేసి మళ్లీ ప్రయత్నించండి.'
+            : 'Google sign-in could not be started. Please try again.'
+      );
+      setGoogleLoading(false);
+    }
+  };
 
   useVoiceAction((action, _payload, transcript) => {
     const raw = transcript?.trim() || '';
@@ -240,6 +280,31 @@ function LoginForm() {
             {message === 'unauthenticated' ? (lang === 'hi-IN' ? 'परीक्षा देने के लिए आपको पहले लॉगిన్ करना होगा।' : lang === 'te-IN' ? 'పరీక్ష రాయడానికి మీరు ముందుగా లాగిన్ అవ్వాలి.' : 'You need to login first to take an exam.') : message}
           </div>
         )}
+
+        <button
+          type="button"
+          onClick={signInWithGoogle}
+          disabled={googleLoading}
+          className="inline-flex h-14 w-full items-center justify-center gap-3 rounded-full border border-zinc-700 bg-white px-8 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:pointer-events-none disabled:opacity-60"
+          aria-label={lang === 'hi-IN' ? 'Google से साइन इन करें' : lang === 'te-IN' ? 'Googleతో సైన్ ఇన్ చేయండి' : 'Continue with Google'}
+        >
+          <span aria-hidden="true" className="text-lg font-semibold normal-case tracking-normal">G</span>
+          {googleLoading
+            ? (lang === 'hi-IN' ? 'Google खोला जा रहा है...' : lang === 'te-IN' ? 'Google తెరుస్తోంది...' : 'Opening Google...')
+            : (lang === 'hi-IN' ? 'Google से जारी रखें' : lang === 'te-IN' ? 'Googleతో కొనసాగించండి' : 'Continue with Google')}
+        </button>
+
+        {googleError && (
+          <p className="border-t border-zinc-900 pt-6 text-sm text-zinc-300" role="alert">
+            {googleError}
+          </p>
+        )}
+
+        <div className="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-zinc-400" aria-hidden="true">
+          <span className="h-px flex-1 bg-zinc-900" />
+          <span>or</span>
+          <span className="h-px flex-1 bg-zinc-900" />
+        </div>
 
         <form
           ref={formRef}
