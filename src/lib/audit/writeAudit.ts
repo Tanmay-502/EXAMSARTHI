@@ -1,11 +1,9 @@
 import { createAdminClient } from '@/lib/supabase/server'
-import type { Json } from '@supabase/supabase-js'
-
 export type AuditEntry = {
   session_id?: string | null
   candidate_id?: string | null
   action: string
-  metadata?: Json
+  metadata?: Record<string, unknown> | null
 }
 
 export async function writeAudit(entry: AuditEntry): Promise<void> {
