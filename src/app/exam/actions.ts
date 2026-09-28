@@ -441,7 +441,7 @@ export async function startPracticeSession(questionIds: string[] = [], practiceS
     metadata: { is_practice: true, question_count: uniqueQuestionIds.length }
   })
 
-  return data.id
+  return { id: data.id, userId: user.id }
 }
 
 export async function fetchAvailablePracticeSubjects() {
