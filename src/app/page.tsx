@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { signOut } from './auth/actions'
 import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher'
 import { GatewayActions } from '@/components/gateway/GatewayActions'
+import { SignOutButton } from '@/components/auth/SignOutButton'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -22,9 +22,7 @@ export default async function Home() {
             <p className="mt-2 text-sm text-zinc-400">Your existing ExamSaarthi session is active.</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link href="/welcome" className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-6 text-sm font-semibold text-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950">Continue</Link>
-              <form action={signOut}>
-                <button type="submit" className="min-h-12 rounded-full border border-zinc-700 px-6 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950">Sign out</button>
-              </form>
+              <SignOutButton className="min-h-12 rounded-full border border-zinc-700 px-6 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950" />
             </div>
           </section>
         ) : null}
