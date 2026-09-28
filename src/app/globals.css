@@ -133,11 +133,11 @@
 }
 
 html {
-  scroll-padding-bottom: var(--voice-dock-h);
+  scroll-padding-bottom: var(--voice-dock-height);
 }
 
 [data-voice-dock-content="true"] {
-  padding-bottom: var(--voice-dock-h);
+  padding-bottom: var(--voice-dock-height);
 }
 
 [data-voice-dock-content="true"] .min-h-screen {

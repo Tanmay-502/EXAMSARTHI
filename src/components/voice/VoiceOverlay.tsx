@@ -11,7 +11,8 @@ const STORAGE_KEY = 'examsaarthi_voice_dock_expanded';
 export function VoiceOverlay() {
   const { transcript } = useVoice();
   const [expanded, setExpanded] = useState(false);
-  const dockRef = useRef<HTMLDivElement>(null);
+  const dockRef = useRef<HTMLElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     let savedExpanded = false;
@@ -34,7 +35,7 @@ export function VoiceOverlay() {
 
     const updateHeight = () => {
       const height = Math.ceil(dock.getBoundingClientRect().height);
-      document.documentElement.style.setProperty('--voice-dock-h', `${height}px`);
+      document.documentElement.style.setProperty('--voice-dock-height', height + 'px');
     };
 
     updateHeight();
@@ -58,9 +59,24 @@ export function VoiceOverlay() {
     }
   };
 
-  const latestMessage = transcript[transcript.length - 1];
-  const latestUtterance = latestMessage?.text?.trim() || 'No voice interaction yet.';
-  const latestSender = latestMessage?.sender === 'user' ? 'You' : 'ExamSaarthi';
+  const collapseAndRestoreFocus = () => {
+    setExpandedAndPersist(false);
+    window.requestAnimationFrame(() => {
+      toggleRef.current?.focus();
+    });
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (event.key === 'Escape' && expanded) {
+      event.preventDefault();
+      collapseAndRestoreFocus();
+    }
+  };
+
+  const latestAssistantMessage = [...transcript]
+    .reverse()
+    .find((message) => message.sender === 'assistant');
+  const latestAssistantLine = latestAssistantMessage?.text?.trim() || 'Ready for your next command.';
 
   return (
     <>
@@ -68,39 +84,39 @@ export function VoiceOverlay() {
         ref={dockRef}
         data-testid="voice-dock"
         aria-label="Voice assistant status and transcript"
-        className="fixed inset-x-0 bottom-0 z-50 w-full"
+        onKeyDown={handleKeyDown}
+        className="pointer-events-none fixed bottom-2 left-2 right-2 z-50 w-auto md:bottom-4 md:left-auto md:right-4 md:w-full md:max-w-[28rem]"
       >
-        <div className="mx-auto w-full max-w-6xl">
-          {expanded && (
-            <div
-              id="voice-transcript-panel"
-              className="max-h-[40vh] overflow-hidden border-x border-t border-zinc-800 bg-zinc-950 shadow-[0_-16px_50px_rgba(0,0,0,0.35)]"
-            >
-              <VoiceTranscript />
-            </div>
-          )}
+        <div className="pointer-events-auto w-full">
+          <div
+            id="voice-transcript-panel"
+            hidden={!expanded}
+            className="max-h-[calc(45dvh-3.5rem)] overflow-hidden rounded-t-2xl border border-zinc-800 bg-zinc-950 shadow-[0_-16px_50px_rgba(0,0,0,0.35)]"
+          >
+            <VoiceTranscript />
+          </div>
 
-          <div className="flex h-16 min-h-16 w-full items-center gap-2 border-t border-zinc-800 bg-zinc-950 px-3 shadow-[0_-8px_24px_rgba(0,0,0,0.35)] md:gap-3 md:px-5">
+          <div className="flex h-14 min-h-14 w-full items-center gap-2 rounded-t-2xl border border-zinc-800 bg-zinc-950 px-3 shadow-[0_-8px_24px_rgba(0,0,0,0.35)] md:gap-3 md:px-4">
             <VoiceStatusIndicator dock />
 
             <div
               className="min-w-0 flex-1 truncate text-sm font-medium tracking-wide text-zinc-200 md:text-base"
-              title={latestUtterance}
-              aria-label={`${latestSender}: ${latestUtterance}`}
+              title={latestAssistantLine}
+              aria-label={`Assistant: ${latestAssistantLine}`}
             >
-              <span className="font-bold text-zinc-400">{latestSender}:</span>{' '}
-              {latestUtterance}
+              {latestAssistantLine}
             </div>
 
             <button
+              ref={toggleRef}
               type="button"
               id="voice-transcript-toggle"
-              className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-zinc-700 px-4 text-xs font-black uppercase tracking-[0.16em] text-zinc-100 transition-colors hover:border-zinc-400 hover:bg-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 md:px-5"
+              className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full border border-zinc-700 px-3 text-xs font-black uppercase tracking-[0.12em] text-zinc-100 transition-colors hover:border-zinc-400 hover:bg-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 md:px-4"
               onClick={() => setExpandedAndPersist(!expanded)}
               aria-expanded={expanded}
               aria-controls="voice-transcript-panel"
             >
-              Transcript
+              {expanded ? 'Hide transcript' : 'Transcript'}
             </button>
           </div>
         </div>

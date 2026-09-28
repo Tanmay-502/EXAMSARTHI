@@ -12,6 +12,7 @@ import { VoiceCore } from '@/components/voice/VoiceCore';
 import { useAccessibility } from '@/lib/accessibility/AccessibilityProvider';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 import { SafeAction } from '@/lib/voice/safeActionRegistry';
+import { shouldEscapeToGlobal } from '@/lib/voice/navigationEscape';
 
 function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onComplete: () => void, interactionMode: InteractionMode, setInteractionMode: (m: InteractionMode) => void }) {
   const [micStatus, setMicStatus] = useState<'pending' | 'success' | 'error' | 'not-required'>('pending');
@@ -276,6 +277,10 @@ function ExamSelection({
 
     if (lastHandledTranscriptRef.current === normalized) {
       return true;
+    }
+
+    if (action === 'RAW_TRANSCRIPT' && shouldEscapeToGlobal(raw, lang, 'exam-selection')) {
+      return false;
     }
 
     if (

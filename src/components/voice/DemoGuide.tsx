@@ -137,7 +137,7 @@ export function DemoGuide() {
         aria-modal="true"
         aria-label="Quick demo guide"
         aria-describedby="demo-guide-description"
-        className="relative max-h-[calc(100svh-2rem)] w-full max-w-5xl overflow-y-auto rounded-3xl border border-white/15 bg-zinc-950 p-6 shadow-2xl md:max-h-[calc(100svh-4rem)] md:p-10"
+        className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-5xl overflow-y-auto rounded-3xl border border-white/15 bg-zinc-950 p-6 shadow-2xl md:p-10"
       >
         <div className="flex items-start justify-between gap-6 border-b border-zinc-800 pb-6">
           <div>
