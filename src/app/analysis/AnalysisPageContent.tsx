@@ -66,11 +66,14 @@ function TrendChart({ points, t, tParams }: { points: AnalyticsData['sessionTren
   );
 }
 
-function formatDuration(seconds: number) {
-  if (seconds < 60) return seconds + 's';
+function formatDuration(seconds: number, minuteLabel: string, minutesLabel: string, secondLabel: string, secondsLabel: string) {
+  if (seconds < 60) {
+    return `${seconds} ${seconds === 1 ? secondLabel : secondsLabel}`;
+  }
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
-  return m + 'm ' + s + 's';
+  const minutesPart = `${m} ${m === 1 ? minuteLabel : minutesLabel}`;
+  return s > 0 ? `${minutesPart} ${s} ${s === 1 ? secondLabel : secondsLabel}` : minutesPart;
 }
 
 export default function AnalysisPageContent({ data }: { data: AnalyticsData }) {
@@ -106,13 +109,13 @@ export default function AnalysisPageContent({ data }: { data: AnalyticsData }) {
           className="grid gap-12 lg:grid-cols-3 mb-24"
         >
           <div className="border-t border-zinc-900 pt-8">
-            <h3 className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-6">{t('overall_accuracy')}</h3>
+            <h2 className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-6">{t('overall_accuracy')}</h2>
             <div className="text-6xl md:text-7xl font-light tracking-tighter">{data.overall.avgPercentage}%</div>
             <p className="text-sm text-zinc-400 mt-3">{tParams('across_sessions', { count: data.overall.totalSessions })}</p>
           </div>
 
           <div className="border-t border-zinc-900 pt-8">
-            <h3 className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-6">{t('improvement_trend')}</h3>
+            <h2 className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-6">{t('improvement_trend')}</h2>
             <div className="flex items-center gap-2">
               {data.overall.improvementTrend === 'improving' && <TrendingUp className="text-green-500 w-8 h-8" />}
               {data.overall.improvementTrend === 'declining' && <TrendingDown className="text-red-500 w-8 h-8" />}
@@ -128,10 +131,10 @@ export default function AnalysisPageContent({ data }: { data: AnalyticsData }) {
           </div>
 
           <div className="border-t border-zinc-900 pt-8">
-            <h3 className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-6">{t('avg_time_session')}</h3>
+            <h2 className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-6">{t('avg_time_session')}</h2>
             <div className="flex items-center gap-2">
               <Clock className="text-zinc-400 w-8 h-8" />
-              <div className="text-4xl font-light tracking-tighter">{formatDuration(data.timeEfficiency.avgDurationSeconds)}</div>
+              <div className="text-4xl font-light tracking-tighter">{formatDuration(data.timeEfficiency.avgDurationSeconds, t('minute'), t('minutes'), t('second'), t('seconds'))}</div>
             </div>
           </div>
         </motion.div>
@@ -223,7 +226,7 @@ export default function AnalysisPageContent({ data }: { data: AnalyticsData }) {
                   </div>
                   <div className="h-2 w-full bg-zinc-900 rounded-full overflow-hidden" role="progressbar" aria-valuenow={stat.accuracy} aria-valuemin={0} aria-valuemax={100} aria-label={tParams('accuracy_for', { subject: stat.subject })}>
                     <div 
-                      className="h-full bg-white transition-all"
+                      className="h-full bg-[var(--brand-accent)] transition-all"
                       style={{ width: `${stat.accuracy}%` }}
                     />
                   </div>

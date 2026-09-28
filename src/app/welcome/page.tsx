@@ -74,7 +74,7 @@ export default function WelcomePage() {
         <div className="text-sm font-bold uppercase tracking-widest">EXAMSAARTHI</div>
         <button
           onClick={navigateFromHero}
-          className="rounded-full px-2 py-2 text-sm font-medium tracking-wide transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-4 focus-visible:ring-offset-black"
+          className="inline-flex min-h-11 items-center rounded-full px-2 py-2 text-sm font-medium tracking-wide" transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-black"
         >
           {hasPrefs ? 'Continue to dashboard ↗' : 'Get started ↗'}
         </button>
@@ -82,7 +82,7 @@ export default function WelcomePage() {
 
       <motion.section
         style={{ opacity: heroOpacity, scale: heroScale }}
-        className="sticky top-0 flex min-h-[calc(100svh-var(--voice-dock-h))] w-full items-center overflow-hidden px-6 pb-8 pt-20 md:px-12 md:pb-8 md:pt-20"
+        className="sticky top-0 flex min-h-[calc(100svh-var(--voice-dock-height))] w-full items-center overflow-hidden px-6 pb-8 pt-20 md:px-12 md:pb-8 md:pt-20"
       >
         <div className="absolute bottom-0 right-0 top-0 w-full md:w-1/2">
           <HeroScene />
@@ -106,7 +106,7 @@ export default function WelcomePage() {
               ref={activationPromptRef}
               type="button"
               onClick={activateVoice}
-              className="mb-5 inline-flex min-h-12 w-fit max-w-full items-center rounded-full border border-zinc-600 bg-zinc-950 px-5 py-3 text-left text-sm font-semibold text-zinc-100 transition-colors hover:border-zinc-400 hover:bg-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-4 focus-visible:ring-offset-black md:text-base"
+              className="mb-5 inline-flex min-h-12 w-fit max-w-full items-center rounded-full border border-zinc-600 bg-zinc-950 px-5 py-3 text-left text-sm font-semibold text-zinc-100 transition-colors hover:border-zinc-400 hover:bg-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-black md:text-base"
             >
               Press Space, Enter or click to start voice guidance
             </button>
@@ -116,7 +116,7 @@ export default function WelcomePage() {
             <button
               ref={startJourneyRef}
               onClick={navigateFromHero}
-              className="group relative inline-flex h-14 items-center justify-center rounded-full bg-white px-8 text-base font-medium text-black transition-all hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-4 focus-visible:ring-offset-black active:scale-[0.98]"
+              className="group relative inline-flex h-14 items-center justify-center rounded-full bg-white px-8 text-base font-medium text-black transition-all hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-black active:scale-[0.98]"
             >
               {hasPrefs ? 'Continue to dashboard ↗' : 'Get started ↗'}
             </button>

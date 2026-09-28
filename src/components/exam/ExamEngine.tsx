@@ -97,7 +97,9 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           for (const threshold of [1800, 600, 300, 60, 30]) {
             if (previousRemain > threshold && remain <= threshold && !announcedThresholdsRef.current.has(threshold)) {
               announcedThresholdsRef.current.add(threshold);
-              const label = threshold === 30 ? '30 seconds' : threshold === 60 ? '1 minute' : `${Math.floor(threshold / 60)} minutes`;
+              const label = threshold < 60
+                ? `${threshold} ${t('seconds')}`
+                : `${threshold === 60 ? 1 : Math.floor(threshold / 60)} ${threshold === 60 ? t('minute') : t('minutes')}`;
               announce(tParams('time_remaining', { time: label }), 'polite');
             }
           }
@@ -123,7 +125,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
                 }).catch(err => {
                   console.error('Failed to auto-submit exam:', err);
                   setSubmissionError(
-                    'Your time ended, but the server could not save the submission. Please check your connection and retry submission.'
+                    t('engine_autosubmit_error')
                   );
                   setEngineState('PROCESSING');
                   speak(
@@ -155,11 +157,11 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
 
     if (engineState === 'READY') {
       const actualDuration = durationMinutes ?? 60;
-      const actualTitle = examTitle ?? (mode === 'exam' ? 'Selected Exam' : 'Practice');
+      const actualTitle = examTitle ?? (mode === 'exam' ? t('selected_exam') : t('practice'));
       const nativeLanguageName =
-        lang === 'hi-IN' ? 'हिंदी' :
-        lang === 'te-IN' ? 'తెలుగు' :
-        'English';
+        lang === 'en-IN' ? t('language_english') :
+        lang === 'hi-IN' ? t('language_hindi') :
+        t('language_telugu');
       const announcement = tParams('exam_orientation', {
         examName: actualTitle,
         total: questions.length,

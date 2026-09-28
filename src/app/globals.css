@@ -131,7 +131,6 @@
 :root {
   --voice-dock-height: 4rem;
   --brand-accent: #67e8f9;
-  --brand-accent-strong: #22d3ee;
   --font-sans: var(--font-inter), var(--font-devanagari), var(--font-telugu), ui-sans-serif, system-ui, sans-serif;
   --font-heading: var(--font-inter), var(--font-devanagari), var(--font-telugu), ui-sans-serif, system-ui, sans-serif;
 }

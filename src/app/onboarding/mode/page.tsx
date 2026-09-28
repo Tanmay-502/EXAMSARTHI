@@ -85,7 +85,7 @@ export default function ModeSelectionPage() {
           <button
             ref={standardButtonRef}
             onClick={() => handleSelectMode('standard')}
-            className="group flex flex-col items-start p-8 rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-500 hover:bg-zinc-800 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white text-left"
+            className="group flex flex-col items-start p-8 rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-500 hover:bg-zinc-800 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] text-left"
             aria-label="Standard Mode. Visual interface with full keyboard and screen reader support."
           >
             <div className="h-12 w-12 rounded-full bg-zinc-800 flex items-center justify-center mb-6 group-hover:bg-zinc-700 transition-colors">
@@ -103,7 +103,7 @@ export default function ModeSelectionPage() {
 
           <button
             onClick={() => handleSelectMode('voice-first')}
-            className="group flex flex-col items-start p-8 rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-blue-500/50 hover:bg-zinc-800 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 text-left"
+            className="group flex flex-col items-start p-8 rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-blue-500/50 hover:bg-zinc-800 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] text-left"
             aria-label="Voice-first Mode. Conversational interface controlled entirely by your voice."
           >
             <div className="h-12 w-12 rounded-full bg-zinc-800 flex items-center justify-center mb-6 group-hover:bg-blue-900/30 transition-colors">

@@ -454,14 +454,11 @@ function ExamSelection({
               key={exam.id}
               onClick={() => {
                 setSelectedExam(exam);
-                speak(
-                  exam.title +
-                  " selected. It has " +
-                  exam.question_count +
-                  " questions and " +
-                  exam.duration_minutes +
-                  " minutes. Say yes to start or say change to choose another."
-                );
+                speak(tParams('exam_selected_details', {
+                  title: exam.title,
+                  count: exam.question_count,
+                  minutes: exam.duration_minutes,
+                }));
               }}
               className={`group flex w-full text-left flex-col md:flex-row md:items-center justify-between py-8 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] focus-visible:ring-inset ${selectedExam?.id === exam.id ? 'text-white' : 'text-zinc-400 hover:text-zinc-300'}`}
               aria-pressed={selectedExam?.id === exam.id}

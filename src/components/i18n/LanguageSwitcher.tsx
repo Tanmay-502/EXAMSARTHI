@@ -22,7 +22,7 @@ export function LanguageSwitcher() {
         aria-label="Language"
         value={lang}
         onChange={(event) => setLang(event.target.value as LanguageOption['value'])}
-        className="rounded-full border border-zinc-800 bg-black px-3 py-2 text-sm text-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+        className="min-h-11 rounded-full border border-zinc-800 bg-black px-3 py-2 text-sm text-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)]"
       >
         {LANGUAGES.map((language) => (
           <option key={language.value} value={language.value}>{language.label}</option>
