@@ -8,10 +8,11 @@ import { SafeAction } from '@/lib/voice/safeActionRegistry';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useExamStore } from '@/lib/store/examStore';
+import { useVoiceAppContext } from '@/lib/store/voiceContextStore';
+import { say } from '@/lib/voice/say';
 import { Mic, MicOff, CheckCircle, AlertTriangle } from 'lucide-react';
 import { VoiceCore } from '@/components/voice/VoiceCore';
 import { motion } from 'framer-motion';
-import { HeroScene } from '@/components/experience/HeroScene';
 
 type ExamEngineProps = {
   mode: 'practice' | 'exam';
@@ -29,6 +30,10 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   const { speak, stopSpeaking, startContinuousListening, pauseListening, isContinuous, micError } = useVoice();
   const { useVoiceAction } = useGlobalVoice();
   const router = useRouter();
+  const setVoiceContext = useVoiceAppContext(state => state.setContext);
+  const sayMessage = useCallback((message: string, politeness: 'polite' | 'assertive' = 'polite') => {
+    say(message, interactionMode, speak, announce, politeness);
+  }, [interactionMode, speak, announce]);
 
   const {
     questions,
@@ -50,6 +55,32 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   const isSubmittingRef = useRef(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [visionStatus, setVisionStatus] = useState<'idle' | 'analyzing' | 'failed'>('idle');
+  const [isOnline, setIsOnline] = useState(true);
+  const [pendingSyncCount, setPendingSyncCount] = useState(0);
+  const [timeRemainingMinutes, setTimeRemainingMinutes] = useState<number | null>(null);
+  const answerQueueRef = useRef<Map<string, Promise<void>>>(new Map());
+  const pendingAnswerIdsRef = useRef<Set<string>>(new Set());
+  const serverTimeOffsetRef = useRef(0);
+  const announcedThresholdsRef = useRef<Set<number>>(new Set());
+
+  useEffect(() => {
+    setVoiceContext(engineState === 'EXAM' || engineState === 'CONFIRM_ANSWER' || engineState === 'CONFIRM_SUBMIT' || engineState === 'PROCESSING'
+      ? (mode === 'exam' ? 'exam_active' : 'practice_active')
+      : (mode === 'exam' ? 'exam_lobby' : 'practice_setup'));
+    return () => setVoiceContext('unknown');
+  }, [engineState, mode, setVoiceContext]);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    setIsOnline(typeof navigator === 'undefined' ? true : navigator.onLine);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     let timer: ReturnType<typeof setInterval>;
@@ -57,19 +88,28 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
       timer = setInterval(() => {
         const state = useExamStore.getState();
         if (state.startTime) {
-          const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+          const elapsed = Math.floor(((Date.now() + serverTimeOffsetRef.current) - state.startTime) / 1000);
           const maxSeconds = (durationMinutes ?? 60) * 60;
           const remain = Math.max(0, maxSeconds - elapsed);
           const m = Math.floor(remain / 60).toString().padStart(2, '0');
           const s = (remain % 60).toString().padStart(2, '0');
           setTimeRemainingStr(`${m}:${s}`);
+          setTimeRemainingMinutes(Math.ceil(remain / 60));
+          const threshold = remain <= 30 ? 30 : Math.ceil(remain / 60) <= 5 ? 1 : Math.ceil(remain / 60) <= 10 ? 5 : Math.ceil(remain / 60) <= 30 ? 10 : 30;
+          if ([30, 10, 5, 1].includes(threshold) && !announcedThresholdsRef.current.has(threshold)) {
+            announcedThresholdsRef.current.add(threshold);
+            announce(tParams('time_remaining', { time: threshold === 1 ? '1 minute' : `${threshold} minutes` }), 'polite');
+          }
+          if (remain === 30 && !announcedThresholdsRef.current.has(0)) {
+            announcedThresholdsRef.current.add(0);
+            announce(tParams('time_remaining', { time: '30 seconds' }), 'polite');
+          }
 
           if (remain <= 0 && !hasTriggeredExpiry.current) {
             hasTriggeredExpiry.current = true;
             setEngineState('PROCESSING');
             const msg = "Time is up. Submitting your exam.";
-            announce(msg, 'assertive');
-            if (interactionMode === 'voice-first') speak(msg);
+            sayMessage(msg, 'assertive');
             
             // Auto submit reusing existing logic
             import('@/app/exam/actions').then(({ submitExamAnswers }) => {
@@ -101,7 +141,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [engineState, mode, durationMinutes, announce, speak, router, interactionMode]);
+  }, [engineState, mode, durationMinutes, announce, speak, router, interactionMode, sayMessage, tParams]);
 
 
 
@@ -126,8 +166,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         duration: actualDuration,
         language: nativeLanguageName
       }) + ' ' + t('say_start_exam');
-      announce(announcement, 'assertive');
-      if (interactionMode === 'voice-first' || isContinuous) speak(announcement);
+      sayMessage(announcement, 'assertive');
     } else if (engineState === 'EXAM') {
       // Focus the question heading on mount and index change
       headingRef.current?.focus();
@@ -164,16 +203,14 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
               const fullAnnouncement = announcement + ' Diagram description: ' + currentQuestion.image_alt_text + buildOptionsText();
               const currentKey = engineState === 'EXAM' ? `${engineState}-${currentQuestionIndex}` : engineState;
               if (spokenStateKey.current === currentKey) {
-                announce(fullAnnouncement, 'assertive');
-                if (interactionMode === 'voice-first' || isContinuous) speak(fullAnnouncement);
+                        sayMessage(fullAnnouncement, 'assertive');
               }
               return;
             }
 
             setVisionStatus('analyzing');
             const analysisMsg = "This question contains a diagram. Analyzing...";
-            announce(analysisMsg, 'assertive');
-            if (interactionMode === 'voice-first' || isContinuous) speak(analysisMsg);
+            sayMessage(analysisMsg, 'assertive');
 
             try {
               const res = await fetch('/api/vision', {
@@ -189,15 +226,13 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
               
               const currentKey = engineState === 'EXAM' ? `${engineState}-${currentQuestionIndex}` : engineState;
               if (spokenStateKey.current === currentKey) {
-                announce(fullAnnouncement, 'assertive');
-                if (interactionMode === 'voice-first' || isContinuous) speak(fullAnnouncement);
+                sayMessage(fullAnnouncement, 'assertive');
               }
             } catch (err) {
               console.error('Vision fetch failed', err);
               setVisionStatus('failed');
               const fallback = announcement + ' The diagram could not be analyzed. ' + buildOptionsText();
-              announce(fallback, 'assertive');
-              if (interactionMode === 'voice-first' || isContinuous) speak(fallback);
+              sayMessage(fallback, 'assertive');
             }
           };
           fetchVisionOrReadAlt();
@@ -209,9 +244,9 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
       }
     }
   }, [
-    engineState, currentQuestionIndex, currentQuestion, mode, questions.length, 
-    lang, t, tParams, announce, speak, stopSpeaking, isContinuous, 
-    startContinuousListening, durationMinutes, examTitle, pauseListening, interactionMode
+    engineState, currentQuestionIndex, currentQuestion, mode, questions.length,
+    lang, t, tParams, announce, speak, stopSpeaking, isContinuous,
+    startContinuousListening, durationMinutes, examTitle, pauseListening, interactionMode, sayMessage
   ]);
 
 
@@ -409,6 +444,11 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     switch (action) {
       case 'START_EXAM':
       case 'OPEN_EXAM':
+        if (mode === 'practice') {
+          if (engineState === 'READY') { setEngineState('EXAM'); return true; }
+          speak('Practice is already in progress. You can continue with the current questions.');
+          return true;
+        }
         if (mode !== 'exam') return false;
         if (engineState === 'READY') {
           setEngineState('EXAM');
@@ -423,16 +463,20 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         }
         return true;
 
+      case 'START_EXAM':
       case 'START_PRACTICE':
+      case 'OPEN_EXAM':
       case 'OPEN_PRACTICE':
         if (mode !== 'practice') return false;
         if (engineState === 'READY') {
           setEngineState('EXAM');
-        } else if (engineState === 'PROCESSING') {
-          speak('Your practice session is already being submitted.');
-        } else {
-          speak('Practice is already in progress. You can continue with the current questions.');
+          return true;
         }
+        if (engineState === 'PROCESSING') {
+          speak('Your practice session is already being submitted.');
+          return true;
+        }
+        speak('Practice is already in progress. You can continue with the current questions.');
         return true;
 
 
@@ -578,7 +622,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         if (mode === 'exam') {
           const state = useExamStore.getState();
           if (state.startTime) {
-            const elapsedSeconds = Math.floor((Date.now() - state.startTime) / 1000);
+            const elapsedSeconds = Math.floor(((Date.now() + serverTimeOffsetRef.current) - state.startTime) / 1000);
             const remainingSeconds = Math.max(0, ((durationMinutes ?? 60) * 60) - elapsedSeconds);
             const minutesLeft = Math.ceil(remainingSeconds / 60);
             speak(tParams('time_remaining', { time: `${minutesLeft} ${t('minutes')}` }));
