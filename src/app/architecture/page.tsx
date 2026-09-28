@@ -105,7 +105,7 @@ const RobotVisual = () => (
     initial={{ y: 0 }}
     animate={{ y: [-5, 5, -5] }}
     transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-    className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-2xl mb-4 mr-4"
+    className="inline-flex items-center justify-center p-3 bg-white/5 rounded-2xl mb-4 mr-4"
   >
     <svg 
       width="40" 
@@ -132,24 +132,24 @@ export default function ArchitecturePage() {
   const [activeNode, setActiveNode] = useState<string | null>(null);
 
   return (
-    <main className="min-h-screen bg-background flex flex-col items-center py-16 px-6 md:px-12 relative overflow-hidden">
+    <main className="min-h-screen bg-black text-white flex flex-col items-center py-16 px-6 md:px-12 relative overflow-hidden">
       
       {/* Decorative Background Elements */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-primary/5 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-secondary/5 blur-[120px] pointer-events-none" />
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-white/5 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-white/5 blur-[120px] pointer-events-none" />
       
       <div className="w-full max-w-6xl z-10 space-y-16">
         <header className="text-center space-y-6">
           <div className="flex justify-center items-center">
             <RobotVisual />
             <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-2xl mb-4">
-              <Server className="w-10 h-10 text-primary" />
+              <Server className="w-10 h-10 text-white" />
             </div>
           </div>
-          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-foreground">
+          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-zinc-100">
             System Architecture
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+          <p className="text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed">
             ExamSaarthi V2 is built on a resilient, accessible, voice-first architecture designed to decouple input from UI presentation.
           </p>
         </header>
@@ -163,7 +163,7 @@ export default function ArchitecturePage() {
             
             <div className="flex flex-col gap-4 relative">
               {/* Connecting line for desktop with Animated Data Pulses */}
-              <div className="hidden lg:block absolute left-13 top-10 bottom-10 w-0.5 bg-border -z-10 overflow-hidden">
+              <div className="hidden lg:block absolute left-13 top-10 bottom-10 w-0.5 bg-zinc-700 -z-10 overflow-hidden">
                 <motion.div
                   className="w-full h-32 bg-linear-to-b from-transparent via-primary to-transparent opacity-50"
                   animate={{
@@ -187,14 +187,14 @@ export default function ArchitecturePage() {
                     onClick={() => setActiveNode(isActive ? null : node.id)}
                     aria-expanded={isActive}
                     aria-controls={`node-details-${node.id}`}
-                    className={`group relative text-left w-full flex items-center p-6 rounded-2xl transition-all duration-300 border-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary ${
+                    className={`group relative text-left w-full flex items-center p-6 rounded-2xl transition-all duration-300 border-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/30 ${
                       isActive 
-                        ? 'bg-card border-primary shadow-[0_0_30px_-5px_rgba(var(--primary),0.2)] scale-[1.02]' 
-                        : 'bg-card/50 border-border hover:border-primary/50 hover:bg-card'
+                        ? 'bg-zinc-950 border-white shadow-[0_0_30px_-5px_rgba(var(--primary),0.2)] scale-[1.02]' 
+                        : 'bg-zinc-950/80 border-zinc-800 hover:border-white/50 hover:bg-card'
                     }`}
                   >
                     <div className={`shrink-0 w-14 h-14 rounded-xl flex items-center justify-center transition-colors ${
-                      isActive ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary'
+                      isActive ? 'bg-white text-black' : 'bg-zinc-900 text-muted-foreground group-hover:bg-white/10 group-hover:text-primary'
                     }`}>
                       <Icon className="w-7 h-7" />
                     </div>
@@ -223,7 +223,7 @@ export default function ArchitecturePage() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ duration: 0.2 }}
-                    className="bg-card border-2 border-primary/20 rounded-3xl p-8 shadow-xl"
+                    className="bg-card border-2 border-white/15 rounded-3xl p-8 shadow-xl"
                     id={`node-details-${activeNode}`}
                     role="region"
                     aria-label={`${nodes.find(n => n.id === activeNode)?.title} details`}
@@ -258,7 +258,7 @@ export default function ArchitecturePage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="h-full flex flex-col items-center justify-center text-center p-12 border-2 border-dashed border-border rounded-3xl bg-card/20"
+                    className="h-full flex flex-col items-center justify-center text-center p-12 border-2 border-dashed border-border rounded-3xl bg-black"
                   >
                     <RadioTower className="w-16 h-16 text-muted-foreground mb-6 opacity-50" />
                     <h3 className="text-2xl font-bold text-muted-foreground mb-2">Explore the System</h3>
@@ -275,7 +275,7 @@ export default function ArchitecturePage() {
         <div className="flex justify-center pt-12">
           <Link
             href="/dashboard"
-            className="inline-flex items-center justify-center px-8 py-4 rounded-xl text-lg font-bold bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring border-2 border-transparent"
+            className="inline-flex items-center justify-center px-8 py-4 rounded-xl text-lg font-bold bg-white text-black hover:bg-zinc-200 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring border-2 border-transparent"
           >
             Return to Dashboard
           </Link>
