@@ -73,7 +73,7 @@ function SignupForm() {
           <button type="button" onClick={signInWithGoogle} disabled={googleLoading} className="inline-flex h-14 w-full items-center justify-center gap-3 rounded-full border border-zinc-700 bg-white px-8 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:opacity-60"><span aria-hidden="true" className="text-lg font-semibold normal-case tracking-normal">G</span>{googleLoading ? 'Opening Google...' : 'Continue with Google'}</button>
           {googleError ? <p role="alert" className="text-sm text-zinc-300">{googleError}</p> : null}
 
-          <div className="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-zinc-500" aria-hidden="true"><span className="h-px flex-1 bg-zinc-900" /><span>or</span><span className="h-px flex-1 bg-zinc-900" /></div>
+          <div className="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-zinc-400" aria-hidden="true"><span className="h-px flex-1 bg-zinc-900" /><span>or</span><span className="h-px flex-1 bg-zinc-900" /></div>
 
           <form ref={formRef} action={signUpWithMagicLink} onSubmit={() => { setVoiceStep('sending'); setVoiceStatus('Sending Magic Link...') }} className="space-y-8">
             <div className="space-y-3"><label htmlFor="full_name" className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">Full name</label><input ref={nameRef} id="full_name" name="full_name" type="text" minLength={2} maxLength={80} autoComplete="name" required className="h-14 w-full border-b border-zinc-800 bg-transparent text-xl text-white focus-visible:outline-none focus-visible:border-zinc-400" /></div>
@@ -82,7 +82,7 @@ function SignupForm() {
             <button type="submit" className="inline-flex h-14 w-full items-center justify-center rounded-full bg-white px-8 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">Create account ↗</button>
           </form>
 
-          <p className="text-sm text-zinc-500">{lang === 'hi-IN' ? 'पहले से अकाउंट है? ' : lang === 'te-IN' ? 'ఇప్పటికే ఖాతా ఉందా? ' : 'Already have an account? '}<Link href="/auth/login" className="text-zinc-100 underline underline-offset-4">{t('login')}</Link></p>
+          <p className="text-sm text-zinc-400">{lang === 'hi-IN' ? 'पहले से अकाउंट है? ' : lang === 'te-IN' ? 'ఇప్పటికే ఖాతా ఉందా? ' : 'Already have an account? '}<Link href="/auth/login" className="text-zinc-100 underline underline-offset-4">{t('login')}</Link></p>
         </div>
       </div>
     </main>
