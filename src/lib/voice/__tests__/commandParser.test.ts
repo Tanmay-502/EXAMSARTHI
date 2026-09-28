@@ -8,7 +8,7 @@ describe('Voice Command Parser', () => {
     test('should parse SELECT_OPTION correctly', () => {
       assert.deepStrictEqual(parseCommand('option a', 'en-IN'), { type: 'SELECT_OPTION', index: 0 });
       assert.deepStrictEqual(parseCommand('answer b', 'en-IN'), { type: 'SELECT_OPTION', index: 1 });
-      assert.deepStrictEqual(parseCommand('i choose c', 'en-IN', 'exam'), { type: 'SELECT_OPTION', index: 2 });
+      assert.deepStrictEqual(parseCommand('i choose c', 'en-IN', 'exam_active'), { type: 'SELECT_OPTION', index: 2 });
       assert.deepStrictEqual(parseCommand('d is the correct answer', 'en-IN'), { type: 'SELECT_OPTION', index: 3 });
     });
 
@@ -103,7 +103,7 @@ describe('Voice Command Parser', () => {
     });
 
     test('should parse Telugu mode and analysis fallbacks', () => {
-      assert.deepStrictEqual(parseCommand('వాయిస్', 'te-IN'), { type: 'SELECT_MODE_VOICE' });
+      assert.deepStrictEqual(parseCommand('వాయిస్', 'te-IN', 'mode_selection'), { type: 'SELECT_MODE_VOICE' });
       assert.deepStrictEqual(parseCommand('స్టాండర్డ్', 'te-IN'), { type: 'SELECT_MODE_STANDARD' });
       assert.deepStrictEqual(parseCommand('విశ్లేషణ', 'te-IN'), { type: 'OPEN_ANALYSIS' });
       assert.deepStrictEqual(parseCommand('నా పనితీరు ఎలా ఉంది', 'te-IN'), { type: 'OPEN_ANALYSIS' });
