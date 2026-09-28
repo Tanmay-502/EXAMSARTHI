@@ -10,7 +10,7 @@ export function GatewayActions() {
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target
       if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement || (target instanceof HTMLElement && target.isContentEditable)) return
-      if (event.ctrlKey || event.metaKey || event.altKey) return
+      if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || event.defaultPrevented) return
       const key = event.key.toLowerCase()
       if (key === 'l') { event.preventDefault(); router.push('/auth/login') }
       if (key === 's') { event.preventDefault(); router.push('/auth/signup') }
