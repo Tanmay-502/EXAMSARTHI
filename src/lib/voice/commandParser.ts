@@ -33,6 +33,7 @@ export type VoiceCommand =
   | { type: 'SELECT_MODE_STANDARD' }
   | { type: 'SELECT_MODE_VOICE' }
   | { type: 'OPEN_ANALYSIS' }
+  | { type: 'DISMISS_GUIDE' }
   | { type: 'UNKNOWN' };
 
 export function parseCommand(transcript: string, lang: Locale, context?: string): VoiceCommand {
@@ -78,6 +79,8 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
     if (/(సైన్ అప్|ఖాతా సృష్టించ|అకౌంట్).*/.test(normalized)) return { type: 'SIGN_UP' };
     if (/(డాష్‌బోర్డ్|డాష్బోర్డ్|హోమ్).*(వెళ్ల|తెర|తిరిగి)/.test(normalized)) return { type: 'OPEN_DASHBOARD' };
   }
+
+  if (matchesPhrase(normalized, 'skip guide') || matchesPhrase(normalized, 'dismiss guide') || matchesPhrase(normalized, 'close guide')) return { type: 'DISMISS_GUIDE' };
 
   // Hardcoded fallback for analysis
   if (matchesPhrase(normalized, 'analysis') || matchesPhrase(normalized, 'show analysis') || matchesPhrase(normalized, 'open analysis') || matchesPhrase(normalized, 'give me the analysis') || matchesPhrase(normalized, 'tell me my analysis') || matchesPhrase(normalized, 'tell me the analysis of me') || matchesPhrase(normalized, 'analyse my preparation') || matchesPhrase(normalized, 'analyze my preparation') || matchesPhrase(normalized, 'show my performance') || matchesPhrase(normalized, 'how am i performing') || matchesPhrase(normalized, 'how is my preparation') || matchesPhrase(normalized, 'analyze') || matchesPhrase(normalized, 'analyse') || matchesPhrase(normalized, 'విశ్లేషణ') || matchesPhrase(normalized, 'విశ్లేషణ చూపించు') || matchesPhrase(normalized, 'నా విశ్లేషణ') || matchesPhrase(normalized, 'నా పనితీరు ఎలా ఉంది') || matchesPhrase(normalized, 'నా తయారీ ఎలా ఉంది') || matchesPhrase(normalized, 'పనితీరు')) return { type: 'OPEN_ANALYSIS' };
