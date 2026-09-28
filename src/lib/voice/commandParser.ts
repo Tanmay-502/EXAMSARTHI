@@ -72,23 +72,9 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
   if (!allowsModeOrAnalysis && restrictedModeOrAnalysis.has(normalized)) {
     return { type: 'UNKNOWN' };
   }
-  if (!allowsModeOrAnalysis) {
-    const restrictedPhrases = new Set([
-      'voice', 'voice first', 'voicefirst', 'standard', 'analysis',
-      'show analysis', 'open analysis', 'give me the analysis',
-      'tell me my analysis', 'tell me the analysis of me',
-      'analyse my preparation', 'analyze my preparation',
-      'show my performance', 'how am i performing',
-      'how is my preparation', 'analyze', 'analyse',
-      'వాయిస్', 'వాయిస్ ఫస్ట్', 'స్టాండర్డ్', 'విశ్లేషణ',
-      'విశ్లేషణ చూపించు', 'నా విశ్లేషణ', 'నా పనితీరు ఎలా ఉంది',
-      'నా తయారీ ఎలా ఉంది', 'పనితీరు',
-      'वॉइस', 'वॉइस फर्स्ट', 'स्टैंडर्ड',
-    ]);
-    if (restrictedPhrases.has(normalized)) return { type: 'UNKNOWN' };
-  }
 
-  // Practice intent is a navigation shortcut only in mode-selection/onboarding/dashboard.
+
+  // Practice intent remains available as a general study-navigation phrase.
   const practiceWords = lang === 'hi-IN'
     ? ['अभ्यास', 'प्रैक्टिस']
     : lang === 'te-IN'
@@ -100,8 +86,8 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
   if (containsPracticeWord) return { type: 'DASHBOARD_PRACTICE' };
 
   // Hardcoded fallback for onboarding mode selection (English and transliterations)
-  if (contextualModeAnalysis && (matchesPhrase(normalized, 'standard') || matchesPhrase(normalized, 'स्टैंडर्ड') || matchesPhrase(normalized, 'స్టాండర్డ్') || matchesPhrase(normalized, 'సాధారణం'))) return { type: 'SELECT_MODE_STANDARD' };
-  if (contextualModeAnalysis && (matchesPhrase(normalized, 'voice first') || matchesPhrase(normalized, 'voicefirst') || matchesPhrase(normalized, 'voice') || matchesPhrase(normalized, 'वॉइस फर्स्ट') || matchesPhrase(normalized, 'वॉइस') || matchesPhrase(normalized, 'వాయిస్ ఫస్ట్') || matchesPhrase(normalized, 'వాయిస్'))) return { type: 'SELECT_MODE_VOICE' };
+  if (allowsModeOrAnalysis && (matchesPhrase(normalized, 'standard') || matchesPhrase(normalized, 'स्टैंडर्ड') || matchesPhrase(normalized, 'స్టాండర్డ్') || matchesPhrase(normalized, 'సాధారణం'))) return { type: 'SELECT_MODE_STANDARD' };
+  if (allowsModeOrAnalysis && (matchesPhrase(normalized, 'voice first') || matchesPhrase(normalized, 'voicefirst') || matchesPhrase(normalized, 'voice') || matchesPhrase(normalized, 'वॉइस फर्स्ट') || matchesPhrase(normalized, 'वॉइस') || matchesPhrase(normalized, 'వాయిస్ ఫస్ట్') || matchesPhrase(normalized, 'వాయిస్'))) return { type: 'SELECT_MODE_VOICE' };
 
   // Natural-language shortcuts for common navigation and study intents.
   // Keep these deterministic and deliberately broad so normal speech does not
