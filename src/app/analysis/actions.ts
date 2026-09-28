@@ -21,6 +21,12 @@ export type AnalyticsData = {
     avgDurationSeconds: number;
   };
   subjectAccuracy: SubjectStats[];
+  sessionTrend: {
+    id: string;
+    label: string;
+    percentage: number;
+    isPractice: boolean;
+  }[];
   strongSubjects: string[];
   weakSubjects: string[];
 };
@@ -41,6 +47,12 @@ export async function fetchAnalyticsData(): Promise<AnalyticsData> {
 
   const completedSessions = sessions || [];
   const totalSessions = completedSessions.length;
+  const sessionTrend = completedSessions.slice(-8).map(session => ({
+    id: session.id,
+    label: new Date(session.started_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+    percentage: Math.round(session.percentage || 0),
+    isPractice: Boolean(session.is_practice),
+  }));
 
   let avgPercentage = 0;
   let improvementTrend: 'improving' | 'declining' | 'stable' | 'insufficient_data' = 'insufficient_data';
@@ -194,6 +206,7 @@ export async function fetchAnalyticsData(): Promise<AnalyticsData> {
       avgDurationSeconds
     },
     subjectAccuracy: Object.values(subjectStatsMap).sort((a, b) => b.total - a.total),
+    sessionTrend,
     strongSubjects,
     weakSubjects
   };
