@@ -7,7 +7,7 @@ function isPublicPath(pathname: string) {
   if (pathname === '/' || pathname === '/auth' || pathname.startsWith('/auth/')) return true
   if (PUBLIC_ASSET_PATHS.has(pathname)) return true
   if (pathname.startsWith('/_next/static/') || pathname.startsWith('/_next/image')) return true
-  if (/\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|map|woff2?)$/i.test(pathname)) return true
+  if (/\.(?:svg|png|jpg|jpeg|gif|webp|ico)$/i.test(pathname)) return true
   return false
 }
 
@@ -49,5 +49,5 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|manifest\\.json|sw\\.js|icon\\.svg|.*\\.(?:svg|png|jpg|jpeg|gif|webp|css|js|map|woff2?))).*'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|manifest\\.json|sw\\.js|icon\\.svg|.*\\.(?:svg|png|jpg|jpeg|gif|webp))).*'],
 }
