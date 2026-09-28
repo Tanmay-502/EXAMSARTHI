@@ -64,6 +64,12 @@ test.describe('Task B core regression invariants', () => {
     expect(parser).toContain("wordCount <= 3")
   })
 
+  test('dashboard startup uses the shared say helper instead of paired speech and live announcement', () => {
+    const dashboard = read('src/app/dashboard/page.tsx')
+    expect(dashboard).toContain("import { say } from '@/lib/voice/say'")
+    expect(dashboard).toContain('say(`${announceMsg} ${greeting}`, interactionMode, speak, announce)')
+    expect(dashboard).not.toContain('announce(announceMsg)')
+  })
   test('timer uses the persisted server clock offset', () => {
     const engine = read('src/components/exam/ExamEngine.tsx')
     const store = read('src/lib/store/examStore.ts')
