@@ -300,7 +300,7 @@ function LoginForm() {
           </p>
         )}
 
-        <div className="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-zinc-600" aria-hidden="true">
+        <div className="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-zinc-400" aria-hidden="true">
           <span className="h-px flex-1 bg-zinc-900" />
           <span>or</span>
           <span className="h-px flex-1 bg-zinc-900" />
