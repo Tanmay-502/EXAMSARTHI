@@ -36,6 +36,6 @@ const MESSAGES: Record<AuthCode, Record<'en-IN' | 'hi-IN' | 'te-IN', string>> = 
 }
 
 export function getAuthMessage(code: string | null, lang: 'en-IN' | 'hi-IN' | 'te-IN') {
-  if (!code || !(code in MESSAGES)) return null
+  if (!code || !Object.hasOwn(MESSAGES, code)) return null
   return MESSAGES[code as AuthCode][lang]
 }
