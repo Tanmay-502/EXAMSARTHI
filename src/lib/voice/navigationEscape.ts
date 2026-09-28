@@ -28,7 +28,7 @@ const escapeActionsByScreen: Record<NavigationEscapeScreen, ReadonlySet<SafeActi
     'READ_PROGRESS',
     'LOGOUT',
   ]),
-  'practice-setup': new Set([
+  practice_setup: new Set([
     'OPEN_DASHBOARD',
     'OPEN_EXAM',
     'OPEN_HISTORY',
