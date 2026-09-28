@@ -4,7 +4,6 @@ import * as path from 'path';
 import { z } from 'zod';
 import * as dotenv from 'dotenv';
 
-// Load env vars
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -17,7 +16,6 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-// Schema for Official Exam
 const TranslationSchema = z.object({
   content_text: z.string(),
   options: z.array(z.string()).length(4),
@@ -26,6 +24,7 @@ const TranslationSchema = z.object({
 const QuestionSchema = z.object({
   order_index: z.number().int(),
   subject: z.string().default('General'),
+  difficulty: z.enum(['easy', 'medium', 'hard']).default('medium'),
   content_text: z.string(),
   options: z.array(z.string()).length(4),
   correct_answer_index: z.number().int().min(0).max(3),
@@ -42,7 +41,7 @@ const ExamSchema = z.object({
 async function main() {
   const filePath = process.argv[2];
   if (!filePath) {
-    console.error("Usage: npx ts-node scripts/ingest_exam.ts <path-to-exam-json>");
+    console.error("Usage: npm run ingest -- <path-to-exam-json>");
     process.exit(1);
   }
 
@@ -52,112 +51,96 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`Reading exam data from ${absolutePath}...`);
   const rawData = JSON.parse(fs.readFileSync(absolutePath, 'utf8'));
-
-  console.log("Validating exam format...");
   const validationResult = ExamSchema.safeParse(rawData);
-
   if (!validationResult.success) {
     console.error("Validation failed:", JSON.stringify(validationResult.error.issues, null, 2));
     process.exit(1);
   }
 
   const examData = validationResult.data;
-  console.log(`Validation successful for exam: ${examData.title}`);
-
-  // 1. Insert Exam
-  console.log("Inserting exam...");
-  const { data: examInsert, error: examError } = await supabase
+  const { data: existingExam, error: existingExamError } = await supabase
     .from('exams')
-    .insert({
-      title: examData.title,
-      description: examData.description,
-      duration_minutes: examData.duration_minutes
-    })
     .select('id')
-    .single();
+    .eq('title', examData.title)
+    .maybeSingle();
 
-  if (examError) {
-    console.error("Failed to insert exam:", examError);
+  if (existingExamError) {
+    console.error("Failed to check existing exam:", existingExamError);
     process.exit(1);
   }
 
-  const examId = examInsert.id;
-  console.log(`Exam inserted with ID: ${examId}`);
+  if (existingExam) {
+    console.log(`Exam already exists (${existingExam.id}); skipping ingestion.`);
+    return;
+  }
 
-  // 2. Insert Questions & Answers
-  console.log(`Inserting ${examData.questions.length} questions...`);
-  for (const q of examData.questions) {
-    // Insert into questions. Supabase jsonb columns accept arrays/objects
-    // directly; do not stringify the options payload.
-    const contentTranslations = Object.fromEntries(
-      Object.entries(q.translations).map(([locale, translation]) => [
-        locale,
-        translation.content_text
-      ])
-    );
-    const optionsTranslations = Object.fromEntries(
-      Object.entries(q.translations).map(([locale, translation]) => [
-        locale,
-        translation.options
-      ])
-    );
-
-    const { data: qInsert, error: qError } = await supabase
-      .from('questions')
+  let examId: string | null = null;
+  try {
+    const { data: examInsert, error: examError } = await supabase
+      .from('exams')
       .insert({
-        exam_id: examId,
-        order_index: q.order_index,
-        subject: q.subject,
-        content_text: q.content_text,
-        options: q.options,
-        content_translations: contentTranslations,
-        options_translations: optionsTranslations
+        title: examData.title,
+        description: examData.description,
+        duration_minutes: examData.duration_minutes
       })
       .select('id')
       .single();
 
-    if (qError) {
-      console.error(`Failed to insert question ${q.order_index}:`, qError);
-      process.exit(1);
+    if (examError || !examInsert) throw examError || new Error('Failed to insert exam');
+    examId = examInsert.id;
+
+    for (const q of examData.questions) {
+      const contentTranslations = Object.fromEntries(
+        Object.entries(q.translations).map(([locale, translation]) => [locale, translation.content_text])
+      );
+      const optionsTranslations = Object.fromEntries(
+        Object.entries(q.translations).map(([locale, translation]) => [locale, translation.options])
+      );
+
+      const { data: qInsert, error: qError } = await supabase
+        .from('questions')
+        .insert({
+          exam_id: examId,
+          order_index: q.order_index,
+          subject: q.subject,
+          difficulty: q.difficulty,
+          content_text: q.content_text,
+          options: q.options,
+          content_translations: contentTranslations,
+          options_translations: optionsTranslations
+        })
+        .select('id')
+        .single();
+
+      if (qError || !qInsert) throw qError || new Error(`Failed to insert question ${q.order_index}`);
+
+      const { error: qaError } = await supabase
+        .from('question_answers')
+        .insert({
+          question_id: qInsert.id,
+          correct_answer_index: q.correct_answer_index
+        });
+
+      if (qaError) throw qaError;
     }
 
-    const questionId = qInsert.id;
-
-    // Verify the jsonb options survived insertion as an array before
-    // creating the privileged correct-answer row.
-    const { data: insertedQuestion, error: sanityError } = await supabase
-      .from('questions')
-      .select('options')
-      .eq('id', questionId)
-      .single();
-
-    if (sanityError) {
-      console.error(`Failed to re-fetch question ${q.order_index} for sanity check:`, sanityError);
-      process.exit(1);
+    console.log("✅ Ingestion complete!");
+  } catch (error) {
+    console.error("Ingestion failed:", error);
+    if (examId) {
+      const { error: rollbackError } = await supabase
+        .from('exams')
+        .delete()
+        .eq('id', examId);
+      if (rollbackError) console.error('Rollback failed:', rollbackError);
+      else console.log(`Rolled back exam ${examId}.`);
     }
-
-    if (!insertedQuestion || !Array.isArray(insertedQuestion.options)) {
-      console.error(`Sanity check failed for question ${q.order_index}: options is not an array.`);
-      process.exit(1);
-    }
-
-    // Insert into question_answers
-    const { error: qaError } = await supabase
-      .from('question_answers')
-      .insert({
-        question_id: questionId,
-        correct_answer_index: q.correct_answer_index
-      });
-
-    if (qaError) {
-      console.error(`Failed to insert answer for question ${q.order_index}:`, qaError);
-      process.exit(1);
-    }
+    process.exit(1);
   }
-
-  console.log("✅ Ingestion complete!");
 }
 
-main().catch(console.error);
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

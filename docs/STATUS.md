@@ -23,7 +23,7 @@ These require real target-environment evidence:
 - Magic Link email delivery/callback.
 - NVDA/VoiceOver screen-reader walkthrough.
 - Network interruption/reconnect during an active session.
-- Supabase migrations through 00011 applied to the target project.
+- Supabase migrations through 00012 applied to the target project.
 - PWA installation/update behavior on the target deployment.
 - Full voice-only rehearsal across all major routes.
 

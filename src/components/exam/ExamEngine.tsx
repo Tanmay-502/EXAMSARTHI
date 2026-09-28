@@ -8,10 +8,12 @@ import { SafeAction } from '@/lib/voice/safeActionRegistry';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useExamStore } from '@/lib/store/examStore';
+import { useVoiceAppContext } from '@/lib/store/voiceContextStore';
+import { say } from '@/lib/voice/say';
+import { clearExamStorage } from '@/lib/store/clearExamStorage';
 import { Mic, MicOff, CheckCircle, AlertTriangle } from 'lucide-react';
 import { VoiceCore } from '@/components/voice/VoiceCore';
 import { motion } from 'framer-motion';
-import { HeroScene } from '@/components/experience/HeroScene';
 
 type ExamEngineProps = {
   mode: 'practice' | 'exam';
@@ -29,6 +31,10 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   const { speak, stopSpeaking, startContinuousListening, pauseListening, isContinuous, micError } = useVoice();
   const { useVoiceAction } = useGlobalVoice();
   const router = useRouter();
+  const setVoiceContext = useVoiceAppContext(state => state.setContext);
+  const sayMessage = useCallback((message: string, politeness: 'polite' | 'assertive' = 'polite') => {
+    say(message, interactionMode, speak, announce, politeness);
+  }, [interactionMode, speak, announce]);
 
   const {
     questions,
@@ -50,6 +56,31 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   const isSubmittingRef = useRef(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [visionStatus, setVisionStatus] = useState<'idle' | 'analyzing' | 'failed'>('idle');
+  const [isOnline, setIsOnline] = useState(() => typeof navigator === 'undefined' ? true : navigator.onLine);
+  const [pendingSyncCount, setPendingSyncCount] = useState(0);
+  const lastRemainingSecondsRef = useRef<number>(Number.POSITIVE_INFINITY);
+  const answerQueueRef = useRef<Map<string, Promise<void>>>(new Map());
+  const pendingAnswerIdsRef = useRef<Set<string>>(new Set());
+  const serverTimeOffsetRef = useRef(0);
+  const announcedThresholdsRef = useRef<Set<number>>(new Set());
+
+  useEffect(() => {
+    setVoiceContext(engineState === 'EXAM' || engineState === 'CONFIRM_ANSWER' || engineState === 'CONFIRM_SUBMIT' || engineState === 'PROCESSING'
+      ? (mode === 'exam' ? 'exam_active' : 'practice_active')
+      : (mode === 'exam' ? 'exam_lobby' : 'practice_setup'));
+    return () => setVoiceContext('unknown');
+  }, [engineState, mode, setVoiceContext]);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     let timer: ReturnType<typeof setInterval>;
@@ -57,29 +88,39 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
       timer = setInterval(() => {
         const state = useExamStore.getState();
         if (state.startTime) {
-          const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+          const elapsed = Math.floor(((Date.now() + serverTimeOffsetRef.current) - state.startTime) / 1000);
           const maxSeconds = (durationMinutes ?? 60) * 60;
           const remain = Math.max(0, maxSeconds - elapsed);
           const m = Math.floor(remain / 60).toString().padStart(2, '0');
           const s = (remain % 60).toString().padStart(2, '0');
           setTimeRemainingStr(`${m}:${s}`);
+          const previousRemain = lastRemainingSecondsRef.current;
+          for (const threshold of [1800, 600, 300, 60, 30]) {
+            if (previousRemain > threshold && remain <= threshold && !announcedThresholdsRef.current.has(threshold)) {
+              announcedThresholdsRef.current.add(threshold);
+              const label = threshold === 30 ? '30 seconds' : threshold === 60 ? '1 minute' : `${Math.floor(threshold / 60)} minutes`;
+              announce(tParams('time_remaining', { time: label }), 'polite');
+            }
+          }
+          lastRemainingSecondsRef.current = remain;
 
           if (remain <= 0 && !hasTriggeredExpiry.current) {
             hasTriggeredExpiry.current = true;
             setEngineState('PROCESSING');
             const msg = "Time is up. Submitting your exam.";
-            announce(msg, 'assertive');
-            if (interactionMode === 'voice-first') speak(msg);
+            sayMessage(msg, 'assertive');
             
             // Auto submit reusing existing logic
             import('@/app/exam/actions').then(({ submitExamAnswers }) => {
               const latestState = useExamStore.getState();
               if (latestState.sessionId) {
                 const questionIds = latestState.questions.map(q => q.id);
-                submitExamAnswers(latestState.sessionId, latestState.answers, questionIds).then(() => {
+                submitExamAnswers(latestState.sessionId, latestState.answers, questionIds).then(async () => {
                   setSubmissionError(null);
+                  const submittedSessionId = latestState.sessionId;
                   latestState.submitExam();
-                  router.push(`/results?session_id=${latestState.sessionId}`);
+                  await clearExamStorage();
+                  router.push(`/results?session_id=${submittedSessionId}`);
                 }).catch(err => {
                   console.error('Failed to auto-submit exam:', err);
                   setSubmissionError(
@@ -101,7 +142,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [engineState, mode, durationMinutes, announce, speak, router, interactionMode]);
+  }, [engineState, mode, durationMinutes, announce, speak, router, interactionMode, sayMessage, tParams]);
 
 
 
@@ -126,8 +167,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         duration: actualDuration,
         language: nativeLanguageName
       }) + ' ' + t('say_start_exam');
-      announce(announcement, 'assertive');
-      if (interactionMode === 'voice-first' || isContinuous) speak(announcement);
+      sayMessage(announcement, 'assertive');
     } else if (engineState === 'EXAM') {
       // Focus the question heading on mount and index change
       headingRef.current?.focus();
@@ -164,22 +204,20 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
               const fullAnnouncement = announcement + ' Diagram description: ' + currentQuestion.image_alt_text + buildOptionsText();
               const currentKey = engineState === 'EXAM' ? `${engineState}-${currentQuestionIndex}` : engineState;
               if (spokenStateKey.current === currentKey) {
-                announce(fullAnnouncement, 'assertive');
-                if (interactionMode === 'voice-first' || isContinuous) speak(fullAnnouncement);
+                        sayMessage(fullAnnouncement, 'assertive');
               }
               return;
             }
 
             setVisionStatus('analyzing');
             const analysisMsg = "This question contains a diagram. Analyzing...";
-            announce(analysisMsg, 'assertive');
-            if (interactionMode === 'voice-first' || isContinuous) speak(analysisMsg);
+            sayMessage(analysisMsg, 'assertive');
 
             try {
               const res = await fetch('/api/vision', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ imageUrl })
+                body: JSON.stringify({ sessionId, questionId: currentQuestion.id })
               });
               if (!res.ok) throw new Error(`Vision service returned ${res.status}`);
               const data = await res.json();
@@ -189,29 +227,26 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
               
               const currentKey = engineState === 'EXAM' ? `${engineState}-${currentQuestionIndex}` : engineState;
               if (spokenStateKey.current === currentKey) {
-                announce(fullAnnouncement, 'assertive');
-                if (interactionMode === 'voice-first' || isContinuous) speak(fullAnnouncement);
+                sayMessage(fullAnnouncement, 'assertive');
               }
             } catch (err) {
               console.error('Vision fetch failed', err);
               setVisionStatus('failed');
               const fallback = announcement + ' The diagram could not be analyzed. ' + buildOptionsText();
-              announce(fallback, 'assertive');
-              if (interactionMode === 'voice-first' || isContinuous) speak(fallback);
+              sayMessage(fallback, 'assertive');
             }
           };
           fetchVisionOrReadAlt();
         } else {
           announcement += buildOptionsText();
-          announce(announcement, 'assertive');
-          if (interactionMode === 'voice-first' || isContinuous) speak(announcement);
+          sayMessage(announcement, 'assertive');
         }
       }
     }
   }, [
-    engineState, currentQuestionIndex, currentQuestion, mode, questions.length, 
-    lang, t, tParams, announce, speak, stopSpeaking, isContinuous, 
-    startContinuousListening, durationMinutes, examTitle, pauseListening, interactionMode
+    engineState, currentQuestionIndex, currentQuestion, mode, questions.length,
+    lang, t, tParams, announce, speak, stopSpeaking, isContinuous,
+    startContinuousListening, durationMinutes, examTitle, pauseListening, interactionMode, sayMessage
   ]);
 
 
@@ -220,31 +255,74 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     return () => stopSpeaking();
   }, [stopSpeaking]);
 
+  const enqueueAnswerSave = useCallback(async (
+    questionId: string,
+    answerData: unknown,
+    markedForReview: boolean,
+  ) => {
+    if (!sessionId) return;
+
+    pendingAnswerIdsRef.current.add(questionId);
+    setPendingSyncCount(pendingAnswerIdsRef.current.size);
+
+    const previous = answerQueueRef.current.get(questionId) ?? Promise.resolve();
+    const task = previous
+      .catch(() => undefined)
+      .then(async () => {
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+          throw new Error('offline');
+        }
+
+        const { saveAnswer } = await import('@/app/exam/actions');
+        let lastError: unknown = null;
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+          try {
+            await saveAnswer(sessionId, questionId, answerData, markedForReview);
+            lastError = null;
+            break;
+          } catch (error) {
+            lastError = error;
+            if (attempt < 2) {
+              await new Promise(resolve => window.setTimeout(resolve, 400 * 2 ** attempt));
+            }
+          }
+        }
+        if (lastError) throw lastError;
+      });
+
+    answerQueueRef.current.set(questionId, task);
+
+    task.then(() => {
+      if (answerQueueRef.current.get(questionId) === task) {
+        answerQueueRef.current.delete(questionId);
+        pendingAnswerIdsRef.current.delete(questionId);
+        setPendingSyncCount(pendingAnswerIdsRef.current.size);
+      }
+    }).catch((error) => {
+      console.error('Answer sync failed:', error);
+      setPendingSyncCount(pendingAnswerIdsRef.current.size);
+    });
+  }, [sessionId]);
+
   const syncPersistedAnswers = useCallback(async () => {
     if (!sessionId || typeof navigator === 'undefined' || !navigator.onLine) return;
 
-    try {
-      const { saveAnswer } = await import('@/app/exam/actions');
-      const state = useExamStore.getState();
-      await Promise.allSettled(
-        Object.values(state.answers).map((answer) =>
-          saveAnswer(
-            sessionId,
-            answer.question_id,
-            answer.answer_data ?? null,
-            answer.is_marked_for_review
-          )
-        )
-      );
-    } catch (error) {
-      console.error('Failed to replay persisted answers:', error);
-    }
-  }, [sessionId]);
+    const state = useExamStore.getState();
+    const tasks = Object.values(state.answers).map(answer =>
+      enqueueAnswerSave(
+        answer.question_id,
+        answer.answer_data ?? null,
+        answer.is_marked_for_review,
+      )
+    );
+    await Promise.allSettled(tasks);
+  }, [enqueueAnswerSave, sessionId]);
 
   useEffect(() => {
     void syncPersistedAnswers();
 
     const handleOnline = () => {
+      setIsOnline(true);
       void syncPersistedAnswers();
     };
 
@@ -254,25 +332,16 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
 
   const handleOptionSelect = (optionIndex: number) => {
     if (!currentQuestion) return;
+    const markedForReview = answers[currentQuestion.id]?.is_marked_for_review ?? false;
     setAnswer(currentQuestion.id, optionIndex);
-    if (sessionId) {
-      import('@/app/exam/actions').then(({ saveAnswer }) => {
-        void saveAnswer(
-          sessionId,
-          currentQuestion.id,
-          optionIndex,
-          answers[currentQuestion.id]?.is_marked_for_review ?? false
-        ).catch(console.error);
-      });
-    }
+    void enqueueAnswerSave(currentQuestion.id, optionIndex, markedForReview);
   };
 
   const handleNext = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      announce(t('end_of_questions'));
-      if (interactionMode === 'voice-first' || isContinuous) speak(t('end_of_questions'));
+      sayMessage(t('end_of_questions'));
     }
   };
 
@@ -280,8 +349,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     } else {
-      announce(t('first_question'));
-      if (interactionMode === 'voice-first' || isContinuous) speak(t('first_question'));
+      sayMessage(t('first_question'));
     }
   };
 
@@ -291,20 +359,14 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     const nextMarked = !(currentAnswer?.is_marked_for_review ?? false);
     toggleMarkForReview(currentQuestion.id);
 
-    if (sessionId) {
-      import('@/app/exam/actions').then(({ saveAnswer }) => {
-        void saveAnswer(
-          sessionId,
-          currentQuestion.id,
-          currentAnswer?.answer_data ?? null,
-          nextMarked
-        ).catch(console.error);
-      });
-    }
+    void enqueueAnswerSave(
+      currentQuestion.id,
+      currentAnswer?.answer_data ?? null,
+      nextMarked,
+    );
 
     const message = nextMarked ? t('marked_for_review') : t('removed_mark');
-    announce(message);
-    if (interactionMode === 'voice-first' || isContinuous) speak(message);
+    sayMessage(message);
   };
 
   const jumpToUnanswered = () => {
@@ -353,8 +415,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     const confirm = t('submit_confirm_msg');
     
     const msg = warning + ' ' + confirm;
-    announce(msg, 'assertive');
-    speak(msg);
+    sayMessage(msg, 'assertive');
   };
 
   const executeSubmit = async () => {
@@ -385,8 +446,10 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
       const questionIds = state.questions.map(q => q.id);
       await submitExamAnswers(state.sessionId, state.answers, questionIds);
 
+      const submittedSessionId = state.sessionId;
       state.submitExam();
-      router.push(`/results?session_id=${state.sessionId}`);
+      await clearExamStorage();
+      router.push(`/results?session_id=${submittedSessionId}`);
     } catch (err) {
       console.error('Failed to submit exam:', err);
       const retryMessage =
@@ -408,12 +471,20 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   const voiceHandler = (action: SafeAction, payload?: Record<string, unknown> | null) => {
     switch (action) {
       case 'START_EXAM':
+      case 'START_PRACTICE':
       case 'OPEN_EXAM':
-        if (mode !== 'exam') return false;
-        if (engineState === 'READY') {
+      case 'OPEN_PRACTICE':
+        if ((mode === 'exam' || mode === 'practice') && engineState === 'READY') {
           setEngineState('EXAM');
           return true;
         }
+        if (mode === 'practice') {
+          speak(engineState === 'PROCESSING'
+            ? 'Your practice session is already being submitted.'
+            : 'Practice is already in progress. You can continue with the current questions.');
+          return true;
+        }
+        if (mode !== 'exam') return false;
         if (engineState === 'CONFIRM_ANSWER' || engineState === 'CONFIRM_SUBMIT') {
           speak('Please finish the current confirmation before continuing.');
         } else if (engineState === 'PROCESSING') {
@@ -423,19 +494,6 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         }
         return true;
 
-      case 'START_PRACTICE':
-      case 'OPEN_PRACTICE':
-        if (mode !== 'practice') return false;
-        if (engineState === 'READY') {
-          setEngineState('EXAM');
-        } else if (engineState === 'PROCESSING') {
-          speak('Your practice session is already being submitted.');
-        } else {
-          speak('Practice is already in progress. You can continue with the current questions.');
-        }
-        return true;
-
-
       case 'CONFIRM':
         if (engineState === 'CONFIRM_ANSWER' && pendingAnswer !== null) {
           handleOptionSelect(pendingAnswer);
@@ -443,8 +501,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           spokenStateKey.current = `EXAM-${currentQuestionIndex}`;
           setEngineState('EXAM');
           const msg = t('answer_saved') + ' ' + t('say_next_continue');
-          speak(msg);
-          announce(msg);
+          sayMessage(msg, 'assertive');
         } else if (engineState === 'CONFIRM_SUBMIT') {
           executeSubmit();
         } else {
@@ -467,7 +524,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
               announcement += ' ' + optionsText;
             }
           }
-          speak(announcement);
+          speak(announcement, { dedupe: false });
         } else {
           speak(lang === 'hi-IN' ? 'अभी बदलने के लिए कोई चयन नहीं है।' : lang === 'te-IN' ? 'ప్రస్తుతం మార్చడానికి ఏ ఎంపిక లేదు.' : 'There is nothing to change right now.');
         }
@@ -578,7 +635,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         if (mode === 'exam') {
           const state = useExamStore.getState();
           if (state.startTime) {
-            const elapsedSeconds = Math.floor((Date.now() - state.startTime) / 1000);
+            const elapsedSeconds = Math.floor(((Date.now() + serverTimeOffsetRef.current) - state.startTime) / 1000);
             const remainingSeconds = Math.max(0, ((durationMinutes ?? 60) * 60) - elapsedSeconds);
             const minutesLeft = Math.ceil(remainingSeconds / 60);
             speak(tParams('time_remaining', { time: `${minutesLeft} ${t('minutes')}` }));
@@ -598,8 +655,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             setEngineState('CONFIRM_ANSWER');
             const selectedOption = currentQuestion.options[payload.index];
             const prompt = tParams('answer_confirm_prompt', { index: payload.index + 1, option: selectedOption });
-            announce(prompt);
-            speak(prompt);
+            sayMessage(prompt, 'assertive');
           } else {
             speak(t('invalid_option'));
           }
@@ -616,6 +672,51 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   };
 
   useVoiceAction(voiceHandler);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLSelectElement ||
+        target instanceof HTMLTextAreaElement ||
+        (target instanceof HTMLElement && target.isContentEditable)
+      ) {
+        return;
+      }
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+      const key = event.key;
+      if (key === 'Escape') {
+        event.preventDefault();
+        stopSpeaking();
+        return;
+      }
+
+      const actionByKey: Record<string, SafeAction> = {
+        r: 'REPEAT',
+        t: 'TIME_LEFT',
+        m: 'MARK_REVIEW',
+        n: 'NEXT_QUESTION',
+        p: 'PREVIOUS_QUESTION',
+        '?': 'HELP',
+      };
+      const action = actionByKey[key.toLowerCase()];
+      if (action) {
+        event.preventDefault();
+        voiceHandler(action);
+        return;
+      }
+
+      if (/^[1-4]$/.test(key)) {
+        event.preventDefault();
+        voiceHandler('SELECT_OPTION', { index: Number(key) - 1 });
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [voiceHandler, stopSpeaking]);
 
   // Removed duplicated setup logic for MIC_TEST in useEffect
 
@@ -639,10 +740,6 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   if (engineState === 'READY') {
     return (
       <div className="relative flex flex-col min-h-screen w-full mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
-        <div className="absolute inset-0 pointer-events-none opacity-20">
-          <HeroScene />
-        </div>
-        
         <div className="mb-24 flex items-center justify-between border-b border-zinc-900 pb-8 relative z-10">
           <div className="flex flex-col">
             <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">MODE</span>
@@ -736,9 +833,6 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   if (engineState === 'PROCESSING') {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-6 w-full relative">
-        <div className="absolute inset-0 pointer-events-none opacity-20">
-          <HeroScene />
-        </div>
         <VoiceCore size="lg" />
         <motion.h1
           initial={{ opacity: 0, y: 10 }}
@@ -773,10 +867,6 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   // EXAM or CONFIRM_ANSWER state
   return (
     <div className="relative flex flex-col min-h-screen w-full max-w-7xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
-      <div className="absolute inset-0 pointer-events-none opacity-[0.03]">
-        <HeroScene />
-      </div>
-
       {/* Header Info */}
       <div className="mb-24 flex flex-col md:flex-row md:items-center justify-between border-b border-zinc-900 pb-8 relative z-10 gap-8">
         <div className="flex items-center gap-6">
@@ -795,10 +885,15 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           {mode === 'exam' && (
             <div className="flex flex-col md:items-end">
               <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">{t('time_left')}</span>
-              <span className="text-3xl font-light tracking-tight text-zinc-100" aria-live="polite">
+              <span className="text-3xl font-light tracking-tight text-zinc-100">
                 {timeRemainingStr}
               </span>
             </div>
+          )}
+          {pendingSyncCount > 0 && !isOnline && (
+            <span className="text-xs font-medium text-amber-200" role="status">
+              {pendingSyncCount} answers not yet synced
+            </span>
           )}
           <button 
             onClick={toggleListening}
@@ -936,7 +1031,21 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           </div>
         )}
 
-        {/* Navigation Controls */}
+        <section aria-labelledby="keyboard-shortcuts" className="mt-12 border-y border-zinc-900 py-6 relative z-10">
+        <h3 id="keyboard-shortcuts" className="mb-4 text-xs font-black uppercase tracking-[0.2em] text-zinc-400">Keyboard shortcuts</h3>
+        <div className="grid grid-cols-2 gap-3 text-sm text-zinc-300 md:grid-cols-4">
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">Esc</kbd> Stop speaking</span>
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">R</kbd> Repeat</span>
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">T</kbd> Time left</span>
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">M</kbd> Mark</span>
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">N</kbd> Next</span>
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">P</kbd> Previous</span>
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">1–4</kbd> Select option</span>
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">?</kbd> Help</span>
+        </div>
+      </section>
+
+      {/* Navigation Controls */}
         <div className="mt-24 pt-8 flex flex-col md:flex-row gap-8 justify-between items-center relative z-10">
           <div className="flex gap-4 w-full md:w-auto">
             <button

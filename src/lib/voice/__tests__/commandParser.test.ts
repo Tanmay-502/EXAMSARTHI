@@ -8,7 +8,7 @@ describe('Voice Command Parser', () => {
     test('should parse SELECT_OPTION correctly', () => {
       assert.deepStrictEqual(parseCommand('option a', 'en-IN'), { type: 'SELECT_OPTION', index: 0 });
       assert.deepStrictEqual(parseCommand('answer b', 'en-IN'), { type: 'SELECT_OPTION', index: 1 });
-      assert.deepStrictEqual(parseCommand('i choose c', 'en-IN', 'exam'), { type: 'SELECT_OPTION', index: 2 });
+      assert.deepStrictEqual(parseCommand('i choose c', 'en-IN', 'exam_active'), { type: 'SELECT_OPTION', index: 2 });
       assert.deepStrictEqual(parseCommand('d is the correct answer', 'en-IN'), { type: 'SELECT_OPTION', index: 3 });
     });
 
@@ -38,7 +38,32 @@ describe('Voice Command Parser', () => {
     test('does not treat ordinary speech as an option outside exam context', () => {
       assert.deepStrictEqual(parseCommand('who is first', 'en-IN', 'mode_selection'), { type: 'UNKNOWN' });
       assert.deepStrictEqual(parseCommand('who is first', 'en-IN', 'dashboard'), { type: 'UNKNOWN' });
-      assert.deepStrictEqual(parseCommand('first', 'en-IN', 'exam'), { type: 'SELECT_OPTION', index: 0 });
+      assert.deepStrictEqual(parseCommand('first', 'en-IN', 'exam_active'), { type: 'SELECT_OPTION', index: 0 });
+    });
+
+    test('mode words and analysis phrases are context-gated', () => {
+      assert.deepStrictEqual(parseCommand('voice', 'en-IN', 'mode_selection'), { type: 'SELECT_MODE_VOICE' });
+      assert.deepStrictEqual(parseCommand('standard', 'en-IN', 'dashboard'), { type: 'SELECT_MODE_STANDARD' });
+      assert.deepStrictEqual(parseCommand('voice', 'en-IN', 'exam_active'), { type: 'UNKNOWN' });
+      assert.deepStrictEqual(parseCommand('standard', 'en-IN', 'practice_active'), { type: 'UNKNOWN' });
+      assert.deepStrictEqual(parseCommand('analysis', 'en-IN', 'dashboard'), { type: 'OPEN_ANALYSIS' });
+      assert.deepStrictEqual(parseCommand('analysis', 'en-IN', 'exam_active'), { type: 'UNKNOWN' });
+    });
+
+    test('recognizes STT homophones for answer choices', () => {
+      const cases: Array<[string, number]> = [
+        ['a', 0], ['ay', 0], ['eh', 0],
+        ['be', 1], ['bee', 1],
+        ['see', 2], ['sea', 2],
+        ['dee', 3],
+        ['2', 1], ['to', 1], ['too', 1],
+        ['3', 2], ['tree', 2],
+        ['4', 3], ['for', 3],
+      ];
+      for (const [utterance, index] of cases) {
+        assert.deepStrictEqual(parseCommand(utterance, 'en-IN', 'exam_active'), { type: 'SELECT_OPTION', index });
+      }
+      assert.deepStrictEqual(parseCommand('a very long utterance with many words', 'en-IN', 'exam_active'), { type: 'UNKNOWN' });
     });
 
     test('should parse Review commands', () => {
@@ -78,10 +103,10 @@ describe('Voice Command Parser', () => {
     });
 
     test('should parse Telugu mode and analysis fallbacks', () => {
-      assert.deepStrictEqual(parseCommand('వాయిస్', 'te-IN'), { type: 'SELECT_MODE_VOICE' });
-      assert.deepStrictEqual(parseCommand('స్టాండర్డ్', 'te-IN'), { type: 'SELECT_MODE_STANDARD' });
-      assert.deepStrictEqual(parseCommand('విశ్లేషణ', 'te-IN'), { type: 'OPEN_ANALYSIS' });
-      assert.deepStrictEqual(parseCommand('నా పనితీరు ఎలా ఉంది', 'te-IN'), { type: 'OPEN_ANALYSIS' });
+      assert.deepStrictEqual(parseCommand('వాయిస్', 'te-IN', 'mode_selection'), { type: 'SELECT_MODE_VOICE' });
+      assert.deepStrictEqual(parseCommand('స్టాండర్డ్', 'te-IN', 'onboarding'), { type: 'SELECT_MODE_STANDARD' });
+      assert.deepStrictEqual(parseCommand('విశ్లేషణ', 'te-IN', 'dashboard'), { type: 'OPEN_ANALYSIS' });
+      assert.deepStrictEqual(parseCommand('నా పనితీరు ఎలా ఉంది', 'te-IN', 'dashboard'), { type: 'OPEN_ANALYSIS' });
     });
   });
   describe('Spoken email parsing', () => {

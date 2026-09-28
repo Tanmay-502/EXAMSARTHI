@@ -3,6 +3,8 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { Question } from '@/lib/store/examStore'
 import { SupabaseClient, User } from '@supabase/supabase-js'
+import { writeAudit } from '@/lib/audit/writeAudit'
+import { chunk } from '@/lib/db/chunk'
 
 type ServerAnalyticsQuestion = {
   id: string;
@@ -255,7 +257,7 @@ export async function startExamSession(examId: string) {
       Date.now() <= startedAt + (durationSeconds + 5) * 1000;
 
     if (stillActive) {
-      return { id: existing.id, startedAt: existing.started_at };
+      return { id: existing.id, startedAt: existing.started_at, serverNow: Date.now(), userId: user.id };
     }
 
     await adminClient
@@ -295,21 +297,21 @@ export async function startExamSession(examId: string) {
 
       if (raced) {
         const racedSession = raced as { id: string; started_at: string };
-        return { id: racedSession.id, startedAt: racedSession.started_at };
+        return { id: racedSession.id, startedAt: racedSession.started_at, serverNow: Date.now(), userId: user.id };
       }
     }
 
     throw new Error(`Failed to start session: ${error.message}`)
   }
 
-  await adminClient.from('audit_logs').insert({
+  await writeAudit({
     session_id: data.id,
     candidate_id: user.id,
     action: 'started_exam',
   })
 
   const insertedSession = data as { id: string; started_at: string };
-  return { id: insertedSession.id, startedAt: insertedSession.started_at }
+  return { id: insertedSession.id, startedAt: insertedSession.started_at, serverNow: Date.now(), userId: user.id }
 }
 
 export async function startPracticeSession(questionIds: string[] = [], practiceSubject = '', practiceDifficulty = '') {
@@ -432,14 +434,14 @@ export async function startPracticeSession(questionIds: string[] = [], practiceS
     throw new Error(`Failed to start practice session: ${error.message}`)
   }
 
-  await supabase.from('audit_logs').insert({
+  await writeAudit({
     session_id: data.id,
     candidate_id: user.id,
     action: 'started_practice',
     metadata: { is_practice: true, question_count: uniqueQuestionIds.length }
   })
 
-  return data.id
+  return { id: data.id, userId: user.id }
 }
 
 export async function fetchAvailablePracticeSubjects() {
@@ -450,17 +452,15 @@ export async function fetchAvailablePracticeSubjects() {
     throw new Error('Unauthorized')
   }
 
-  const { data, error } = await supabase
-    .from('questions')
-    .select('subject')
-    .not('subject', 'is', null)
+  const { data, error } = await supabase.rpc('practice_subjects')
 
   if (error) {
     throw new Error(`Failed to fetch practice subjects: ${error.message}`)
   }
 
+  const rows = (data ?? []) as Array<{ subject: string | null }>
   return [...new Set(
-    (data || [])
+    rows
       .map(row => row.subject?.trim())
       .filter((subject): subject is string => Boolean(subject))
   )].sort((a, b) => a.localeCompare(b))
@@ -651,7 +651,7 @@ export async function saveAnswer(
     throw new Error(`Failed to save answer: ${answerError.message}`);
   }
 
-  await supabase.from('audit_logs').insert({
+  await writeAudit({
     session_id: sessionId,
     candidate_id: user.id,
     action: 'answer_saved',
@@ -853,7 +853,7 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     throw new Error('Exam session was already submitted or is no longer active')
   }
 
-  await supabase.from('audit_logs').insert({
+  await writeAudit({
     session_id: sessionId,
     candidate_id: user.id,
     action: 'submitted_exam',
@@ -879,7 +879,7 @@ export async function recordAnswerEvent(sessionId: string, questionId: string) {
 
   if (!session) return { success: false }
 
-  await adminClient.from('audit_logs').insert({
+  await writeAudit({
     session_id: sessionId,
     candidate_id: user.id,
     action: 'answered_question',
@@ -887,6 +887,37 @@ export async function recordAnswerEvent(sessionId: string, questionId: string) {
   })
 
   return { success: true }
+}
+
+export async function verifyActiveSession(sessionId: string, isPractice: boolean) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const { data: session, error } = await supabase
+    .from('exam_sessions')
+    .select('id, candidate_id, exam_id, is_practice, status, question_ids, started_at')
+    .eq('id', sessionId)
+    .eq('candidate_id', user.id)
+    .single()
+
+  if (error || !session || session.is_practice !== isPractice || session.status !== 'in_progress') {
+    return { valid: false as const, serverNow: Date.now(), userId: user.id }
+  }
+
+  return {
+    valid: true as const,
+    serverNow: Date.now(),
+    userId: user.id,
+    session: {
+      id: session.id,
+      examId: session.exam_id,
+      isPractice: Boolean(session.is_practice),
+      status: session.status,
+      questionIds: Array.isArray(session.question_ids) ? session.question_ids : [],
+      startedAt: session.started_at,
+    },
+  }
 }
 
 export async function updatePreferences(prefs: { preferred_mode?: string; preferred_lang?: string }) {
@@ -989,13 +1020,16 @@ export async function buildLearningProfile(userId: string) {
   const recentAccuracy = sessions.slice(0, 5).map((s: { percentage: number }) => s.percentage);
 
   const sessionIds = sessions.map((s: { id: string }) => s.id);
-  const { data: answersData } = await adminClient
-    .from('answers')
-    .select('session_id, question_id, selected_option_index')
-    .in('session_id', sessionIds);
-
+  const answerBatches = await Promise.all(
+    chunk(sessionIds).map(ids =>
+      adminClient
+        .from('answers')
+        .select('session_id, question_id, selected_option_index')
+        .in('session_id', ids)
+    )
+  );
   const answerBySessionQuestion = new Map<string, number | null>();
-  for (const answer of answersData || []) {
+  for (const answer of answerBatches.flatMap(batch => batch.data || [])) {
     answerBySessionQuestion.set(
       `${answer.session_id}:${answer.question_id}`,
       answer.selected_option_index
@@ -1017,22 +1051,19 @@ export async function buildLearningProfile(userId: string) {
       .filter((id): id is string => typeof id === 'string')
   )];
 
-  let questionQuery = adminClient
-    .from('questions')
-    .select('id, exam_id, subject, question_answers(correct_answer_index)');
-
-  if (rosterIds.length > 0 && legacyExamIds.length === 0) {
-    questionQuery = questionQuery.in('id', rosterIds);
-  } else if (rosterIds.length === 0 && legacyExamIds.length > 0) {
-    questionQuery = questionQuery.in('exam_id', legacyExamIds);
-  } else if (rosterIds.length > 0 || legacyExamIds.length > 0) {
-    const filters = [];
-    if (rosterIds.length > 0) filters.push(`id.in.(${rosterIds.join(',')})`);
-    if (legacyExamIds.length > 0) filters.push(`exam_id.in.(${legacyExamIds.join(',')})`);
-    questionQuery = questionQuery.or(filters.join(','));
-  }
-
-  const { data: questions } = await questionQuery;
+  const [questionByIdBatches, questionByExamBatches] = await Promise.all([
+    Promise.all(chunk(rosterIds).map(ids =>
+      ids.length === 0
+        ? Promise.resolve({ data: [], error: null })
+        : adminClient.from('questions').select('id, exam_id, subject, question_answers(correct_answer_index)').in('id', ids)
+    )),
+    Promise.all(chunk(legacyExamIds).map(ids =>
+      ids.length === 0
+        ? Promise.resolve({ data: [], error: null })
+        : adminClient.from('questions').select('id, exam_id, subject, question_answers(correct_answer_index)').in('exam_id', ids)
+    )),
+  ]);
+  const questions = [...questionByIdBatches, ...questionByExamBatches].flatMap(batch => batch.data || []);
   const typedQuestions = (questions || []) as ServerAnalyticsQuestion[];
   const questionMap = new Map(typedQuestions.map(question => [question.id, question]));
   const subjectStats = new Map<string, { correct: number; total: number }>();

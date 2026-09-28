@@ -1,0 +1,2977 @@
+{
+  "title": "Demo Practice Bank",
+  "description": "Demo-only practice questions for accessibility and multilingual testing.",
+  "question_count": 90,
+  "questions": [
+    {
+      "order_index": 1,
+      "subject": "Mathematics",
+      "difficulty": "easy",
+      "content_text": "What is 2 + 2?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Mathematics easy प्रश्न 1: What is 2 + 2?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Mathematics easy प्रश्न 1: What is 2 + 2?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 2,
+      "subject": "Mathematics",
+      "difficulty": "easy",
+      "content_text": "What is 5 × 3?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Mathematics easy प्रश्न 2: What is 5 × 3?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Mathematics easy प्रश्न 2: What is 5 × 3?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 3,
+      "subject": "Mathematics",
+      "difficulty": "easy",
+      "content_text": "What is half of 10?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 1,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Mathematics easy प्रश्न 3: What is half of 10?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Mathematics easy प्रश्न 3: What is half of 10?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 4,
+      "subject": "Mathematics",
+      "difficulty": "easy",
+      "content_text": "Which number is even: 3, 7, 8, 9?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 0,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Mathematics easy प्रश्न 4: Which number is even: 3, 7, 8, 9?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Mathematics easy प्रश्न 4: Which number is even: 3, 7, 8, 9?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 5,
+      "subject": "Mathematics",
+      "difficulty": "easy",
+      "content_text": "What is 15 − 7?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Mathematics easy प्रश्न 5: What is 15 − 7?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Mathematics easy प्रश्न 5: What is 15 − 7?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 6,
+      "subject": "Mathematics",
+      "difficulty": "easy",
+      "content_text": "What is 100 ÷ 10?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Mathematics easy प्रश्न 6: What is 100 ÷ 10?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Mathematics easy प्रश्न 6: What is 100 ÷ 10?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 7,
+      "subject": "Mathematics",
+      "difficulty": "medium",
+      "content_text": "What is 12% of 50?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 1,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Mathematics medium प्रश्न 1: What is 12% of 50?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Mathematics medium प्रश्न 1: What is 12% of 50?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 8,
+      "subject": "Mathematics",
+      "difficulty": "medium",
+      "content_text": "What is the average of 10, 20, and 30?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 0,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Mathematics medium प्रश्न 2: What is the average of 10, 20, and 30?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Mathematics medium प्रश्न 2: What is the average of 10, 20, and 30?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 9,
+      "subject": "Mathematics",
+      "difficulty": "medium",
+      "content_text": "What is the area of a 5 by 4 rectangle?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Mathematics medium प्रश्न 3: What is the area of a 5 by 4 rectangle?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Mathematics medium प्रश्न 3: What is the area of a 5 by 4 rectangle?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 10,
+      "subject": "Mathematics",
+      "difficulty": "medium",
+      "content_text": "If x + 7 = 19, what is x?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Mathematics medium प्रश्न 4: If x + 7 = 19, what is x?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Mathematics medium प्रश्न 4: If x + 7 = 19, what is x?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 11,
+      "subject": "Mathematics",
+      "difficulty": "medium",
+      "content_text": "What is 3/4 of 40?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 1,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Mathematics medium प्रश्न 5: What is 3/4 of 40?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Mathematics medium प्रश्न 5: What is 3/4 of 40?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 12,
+      "subject": "Mathematics",
+      "difficulty": "medium",
+      "content_text": "What is the perimeter of a square with side 6?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 0,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Mathematics medium प्रश्न 6: What is the perimeter of a square with side 6?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Mathematics medium प्रश्न 6: What is the perimeter of a square with side 6?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 13,
+      "subject": "Mathematics",
+      "difficulty": "hard",
+      "content_text": "What is the positive root of x² − 9 = 0?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Mathematics hard प्रश्न 1: What is the positive root of x² − 9 = 0?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Mathematics hard प्रश्न 1: What is the positive root of x² − 9 = 0?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 14,
+      "subject": "Mathematics",
+      "difficulty": "hard",
+      "content_text": "What is the derivative of x² at x = 3?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Mathematics hard प्रश्न 2: What is the derivative of x² at x = 3?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Mathematics hard प्रश्न 2: What is the derivative of x² at x = 3?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 15,
+      "subject": "Mathematics",
+      "difficulty": "hard",
+      "content_text": "A ratio 3:5 has total 64. What is the larger part?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 1,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Mathematics hard प्रश्न 3: A ratio 3:5 has total 64. What is the larger part?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Mathematics hard प्रश्न 3: A ratio 3:5 has total 64. What is the larger part?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 16,
+      "subject": "Mathematics",
+      "difficulty": "hard",
+      "content_text": "What is the probability of drawing a red card from a standard 52-card deck?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 0,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Mathematics hard प्रश्न 4: What is the probability of drawing a red card from a standard 52-card deck?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Mathematics hard प्रश्न 4: What is the probability of drawing a red card from a standard 52-card deck?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 17,
+      "subject": "Mathematics",
+      "difficulty": "hard",
+      "content_text": "What is the sum of the first 20 positive integers?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Mathematics hard प्रश्न 5: What is the sum of the first 20 positive integers?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Mathematics hard प्रश्न 5: What is the sum of the first 20 positive integers?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 18,
+      "subject": "Mathematics",
+      "difficulty": "hard",
+      "content_text": "What is log10(1000)?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Mathematics hard प्रश्न 6: What is log10(1000)?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Mathematics hard प्रश्न 6: What is log10(1000)?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 19,
+      "subject": "Science",
+      "difficulty": "easy",
+      "content_text": "Which gas do humans need for respiration?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Science easy प्रश्न 1: Which gas do humans need for respiration?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Science easy प्रश्न 1: Which gas do humans need for respiration?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 20,
+      "subject": "Science",
+      "difficulty": "easy",
+      "content_text": "What is the boiling point of water at sea level in Celsius?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Science easy प्रश्न 2: What is the boiling point of water at sea level in Celsius?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Science easy प्रश्न 2: What is the boiling point of water at sea level in Celsius?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 21,
+      "subject": "Science",
+      "difficulty": "easy",
+      "content_text": "Which organ pumps blood?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 1,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Science easy प्रश्न 3: Which organ pumps blood?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Science easy प्रश्न 3: Which organ pumps blood?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 22,
+      "subject": "Science",
+      "difficulty": "easy",
+      "content_text": "What force pulls objects toward Earth?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 0,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Science easy प्रश्न 4: What force pulls objects toward Earth?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Science easy प्रश्न 4: What force pulls objects toward Earth?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 23,
+      "subject": "Science",
+      "difficulty": "easy",
+      "content_text": "What planet is known as the Red Planet?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Science easy प्रश्न 5: What planet is known as the Red Planet?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Science easy प्रश्न 5: What planet is known as the Red Planet?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 24,
+      "subject": "Science",
+      "difficulty": "easy",
+      "content_text": "Which state of matter has a fixed volume but no fixed shape?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Science easy प्रश्न 6: Which state of matter has a fixed volume but no fixed shape?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Science easy प्रश्न 6: Which state of matter has a fixed volume but no fixed shape?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 25,
+      "subject": "Science",
+      "difficulty": "medium",
+      "content_text": "What is the chemical formula of water?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 1,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Science medium प्रश्न 1: What is the chemical formula of water?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Science medium प्रश्न 1: What is the chemical formula of water?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 26,
+      "subject": "Science",
+      "difficulty": "medium",
+      "content_text": "Which cell organelle contains most genetic material?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 0,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Science medium प्रश्न 2: Which cell organelle contains most genetic material?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Science medium प्रश्न 2: Which cell organelle contains most genetic material?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 27,
+      "subject": "Science",
+      "difficulty": "medium",
+      "content_text": "What is the unit of electric current?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Science medium प्रश्न 3: What is the unit of electric current?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Science medium प्रश्न 3: What is the unit of electric current?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 28,
+      "subject": "Science",
+      "difficulty": "medium",
+      "content_text": "Which process converts liquid water to vapor?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Science medium प्रश्न 4: Which process converts liquid water to vapor?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Science medium प्रश्न 4: Which process converts liquid water to vapor?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 29,
+      "subject": "Science",
+      "difficulty": "medium",
+      "content_text": "What is the approximate speed of light in vacuum?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 1,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Science medium प्रश्न 5: What is the approximate speed of light in vacuum?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Science medium प्रश्न 5: What is the approximate speed of light in vacuum?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 30,
+      "subject": "Science",
+      "difficulty": "medium",
+      "content_text": "Which blood cells help fight infection?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 0,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Science medium प्रश्न 6: Which blood cells help fight infection?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Science medium प्रश्न 6: Which blood cells help fight infection?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 31,
+      "subject": "Science",
+      "difficulty": "hard",
+      "content_text": "What is the SI unit of capacitance?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Science hard प्रश्न 1: What is the SI unit of capacitance?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Science hard प्रश्न 1: What is the SI unit of capacitance?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 32,
+      "subject": "Science",
+      "difficulty": "hard",
+      "content_text": "Which law relates voltage, current, and resistance?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Science hard प्रश्न 2: Which law relates voltage, current, and resistance?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Science hard प्रश्न 2: Which law relates voltage, current, and resistance?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 33,
+      "subject": "Science",
+      "difficulty": "hard",
+      "content_text": "What is the pH of a neutral solution at 25°C?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 1,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Science hard प्रश्न 3: What is the pH of a neutral solution at 25°C?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Science hard प्रश्न 3: What is the pH of a neutral solution at 25°C?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 34,
+      "subject": "Science",
+      "difficulty": "hard",
+      "content_text": "Which subatomic particle carries negative charge?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 0,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Science hard प्रश्न 4: Which subatomic particle carries negative charge?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Science hard प्रश्न 4: Which subatomic particle carries negative charge?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 35,
+      "subject": "Science",
+      "difficulty": "hard",
+      "content_text": "What is the approximate acceleration due to gravity near Earth?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Science hard प्रश्न 5: What is the approximate acceleration due to gravity near Earth?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Science hard प्रश्न 5: What is the approximate acceleration due to gravity near Earth?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 36,
+      "subject": "Science",
+      "difficulty": "hard",
+      "content_text": "Which gas is most abundant in Earth's atmosphere?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Science hard प्रश्न 6: Which gas is most abundant in Earth's atmosphere?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Science hard प्रश्न 6: Which gas is most abundant in Earth's atmosphere?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 37,
+      "subject": "History",
+      "difficulty": "easy",
+      "content_text": "Who is associated with the Dandi March?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo History easy प्रश्न 1: Who is associated with the Dandi March?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo History easy प्रश्न 1: Who is associated with the Dandi March?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 38,
+      "subject": "History",
+      "difficulty": "easy",
+      "content_text": "Which ancient civilization built the pyramids at Giza?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo History easy प्रश्न 2: Which ancient civilization built the pyramids at Giza?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo History easy प्रश्न 2: Which ancient civilization built the pyramids at Giza?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 39,
+      "subject": "History",
+      "difficulty": "easy",
+      "content_text": "Who was the first Mughal emperor in India?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 1,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo History easy प्रश्न 3: Who was the first Mughal emperor in India?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo History easy प्रश्न 3: Who was the first Mughal emperor in India?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 40,
+      "subject": "History",
+      "difficulty": "easy",
+      "content_text": "In which year did India become independent?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 0,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo History easy प्रश्न 4: In which year did India become independent?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo History easy प्रश्न 4: In which year did India become independent?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 41,
+      "subject": "History",
+      "difficulty": "easy",
+      "content_text": "Which war ended with the Treaty of Versailles?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo History easy प्रश्न 5: Which war ended with the Treaty of Versailles?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo History easy प्रश्न 5: Which war ended with the Treaty of Versailles?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 42,
+      "subject": "History",
+      "difficulty": "easy",
+      "content_text": "Who wrote the Arthashastra?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo History easy प्रश्न 6: Who wrote the Arthashastra?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo History easy प्रश्न 6: Who wrote the Arthashastra?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 43,
+      "subject": "History",
+      "difficulty": "medium",
+      "content_text": "Which empire was ruled by Ashoka?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 1,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo History medium प्रश्न 1: Which empire was ruled by Ashoka?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo History medium प्रश्न 1: Which empire was ruled by Ashoka?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 44,
+      "subject": "History",
+      "difficulty": "medium",
+      "content_text": "What was the main aim of the Non-Cooperation Movement?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 0,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo History medium प्रश्न 2: What was the main aim of the Non-Cooperation Movement?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo History medium प्रश्न 2: What was the main aim of the Non-Cooperation Movement?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 45,
+      "subject": "History",
+      "difficulty": "medium",
+      "content_text": "Which city was a major center of the Indus Valley Civilization?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo History medium प्रश्न 3: Which city was a major center of the Indus Valley Civilization?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo History medium प्रश्न 3: Which city was a major center of the Indus Valley Civilization?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 46,
+      "subject": "History",
+      "difficulty": "medium",
+      "content_text": "Who founded the Maurya Empire?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo History medium प्रश्न 4: Who founded the Maurya Empire?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo History medium प्रश्न 4: Who founded the Maurya Empire?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 47,
+      "subject": "History",
+      "difficulty": "medium",
+      "content_text": "Which movement began in 1942 in India?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 1,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo History medium प्रश्न 5: Which movement began in 1942 in India?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo History medium प्रश्न 5: Which movement began in 1942 in India?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 48,
+      "subject": "History",
+      "difficulty": "medium",
+      "content_text": "What was the immediate cause of the Revolt of 1857?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 0,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo History medium प्रश्न 6: What was the immediate cause of the Revolt of 1857?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo History medium प्रश्न 6: What was the immediate cause of the Revolt of 1857?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 49,
+      "subject": "History",
+      "difficulty": "hard",
+      "content_text": "Which inscription is a major source for Ashoka's Dhamma?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo History hard प्रश्न 1: Which inscription is a major source for Ashoka's Dhamma?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo History hard प्रश्न 1: Which inscription is a major source for Ashoka's Dhamma?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 50,
+      "subject": "History",
+      "difficulty": "hard",
+      "content_text": "Who introduced the Permanent Settlement in Bengal?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo History hard प्रश्न 2: Who introduced the Permanent Settlement in Bengal?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo History hard प्रश्न 2: Who introduced the Permanent Settlement in Bengal?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 51,
+      "subject": "History",
+      "difficulty": "hard",
+      "content_text": "Which act introduced dyarchy in provinces in British India?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 1,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo History hard प्रश्न 3: Which act introduced dyarchy in provinces in British India?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo History hard प्रश्न 3: Which act introduced dyarchy in provinces in British India?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 52,
+      "subject": "History",
+      "difficulty": "hard",
+      "content_text": "Which session of the Indian National Congress adopted the Purna Swaraj goal?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 0,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo History hard प्रश्न 4: Which session of the Indian National Congress adopted the Purna Swaraj goal?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo History hard प्रश्न 4: Which session of the Indian National Congress adopted the Purna Swaraj goal?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 53,
+      "subject": "History",
+      "difficulty": "hard",
+      "content_text": "Who founded the Indian National Army with which later leader?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo History hard प्रश्न 5: Who founded the Indian National Army with which later leader?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo History hard प्रश्न 5: Who founded the Indian National Army with which later leader?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 54,
+      "subject": "History",
+      "difficulty": "hard",
+      "content_text": "Which battle established British political influence in Bengal?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo History hard प्रश्न 6: Which battle established British political influence in Bengal?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo History hard प्रश्न 6: Which battle established British political influence in Bengal?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 55,
+      "subject": "Geography",
+      "difficulty": "easy",
+      "content_text": "What is the largest ocean?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 1,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Geography easy प्रश्न 1: What is the largest ocean?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Geography easy प्रश्न 1: What is the largest ocean?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 56,
+      "subject": "Geography",
+      "difficulty": "easy",
+      "content_text": "Which river is the longest in India?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 0,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Geography easy प्रश्न 2: Which river is the longest in India?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Geography easy प्रश्न 2: Which river is the longest in India?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 57,
+      "subject": "Geography",
+      "difficulty": "easy",
+      "content_text": "Which continent is India in?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Geography easy प्रश्न 3: Which continent is India in?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Geography easy प्रश्न 3: Which continent is India in?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 58,
+      "subject": "Geography",
+      "difficulty": "easy",
+      "content_text": "What is the capital of France?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Geography easy प्रश्न 4: What is the capital of France?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Geography easy प्रश्न 4: What is the capital of France?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 59,
+      "subject": "Geography",
+      "difficulty": "easy",
+      "content_text": "Which line divides Earth into Northern and Southern Hemispheres?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 1,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Geography easy प्रश्न 5: Which line divides Earth into Northern and Southern Hemispheres?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Geography easy प्रश्न 5: Which line divides Earth into Northern and Southern Hemispheres?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 60,
+      "subject": "Geography",
+      "difficulty": "easy",
+      "content_text": "Which is the largest continent by area?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 0,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Geography easy प्रश्न 6: Which is the largest continent by area?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Geography easy प्रश्न 6: Which is the largest continent by area?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 61,
+      "subject": "Geography",
+      "difficulty": "medium",
+      "content_text": "Which Indian state has the longest coastline?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Geography medium प्रश्न 1: Which Indian state has the longest coastline?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Geography medium प्रश्न 1: Which Indian state has the longest coastline?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 62,
+      "subject": "Geography",
+      "difficulty": "medium",
+      "content_text": "What is the name of the imaginary line at 23.5° north latitude?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Geography medium प्रश्न 2: What is the name of the imaginary line at 23.5° north latitude?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Geography medium प्रश्न 2: What is the name of the imaginary line at 23.5° north latitude?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 63,
+      "subject": "Geography",
+      "difficulty": "medium",
+      "content_text": "Which soil is widely associated with cotton cultivation in India?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 1,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Geography medium प्रश्न 3: Which soil is widely associated with cotton cultivation in India?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Geography medium प्रश्न 3: Which soil is widely associated with cotton cultivation in India?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 64,
+      "subject": "Geography",
+      "difficulty": "medium",
+      "content_text": "Which mountain range contains Mount Everest?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 0,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Geography medium प्रश्न 4: Which mountain range contains Mount Everest?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Geography medium प्रश्न 4: Which mountain range contains Mount Everest?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 65,
+      "subject": "Geography",
+      "difficulty": "medium",
+      "content_text": "What type of rainfall occurs when moist air rises over mountains?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Geography medium प्रश्न 5: What type of rainfall occurs when moist air rises over mountains?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Geography medium प्रश्न 5: What type of rainfall occurs when moist air rises over mountains?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 66,
+      "subject": "Geography",
+      "difficulty": "medium",
+      "content_text": "Which Indian river is known for forming a large delta with the Brahmaputra?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Geography medium प्रश्न 6: Which Indian river is known for forming a large delta with the Brahmaputra?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Geography medium प्रश्न 6: Which Indian river is known for forming a large delta with the Brahmaputra?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 67,
+      "subject": "Geography",
+      "difficulty": "hard",
+      "content_text": "Which ocean current influences western Europe by transporting warm water?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 1,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Geography hard प्रश्न 1: Which ocean current influences western Europe by transporting warm water?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Geography hard प्रश्न 1: Which ocean current influences western Europe by transporting warm water?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 68,
+      "subject": "Geography",
+      "difficulty": "hard",
+      "content_text": "Which Indian plateau is rich in mineral resources?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 0,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Geography hard प्रश्न 2: Which Indian plateau is rich in mineral resources?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Geography hard प्रश्न 2: Which Indian plateau is rich in mineral resources?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 69,
+      "subject": "Geography",
+      "difficulty": "hard",
+      "content_text": "What is the approximate elevation zone above which permanent snow commonly occurs in the Himalayas?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Geography hard प्रश्न 3: What is the approximate elevation zone above which permanent snow commonly occurs in the Himalayas?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Geography hard प्रश्न 3: What is the approximate elevation zone above which permanent snow commonly occurs in the Himalayas?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 70,
+      "subject": "Geography",
+      "difficulty": "hard",
+      "content_text": "Which climatic classification zone includes most of India?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Geography hard प्रश्न 4: Which climatic classification zone includes most of India?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Geography hard प्रश्न 4: Which climatic classification zone includes most of India?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 71,
+      "subject": "Geography",
+      "difficulty": "hard",
+      "content_text": "What is the term for a narrow strip of land connecting two larger land areas?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 1,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Geography hard प्रश्न 5: What is the term for a narrow strip of land connecting two larger land areas?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Geography hard प्रश्न 5: What is the term for a narrow strip of land connecting two larger land areas?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 72,
+      "subject": "Geography",
+      "difficulty": "hard",
+      "content_text": "Which lake is the largest freshwater lake in India by surface area?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 0,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Geography hard प्रश्न 6: Which lake is the largest freshwater lake in India by surface area?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Geography hard प्रश्न 6: Which lake is the largest freshwater lake in India by surface area?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 73,
+      "subject": "Reasoning",
+      "difficulty": "easy",
+      "content_text": "What comes next: 2, 4, 6, 8?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 1,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Reasoning easy प्रश्न 1: What comes next: 2, 4, 6, 8?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Reasoning easy प्रश्न 1: What comes next: 2, 4, 6, 8?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 74,
+      "subject": "Reasoning",
+      "difficulty": "easy",
+      "content_text": "If CAT is coded as DBU, how is DOG coded?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 0,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Reasoning easy प्रश्न 2: If CAT is coded as DBU, how is DOG coded?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Reasoning easy प्रश्न 2: If CAT is coded as DBU, how is DOG coded?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 75,
+      "subject": "Reasoning",
+      "difficulty": "easy",
+      "content_text": "Which word does not belong: Apple, Mango, Carrot, Banana?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Reasoning easy प्रश्न 3: Which word does not belong: Apple, Mango, Carrot, Banana?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Reasoning easy प्रश्न 3: Which word does not belong: Apple, Mango, Carrot, Banana?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 76,
+      "subject": "Reasoning",
+      "difficulty": "easy",
+      "content_text": "A is taller than B and B is taller than C. Who is shortest?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Reasoning easy प्रश्न 4: A is taller than B and B is taller than C. Who is shortest?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Reasoning easy प्रश्न 4: A is taller than B and B is taller than C. Who is shortest?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 77,
+      "subject": "Reasoning",
+      "difficulty": "easy",
+      "content_text": "How many sides does a hexagon have?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 1,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Reasoning easy प्रश्न 5: How many sides does a hexagon have?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Reasoning easy प्रश्न 5: How many sides does a hexagon have?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 78,
+      "subject": "Reasoning",
+      "difficulty": "easy",
+      "content_text": "If today is Monday, what day is tomorrow?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 0,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Reasoning easy प्रश्न 6: If today is Monday, what day is tomorrow?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Reasoning easy प्रश्न 6: If today is Monday, what day is tomorrow?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 79,
+      "subject": "Reasoning",
+      "difficulty": "medium",
+      "content_text": "What comes next: 3, 6, 12, 24?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Reasoning medium प्रश्न 1: What comes next: 3, 6, 12, 24?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Reasoning medium प्रश्न 1: What comes next: 3, 6, 12, 24?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 80,
+      "subject": "Reasoning",
+      "difficulty": "medium",
+      "content_text": "If SOUTH is coded as TPVUI, how is NORTH coded?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Reasoning medium प्रश्न 2: If SOUTH is coded as TPVUI, how is NORTH coded?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Reasoning medium प्रश्न 2: If SOUTH is coded as TPVUI, how is NORTH coded?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 81,
+      "subject": "Reasoning",
+      "difficulty": "medium",
+      "content_text": "A clock shows 3:00. What is the angle between hands?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 1,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Reasoning medium प्रश्न 3: A clock shows 3:00. What is the angle between hands?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Reasoning medium प्रश्न 3: A clock shows 3:00. What is the angle between hands?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 82,
+      "subject": "Reasoning",
+      "difficulty": "medium",
+      "content_text": "Find the odd one out: 16, 25, 36, 49, 50.",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 0,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Reasoning medium प्रश्न 4: Find the odd one out: 16, 25, 36, 49, 50.",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Reasoning medium प्रश्न 4: Find the odd one out: 16, 25, 36, 49, 50.",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 83,
+      "subject": "Reasoning",
+      "difficulty": "medium",
+      "content_text": "If all roses are flowers and some flowers fade, can we conclude all roses fade?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Reasoning medium प्रश्न 5: If all roses are flowers and some flowers fade, can we conclude all roses fade?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Reasoning medium प्रश्न 5: If all roses are flowers and some flowers fade, can we conclude all roses fade?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 84,
+      "subject": "Reasoning",
+      "difficulty": "medium",
+      "content_text": "A is brother of B and B is sister of C. How is A related to C?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Reasoning medium प्रश्न 6: A is brother of B and B is sister of C. How is A related to C?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Reasoning medium प्रश्न 6: A is brother of B and B is sister of C. How is A related to C?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 85,
+      "subject": "Reasoning",
+      "difficulty": "hard",
+      "content_text": "What comes next: 1, 4, 9, 16, 25?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 1,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Reasoning hard प्रश्न 1: What comes next: 1, 4, 9, 16, 25?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Reasoning hard प्रश्न 1: What comes next: 1, 4, 9, 16, 25?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 86,
+      "subject": "Reasoning",
+      "difficulty": "hard",
+      "content_text": "If 5 machines make 5 items in 5 minutes, how long for 100 machines to make 100 items?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 0,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Reasoning hard प्रश्न 2: If 5 machines make 5 items in 5 minutes, how long for 100 machines to make 100 items?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Reasoning hard प्रश्न 2: If 5 machines make 5 items in 5 minutes, how long for 100 machines to make 100 items?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 87,
+      "subject": "Reasoning",
+      "difficulty": "hard",
+      "content_text": "A sequence increases by 2, 4, 6, 8. What is the next increase?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 3,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Reasoning hard प्रश्न 3: A sequence increases by 2, 4, 6, 8. What is the next increase?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Reasoning hard प्रश्न 3: A sequence increases by 2, 4, 6, 8. What is the next increase?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 88,
+      "subject": "Reasoning",
+      "difficulty": "hard",
+      "content_text": "If every square is a rectangle and some rectangles are blue, can every square be blue?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 2,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Reasoning hard प्रश्न 4: If every square is a rectangle and some rectangles are blue, can every square be blue?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Reasoning hard प्रश्न 4: If every square is a rectangle and some rectangles are blue, can every square be blue?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 89,
+      "subject": "Reasoning",
+      "difficulty": "hard",
+      "content_text": "A train passes a pole in 12 seconds at 54 km/h. What is its length?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 1,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Reasoning hard प्रश्न 5: A train passes a pole in 12 seconds at 54 km/h. What is its length?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Reasoning hard प्रश्न 5: A train passes a pole in 12 seconds at 54 km/h. What is its length?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 90,
+      "subject": "Reasoning",
+      "difficulty": "hard",
+      "content_text": "In a row, P is left of Q, R is right of Q, and S is left of P. Who is second from the right?",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "correct_answer_index": 0,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हिंदी demo Reasoning hard प्रश्न 6: In a row, P is left of Q, R is right of Q, and S is left of P. Who is second from the right?",
+          "options": [
+            "विकल्प 1",
+            "विकल्प 2",
+            "विकल्प 3",
+            "विकल्प 4"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తెలుగు demo Reasoning hard प्रश्न 6: In a row, P is left of Q, R is right of Q, and S is left of P. Who is second from the right?",
+          "options": [
+            "ఎంపిక 1",
+            "ఎంపిక 2",
+            "ఎంపిక 3",
+            "ఎంపిక 4"
+          ]
+        }
+      }
+    }
+  ]
+}

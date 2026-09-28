@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { chunk } from '@/lib/db/chunk'
 
 export type SubjectStats = {
   subject: string;
@@ -92,10 +93,16 @@ export async function fetchAnalyticsData(): Promise<AnalyticsData> {
 
   if (adminClient && totalSessions > 0) {
     const sessionIds = completedSessions.map(session => session.id);
-    const { data: answers, error: answersError } = await adminClient
-      .from('answers')
-      .select('session_id, question_id, selected_option_index')
-      .in('session_id', sessionIds);
+    const answerBatches = await Promise.all(
+      chunk(sessionIds).map(ids =>
+        adminClient
+          .from('answers')
+          .select('session_id, question_id, selected_option_index')
+          .in('session_id', ids)
+      )
+    );
+    const answers = answerBatches.flatMap(batch => batch.data || []);
+    const answersError = answerBatches.find(batch => batch.error)?.error || null;
 
     const answerBySessionQuestion = new Map<string, number | null>();
     for (const answer of answers || []) {
@@ -120,22 +127,20 @@ export async function fetchAnalyticsData(): Promise<AnalyticsData> {
         .filter((id): id is string => typeof id === 'string')
     )];
 
-    let questionQuery = adminClient
-      .from('questions')
-      .select(`id, exam_id, subject, question_answers(correct_answer_index)`);
-
-    if (rosterQuestionIds.length > 0 && legacyExamIds.length === 0) {
-      questionQuery = questionQuery.in('id', rosterQuestionIds);
-    } else if (rosterQuestionIds.length === 0 && legacyExamIds.length > 0) {
-      questionQuery = questionQuery.in('exam_id', legacyExamIds);
-    } else if (rosterQuestionIds.length > 0 || legacyExamIds.length > 0) {
-      const filters = [];
-      if (rosterQuestionIds.length > 0) filters.push(`id.in.(${rosterQuestionIds.join(',')})`);
-      if (legacyExamIds.length > 0) filters.push(`exam_id.in.(${legacyExamIds.join(',')})`);
-      questionQuery = questionQuery.or(filters.join(','));
-    }
-
-    const { data: questions, error: questionsError } = await questionQuery;
+    const [questionByIdBatches, questionByExamBatches] = await Promise.all([
+      Promise.all(chunk(rosterQuestionIds).map(ids =>
+        ids.length === 0
+          ? Promise.resolve({ data: [], error: null })
+          : adminClient.from('questions').select(`id, exam_id, subject, question_answers(correct_answer_index)`).in('id', ids)
+      )),
+      Promise.all(chunk(legacyExamIds).map(ids =>
+        ids.length === 0
+          ? Promise.resolve({ data: [], error: null })
+          : adminClient.from('questions').select(`id, exam_id, subject, question_answers(correct_answer_index)`).in('exam_id', ids)
+      )),
+    ]);
+    const questions = [...questionByIdBatches, ...questionByExamBatches].flatMap(batch => batch.data || []);
+    const questionsError = [...questionByIdBatches, ...questionByExamBatches].find(batch => batch.error)?.error || null;
     if (questionsError) {
       console.error('Failed to fetch analysis question roster:', questionsError.message);
     }

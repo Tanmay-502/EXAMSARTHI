@@ -22,7 +22,7 @@ Ensure the following steps are verified before deploying to Vercel/Production.
 
 ## Database Configuration (Supabase Dashboard)
 
-- [ ] Production database has all required migrations through `00011_harden_audit_logs.sql` successfully applied.
+- [ ] Production database has all required migrations through `00012_practice_subjects.sql` successfully applied.
 - [ ] Row Level Security (RLS) is ENFORCED on `profiles`, `exams`, `questions`, `exam_sessions`, `answers`, `audit_logs`, and `question_answers`.
 - [ ] Auth Email Template for "Confirm Signup" and "Magic Link" uses the PKCE configuration `{{ .TokenHash }}` redirecting to `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`.
 

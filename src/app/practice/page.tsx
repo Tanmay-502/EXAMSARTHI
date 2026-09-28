@@ -8,22 +8,26 @@ import { useSearchParams } from 'next/navigation';
 import { useVoice } from '@/lib/voice/VoiceProvider';
 import { VoiceCore } from '@/components/voice/VoiceCore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { fetchPracticeQuestions, fetchAvailablePracticeSubjects, startPracticeSession } from '@/app/exam/actions';
+import { fetchPracticeQuestions, fetchAvailablePracticeSubjects, startPracticeSession, verifyActiveSession } from '@/app/exam/actions';
 import { usePreferredMode } from '@/lib/hooks/usePreferredMode';
 import { resolveSubject } from '@/lib/catalog/examCatalog';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 import { parseCommand } from '@/lib/voice/commandParser';
 import { SafeAction } from '@/lib/voice/safeActionRegistry';
 import { shouldEscapeToGlobal } from '@/lib/voice/navigationEscape';
+import { useVoiceAppContext } from '@/lib/store/voiceContextStore';
+import { clearExamStorage } from '@/lib/store/clearExamStorage';
 
 function PracticeContent() {
   const initializeExam = useExamStore(state => state.initializeExam);
+  const persistedUserId = useExamStore(state => state.userId);
   const persistedSessionId = useExamStore(state => state.sessionId);
   const persistedExamId = useExamStore(state => state.examId);
   const persistedStatus = useExamStore(state => state.status);
   const persistedQuestions = useExamStore(state => state.questions);
   const hasHydrated = useExamStore(state => state.hasHydrated);
   const { t, lang } = useI18n();
+  const setVoiceContext = useVoiceAppContext(state => state.setContext);
   const searchParams = useSearchParams();
   const { speak, startContinuousListening, isContinuous } = useVoice();
   const { useVoiceAction } = useGlobalVoice();
@@ -49,6 +53,7 @@ function PracticeContent() {
   const [availableCount, setAvailableCount] = useState<number>(0);
   const [availableSubjects, setAvailableSubjects] = useState<string[]>([]);
   const [setupError, setSetupError] = useState('');
+  const [resumeChecked, setResumeChecked] = useState(false);
   
   const hasStartedRef = useRef(false);
   const hasAnnouncedResumeRef = useRef(false);
@@ -85,6 +90,11 @@ function PracticeContent() {
   };
 
   useEffect(() => {
+    setVoiceContext('practice_setup');
+    return () => setVoiceContext('unknown');
+  }, [setVoiceContext]);
+
+  useEffect(() => {
     if (!isContinuous && !hasStartedRef.current) {
       hasStartedRef.current = true;
       startContinuousListening();
@@ -93,7 +103,7 @@ function PracticeContent() {
 
   useEffect(() => {
     fetchAvailablePracticeSubjects()
-      .then(setAvailableSubjects)
+      .then(data => setAvailableSubjects((data ?? []) as string[]))
       .catch((error) => {
         console.error('Failed to load practice subjects', error);
         setAvailableSubjects([]);
@@ -101,32 +111,46 @@ function PracticeContent() {
   }, []);
 
   useEffect(() => {
-    const canResume =
-      hasHydrated &&
-      persistedStatus === 'IN_PROGRESS' &&
-      persistedExamId === 'practice-exam' &&
-      Boolean(persistedSessionId) &&
-      persistedQuestions.length > 0;
+    if (!hasHydrated || resumeChecked) return;
 
-    if (!canResume) return;
+    async function checkPersistedPractice() {
+      const canResume =
+        persistedStatus === 'IN_PROGRESS' &&
+        persistedExamId === 'practice-exam' &&
+        Boolean(persistedSessionId) &&
+        Boolean(persistedUserId) &&
+        persistedQuestions.length > 0;
 
-    setTimeout(() => setSetupState('READY'), 0);
+      if (!canResume || !persistedSessionId || !persistedUserId) {
+        setResumeChecked(true);
+        return;
+      }
 
-    if (!hasAnnouncedResumeRef.current) {
-      hasAnnouncedResumeRef.current = true;
-      speak('Resuming your current practice session.');
+      try {
+        const verification = await verifyActiveSession(persistedSessionId, true);
+        if (!verification.valid || verification.userId !== persistedUserId) {
+          await clearExamStorage();
+          setResumeChecked(true);
+          return;
+        }
+        setSetupState('READY');
+        if (!hasAnnouncedResumeRef.current) {
+          hasAnnouncedResumeRef.current = true;
+          speak('Resuming your current practice session.');
+        }
+      } catch (error) {
+        console.error('Persisted practice resume validation failed:', error);
+        await clearExamStorage();
+      } finally {
+        setResumeChecked(true);
+      }
     }
-  }, [
-    hasHydrated,
-    persistedStatus,
-    persistedExamId,
-    persistedSessionId,
-    persistedQuestions.length,
-    speak
-  ]);
+
+    void checkPersistedPractice();
+  }, [hasHydrated, resumeChecked, persistedStatus, persistedExamId, persistedSessionId, persistedUserId, persistedQuestions.length, speak]);
 
   useEffect(() => {
-    if (!hasHydrated || setupState !== 'FETCHING') return;
+    if (!hasHydrated || !resumeChecked || setupState !== 'FETCHING') return;
 
     const qCount = parseInt(count, 10) || 5;
       fetchPracticeQuestions(subject, difficulty, qCount, lang)
@@ -156,7 +180,7 @@ function PracticeContent() {
   }, [hasHydrated, setupState, subject, count, difficulty, lang, speak]);
 
   useEffect(() => {
-    if (!hasHydrated || setupState !== 'STARTING') return;
+    if (!hasHydrated || !resumeChecked || setupState !== 'STARTING') return;
 
     const actualCount = fetchedQuestions.length;
     const confirmMsg = lang === 'hi-IN'
@@ -171,8 +195,8 @@ function PracticeContent() {
       subject,
       difficulty
     )
-      .then(sessionId => {
-        initializeExam(sessionId, 'practice-exam', fetchedQuestions);
+      .then(session => {
+        initializeExam(session.id, 'practice-exam', fetchedQuestions, undefined, session.userId);
         setSetupState('READY');
       })
       .catch(err => {
@@ -204,7 +228,7 @@ function PracticeContent() {
       Boolean(persistedSessionId) &&
       persistedQuestions.length > 0;
 
-    if (!hasHydrated || canResume) return;
+    if (!hasHydrated || !resumeChecked || canResume) return;
 
     if (setupState === 'ASK_SUBJECT' && !subject) speak("What subject would you like to practice?");
     if (setupState === 'ASK_COUNT' && !count) speak("How many questions would you like?");
@@ -256,7 +280,7 @@ function PracticeContent() {
         return false;
       }
       
-      if ((action as string) === 'RAW_TRANSCRIPT' && shouldEscapeToGlobal(raw, lang, 'practice-setup')) {
+      if ((action as string) === 'RAW_TRANSCRIPT' && shouldEscapeToGlobal(raw, lang, 'practice_setup')) {
         return false;
       }
 

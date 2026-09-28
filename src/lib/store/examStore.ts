@@ -38,6 +38,7 @@ export type Answer = {
 }
 
 interface ExamState {
+  userId: string | null
   sessionId: string | null
   examId: string | null
   questions: Question[]
@@ -45,11 +46,12 @@ interface ExamState {
   currentQuestionIndex: number
   startTime: number | null
   endTime: number | null
+  serverTimeOffsetMs: number
   status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'SUBMITTED'
   hasHydrated: boolean
   
   // Actions
-  initializeExam: (sessionId: string, examId: string, questions: Question[], startedAt?: number) => void
+  initializeExam: (sessionId: string, examId: string, questions: Question[], startedAt?: number, userId?: string | null, serverNow?: number) => void
   setAnswer: (questionId: string, answerData: unknown) => void
   toggleMarkForReview: (questionId: string) => void
   setCurrentQuestionIndex: (index: number) => void
@@ -61,6 +63,7 @@ interface ExamState {
 export const useExamStore = create<ExamState>()(
   persist(
     (set) => ({
+      userId: null,
       sessionId: null,
       examId: null,
       questions: [],
@@ -68,10 +71,11 @@ export const useExamStore = create<ExamState>()(
       currentQuestionIndex: 0,
       startTime: null,
       endTime: null,
+      serverTimeOffsetMs: 0,
       status: 'NOT_STARTED',
       hasHydrated: false,
 
-      initializeExam: (sessionId, examId, questions, startedAt) => {
+      initializeExam: (sessionId, examId, questions, startedAt, userId, serverNow) => {
         set((state) => {
           const isResuming =
             state.sessionId === sessionId &&
@@ -84,6 +88,7 @@ export const useExamStore = create<ExamState>()(
               : Date.now();
 
           return {
+            userId: userId ?? state.userId,
             sessionId,
             examId,
             questions,
@@ -93,6 +98,7 @@ export const useExamStore = create<ExamState>()(
               : 0,
             startTime: isResuming ? state.startTime : normalizedStartedAt,
             endTime: null,
+            serverTimeOffsetMs: typeof serverNow === 'number' ? serverNow - Date.now() : state.serverTimeOffsetMs,
             status: 'IN_PROGRESS',
           };
         })
@@ -144,6 +150,7 @@ export const useExamStore = create<ExamState>()(
 
       clearExam: () => {
         set({
+          userId: null,
           sessionId: null,
           examId: null,
           questions: [],
@@ -151,6 +158,7 @@ export const useExamStore = create<ExamState>()(
           currentQuestionIndex: 0,
           startTime: null,
           endTime: null,
+          serverTimeOffsetMs: 0,
           status: 'NOT_STARTED',
         })
       },
@@ -158,6 +166,10 @@ export const useExamStore = create<ExamState>()(
     {
       name: 'exam-storage', // name of the item in the storage (must be unique)
       storage: createJSONStorage(() => storage),
+      partialize: (state) => {
+        const { hasHydrated: _hasHydrated, ...persisted } = state
+        return persisted
+      },
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated?.(true);
       },

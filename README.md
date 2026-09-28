@@ -17,7 +17,7 @@ ExamSaarthi V2 is an accessible, voice-first, multilingual examination and pract
 
 ## Getting started
 1. Create `.env.local` and keep it out of Git.
-2. Apply Supabase migrations `00000` through `00011` in order.
+2. Apply Supabase migrations `00000` through `00012` in order.
 3. Start the app with `npm run dev`.
 
 ## Testing

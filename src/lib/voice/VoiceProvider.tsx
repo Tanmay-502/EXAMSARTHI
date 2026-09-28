@@ -14,7 +14,7 @@ type TranscriptMessage = {
 };
 
 type VoiceContextType = {
-  speak: (text: string) => void;
+  speak: (text: string, options?: { dedupe?: boolean }) => void;
   stopSpeaking: () => void;
   isSpeaking: boolean;
   startListening: () => void;
@@ -27,6 +27,7 @@ type VoiceContextType = {
   micError: string | null;
   voiceState: VoiceState;
   transcript: TranscriptMessage[];
+  speechWarning: string | null;
 };
 
 const VoiceContext = createContext<VoiceContextType | undefined>(undefined);
@@ -38,7 +39,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const [transcript, setTranscript] = useState<TranscriptMessage[]>([]);
   
   const { lang, t } = useI18n();
-  const { speechRate, voiceURI } = useAccessibility();
+  const { speechRate, voiceURI, announce } = useAccessibility();
   
   const langRef = useRef(lang);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -52,6 +53,8 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const micErrorRef = useRef<string | null>(null);
   const restartTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSpokenRef = useRef<{ text: string; at: number }>({ text: '', at: 0 });
+  const [speechWarning, setSpeechWarning] = useState<string | null>(null);
+  const lastSpeechWarningLangRef = useRef<string>('');
   const lastTranscriptRef = useRef<{ text: string; at: number }>({ text: '', at: 0 });
 
   const updateVoiceState = useCallback((state: VoiceState) => {
@@ -107,14 +110,31 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
 
     const sentence = utteranceQueueRef.current.shift()!;
     const utterance = new SpeechSynthesisUtterance(sentence);
+    const locale = langRef.current.toLowerCase();
     utterance.lang = langRef.current;
     utterance.rate = speechRate;
 
-    if (voiceURI && typeof window !== 'undefined') {
-      const selectedVoice = window.speechSynthesis
-        .getVoices()
-        .find((voice) => voice.voiceURI === voiceURI);
-      if (selectedVoice) utterance.voice = selectedVoice;
+    const installedVoices = typeof window !== 'undefined' ? window.speechSynthesis.getVoices() : [];
+    const selectedVoice = voiceURI
+      ? installedVoices.find((voice) => voice.voiceURI === voiceURI)
+      : undefined;
+    const localePrefix = locale.split('-')[0];
+    const localeVoice = installedVoices.find((voice) => voice.lang.toLowerCase() === locale)
+      ?? installedVoices.find((voice) => voice.lang.toLowerCase().startsWith(localePrefix + '-'));
+
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    } else if (localeVoice) {
+      utterance.voice = localeVoice;
+      setSpeechWarning(null);
+    } else if (installedVoices.length > 0) {
+      const languageName = locale === 'hi-in' ? 'Hindi' : locale === 'te-in' ? 'Telugu' : 'English';
+      const warning = `No ${languageName} voice installed. Using the browser default voice.`;
+      setSpeechWarning(warning);
+      if (lastSpeechWarningLangRef.current !== locale) {
+        lastSpeechWarningLangRef.current = locale;
+        announce(warning, 'assertive');
+      }
     }
     
     utterance.onstart = () => {
@@ -142,32 +162,33 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     window.speechSynthesis.speak(utterance);
   }, [speechRate, updateVoiceState, voiceURI]);
 
-  const speak = useCallback((text: string) => {
+  const speak = useCallback((text: string, options?: { dedupe?: boolean }) => {
     if (typeof window === 'undefined' || !window.speechSynthesis) return;
 
     const normalizedText = text.trim().replace(/\s+/g, ' ');
     if (!normalizedText) return;
 
+    const dedupe = options?.dedupe !== false;
     const now = Date.now();
     if (
+      dedupe &&
       lastSpokenRef.current.text === normalizedText &&
       now - lastSpokenRef.current.at < 1500
     ) {
       return;
     }
-    lastSpokenRef.current = { text: normalizedText, at: now };
+    if (dedupe) lastSpokenRef.current = { text: normalizedText, at: now };
     
     speechSessionIdRef.current += 1;
     const currentSession = speechSessionIdRef.current;
     
     window.speechSynthesis.cancel();
-    
     updateVoiceState('SPEAKING');
     
     setTranscript(prev => [...prev, {
       id: Math.random().toString(36).substring(7),
       sender: 'assistant',
-      text: text,
+      text,
       timestamp: new Date()
     }]);
     
@@ -176,16 +197,19 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       try { reco.stop(); } catch { /* ignore */ }
     }
 
-    const parts = text.split(/([.,!?;।]+)/);
+    const rawSentences = normalizedText.split(/(?<=[.!?।])\s+/);
     const sentences: string[] = [];
-    for (let i = 0; i < parts.length; i += 2) {
-      const sentence = (parts[i] || '').trim() + (parts[i + 1] || '');
-      if (sentence.trim().length > 0) {
-        sentences.push(sentence.trim());
+    for (const sentence of rawSentences) {
+      if (sentence.length <= 180) {
+        sentences.push(sentence);
+        continue;
+      }
+      for (let start = 0; start < sentence.length; start += 180) {
+        sentences.push(sentence.slice(start, start + 180).trim());
       }
     }
 
-    utteranceQueueRef.current = sentences;
+    utteranceQueueRef.current = sentences.filter(Boolean);
     playNextUtterance(currentSession);
   }, [playNextUtterance, updateVoiceState]);
 
@@ -436,7 +460,8 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       setOnResult,
       micError,
       voiceState,
-      transcript
+      transcript,
+      speechWarning
     }}>
       {children}
     </VoiceContext.Provider>

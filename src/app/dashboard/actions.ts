@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/server'
+import { chunk } from '@/lib/db/chunk'
 
 type ServerQuestionWithAnswer = {
   id: string;
@@ -90,24 +91,31 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
   )];
 
   if (completedSessions.length > 0) {
-    const [{ data: answers, error: answersError }, { data: questions, error: questionsError }] = await Promise.all([
-      adminClient
-        .from('answers')
-        .select('session_id, question_id, selected_option_index')
-        .in('session_id', sessionIds),
-      (() => {
-        const query = adminClient.from('questions').select('id, exam_id, subject, question_answers(correct_answer_index)');
-        if (rosterQuestionIds.length > 0 && legacyExamIds.length === 0) return query.in('id', rosterQuestionIds);
-        if (rosterQuestionIds.length === 0 && legacyExamIds.length > 0) return query.in('exam_id', legacyExamIds);
-        if (rosterQuestionIds.length > 0 || legacyExamIds.length > 0) {
-          const filters: string[] = [];
-          if (rosterQuestionIds.length > 0) filters.push(`id.in.(${rosterQuestionIds.join(',')})`);
-          if (legacyExamIds.length > 0) filters.push(`exam_id.in.(${legacyExamIds.join(',')})`);
-          return query.or(filters.join(','));
-        }
-        return query;
-      })(),
+    const answerBatches = await Promise.all(
+      chunk(sessionIds).map(ids =>
+        adminClient
+          .from('answers')
+          .select('session_id, question_id, selected_option_index')
+          .in('session_id', ids)
+      )
+    );
+    const answers = answerBatches.flatMap(batch => batch.data || []);
+    const answersError = answerBatches.find(batch => batch.error)?.error || null;
+
+    const [questionByIdBatches, questionByExamBatches] = await Promise.all([
+      Promise.all(chunk(rosterQuestionIds).map(ids =>
+        ids.length === 0
+          ? Promise.resolve({ data: [], error: null })
+          : adminClient.from('questions').select('id, exam_id, subject, question_answers(correct_answer_index)').in('id', ids)
+      )),
+      Promise.all(chunk(legacyExamIds).map(ids =>
+        ids.length === 0
+          ? Promise.resolve({ data: [], error: null })
+          : adminClient.from('questions').select('id, exam_id, subject, question_answers(correct_answer_index)').in('exam_id', ids)
+      )),
     ]);
+    const questions = [...questionByIdBatches, ...questionByExamBatches].flatMap(batch => batch.data || []);
+    const questionsError = [...questionByIdBatches, ...questionByExamBatches].find(batch => batch.error)?.error || null;
 
     if (answersError) throw new Error(answersError.message);
     if (questionsError) throw new Error(questionsError.message);

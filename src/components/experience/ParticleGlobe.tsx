@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -31,9 +31,22 @@ export function ParticleGlobe({ reducedMotion = false }: { reducedMotion?: boole
   const ringRef1 = useRef<THREE.Line>(null);
   const ringRef2 = useRef<THREE.Line>(null);
   const ringRef3 = useRef<THREE.Line>(null);
+  const [isHidden, setIsHidden] = useState(false);
+  const rings = useMemo(() => [
+    new THREE.Line(ringGeometry1, new THREE.LineBasicMaterial({ color: '#52525b', transparent: true, opacity: 0.3 })),
+    new THREE.Line(ringGeometry2, new THREE.LineBasicMaterial({ color: '#3f3f46', transparent: true, opacity: 0.3 })),
+    new THREE.Line(ringGeometry3, new THREE.LineBasicMaterial({ color: '#27272a', transparent: true, opacity: 0.3 })),
+  ], []);
+
+  useEffect(() => {
+    const onVisibilityChange = () => setIsHidden(document.hidden);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    onVisibilityChange();
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, []);
 
   useFrame((state) => {
-    if (reducedMotion) return;
+    if (reducedMotion || isHidden) return;
     if (pointsRef.current) {
       pointsRef.current.rotation.y = state.clock.elapsedTime * 0.05;
       pointsRef.current.rotation.x = state.clock.elapsedTime * 0.02;
@@ -61,9 +74,9 @@ export function ParticleGlobe({ reducedMotion = false }: { reducedMotion?: boole
         <pointsMaterial size={0.015} color="#a1a1aa" transparent opacity={0.6} sizeAttenuation />
       </points>
 
-      <primitive object={new THREE.Line(ringGeometry1, new THREE.LineBasicMaterial({ color: '#52525b', transparent: true, opacity: 0.3 }))} ref={ringRef1} />
-      <primitive object={new THREE.Line(ringGeometry2, new THREE.LineBasicMaterial({ color: '#3f3f46', transparent: true, opacity: 0.3 }))} ref={ringRef2} />
-      <primitive object={new THREE.Line(ringGeometry3, new THREE.LineBasicMaterial({ color: '#27272a', transparent: true, opacity: 0.3 }))} ref={ringRef3} />
+      <primitive object={rings[0]} ref={ringRef1} />
+      <primitive object={rings[1]} ref={ringRef2} />
+      <primitive object={rings[2]} ref={ringRef3} />
     </group>
   );
 }

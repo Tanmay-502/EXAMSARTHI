@@ -3,7 +3,7 @@
 import { ExamEngine } from '@/components/exam/ExamEngine';
 import { useExamStore } from '@/lib/store/examStore';
 import { useEffect, useState, Suspense, useRef } from 'react';
-import { fetchExamQuestions, startExamSession, fetchAvailableExams } from './actions';
+import { fetchExamQuestions, startExamSession, fetchAvailableExams, verifyActiveSession } from './actions';
 import { useI18n } from '@/lib/i18n/I18nProvider';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePreferredMode, InteractionMode } from '@/lib/hooks/usePreferredMode';
@@ -13,6 +13,9 @@ import { useAccessibility } from '@/lib/accessibility/AccessibilityProvider';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 import { SafeAction } from '@/lib/voice/safeActionRegistry';
 import { shouldEscapeToGlobal } from '@/lib/voice/navigationEscape';
+import { say } from '@/lib/voice/say';
+import { clearExamStorage } from '@/lib/store/clearExamStorage';
+import { useVoiceAppContext } from '@/lib/store/voiceContextStore';
 
 function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onComplete: () => void, interactionMode: InteractionMode, setInteractionMode: (m: InteractionMode) => void }) {
   const [micStatus, setMicStatus] = useState<'pending' | 'success' | 'error' | 'not-required'>('pending');
@@ -77,8 +80,7 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
     } else {
       msg = 'Microphone access is unavailable. Your voice-first preference is still kept. Allow microphone access and choose Retry, or continue with keyboard and screen reader mode.';
     }
-    announce(msg, 'assertive');
-    speak(msg);
+    say(msg, interactionMode, speak, announce, 'assertive');
   }, [micStatus, browserStatus, announce, speak, interactionMode, setInteractionMode]);
 
   const allClear =
@@ -229,11 +231,18 @@ function ExamSelection({
   const [selectedExam, setSelectedExam] = useState<AvailableExam | null>(null);
   const { speak, isContinuous, startContinuousListening } = useVoice();
   const { lang } = useI18n();
+  const { mode: voiceMode } = usePreferredMode();
+  const setVoiceContext = useVoiceAppContext(state => state.setContext);
   const { announce } = useAccessibility();
   const hasSpokenWelcome = useRef(false);
   const lastHandledTranscriptRef = useRef<string>('');
   const router = useRouter();
   const { useVoiceAction } = useGlobalVoice();
+
+  useEffect(() => {
+    setVoiceContext('exam_lobby');
+    return () => setVoiceContext('unknown');
+  }, [setVoiceContext]);
 
   useEffect(() => {
     async function load() {
@@ -256,8 +265,7 @@ function ExamSelection({
       hasSpokenWelcome.current = true;
       const examNames = exams.map(e => e.title).join(', ');
       const msg = `Which exam would you like to take? Available exams are ${examNames}. You can say an exam name or say list exams.`;
-      speak(msg);
-      announce(msg);
+      say(msg, voiceMode, speak, announce);
       
       if (!isContinuous) {
         startContinuousListening();
@@ -280,7 +288,7 @@ function ExamSelection({
       return true;
     }
 
-    if ((action as string) === 'RAW_TRANSCRIPT' && shouldEscapeToGlobal(raw, lang, 'exam-selection')) {
+    if ((action as string) === 'RAW_TRANSCRIPT' && shouldEscapeToGlobal(raw, lang, 'exam_lobby')) {
       return false;
     }
 
@@ -486,8 +494,18 @@ function ExamSelection({
 function ExamPageContent() {
   const initializeExam = useExamStore(state => state.initializeExam);
   const hasHydrated = useExamStore(state => state.hasHydrated);
+  const persistedUserId = useExamStore(state => state.userId);
+  const persistedSessionId = useExamStore(state => state.sessionId);
+  const persistedStatus = useExamStore(state => state.status);
+  const persistedExamId = useExamStore(state => state.examId);
   const { lang } = useI18n();
   const router = useRouter();
+  const setVoiceContext = useVoiceAppContext(state => state.setContext);
+
+  useEffect(() => {
+    setVoiceContext('exam_lobby');
+    return () => setVoiceContext('unknown');
+  }, [setVoiceContext]);
   const searchParams = useSearchParams();
   const examIdParam = searchParams.get('exam_id');
   const { mode: interactionMode, setMode, isLoaded: preferenceLoaded } = usePreferredMode();
@@ -498,11 +516,83 @@ function ExamPageContent() {
   const [examStarted, setExamStarted] = useState(false);
   const [deviceCheckComplete, setDeviceCheckComplete] = useState(false);
   const [examMeta, setExamMeta] = useState<{ title: string; duration_minutes: number } | null>(null);
+  const [resumeChecked, setResumeChecked] = useState(false);
+
+  useEffect(() => {
+    if (!hasHydrated || resumeChecked) return;
+
+    async function checkPersistedSession() {
+      if (persistedStatus !== 'IN_PROGRESS' || !persistedSessionId || !persistedUserId || !persistedExamId) {
+        setResumeChecked(true);
+        return;
+      }
+
+      if (examIdParam && examIdParam !== persistedExamId) {
+        await clearExamStorage();
+        setResumeChecked(true);
+        return;
+      }
+
+      try {
+        const verification = await verifyActiveSession(persistedSessionId, false);
+        if (!verification.valid || verification.userId !== persistedUserId || verification.session?.examId !== persistedExamId) {
+          await clearExamStorage();
+          setResumeChecked(true);
+          return;
+        }
+
+        const exams = await fetchAvailableExams();
+        const currentExam = exams.find(exam => exam.id === persistedExamId);
+        if (!currentExam) {
+          await clearExamStorage();
+          setResumeChecked(true);
+          return;
+        }
+
+        const questions = await fetchExamQuestions(
+          persistedExamId,
+          persistedSessionId,
+          lang
+        );
+        if (questions.length === 0) {
+          await clearExamStorage();
+          setResumeChecked(true);
+          return;
+        }
+
+        initializeExam(
+          persistedSessionId,
+          persistedExamId,
+          questions,
+          new Date(verification.session.startedAt).getTime(),
+          verification.userId,
+          verification.serverNow
+        );
+        setExamId(persistedExamId);
+        setExamMeta({
+          title: currentExam.title,
+          duration_minutes: currentExam.duration_minutes,
+        });
+        setExamStarted(true);
+      } catch (error) {
+        console.error('Persisted exam resume validation failed:', error);
+        await clearExamStorage();
+      } finally {
+        setResumeChecked(true);
+      }
+    }
+
+    void checkPersistedSession();
+  }, [hasHydrated, resumeChecked, persistedStatus, persistedSessionId, persistedUserId, persistedExamId, examIdParam, lang, initializeExam]);
 
   // First load only the selected exam metadata. Do not create an in-progress
   // server session until the candidate has passed the device check.
   useEffect(() => {
-    if (!examId) return;
+    if (!resumeChecked) return;
+    if (!examId) {
+      setVoiceContext('exam_lobby');
+      return;
+    }
 
     async function loadExamMeta() {
       setLoading(true);
@@ -533,11 +623,11 @@ function ExamPageContent() {
     }
 
     loadExamMeta();
-  }, [examId, router]);
+  }, [examId, router, setVoiceContext, resumeChecked]);
 
   // Only create the server session after the device check is complete.
   useEffect(() => {
-    if (!hasHydrated || !examId || !examMeta || !deviceCheckComplete || !preferenceLoaded || examStarted) {
+    if (!hasHydrated || !resumeChecked || !examId || !examMeta || !deviceCheckComplete || !preferenceLoaded || examStarted) {
       return;
     }
     const selectedExamId: string = examId;
@@ -557,7 +647,9 @@ function ExamPageContent() {
           session.id,
           selectedExamId,
           questions,
-          new Date(session.startedAt).getTime()
+          new Date(session.startedAt).getTime(),
+          session.userId,
+          session.serverNow
         );
         setExamStarted(true);
       } catch (err: unknown) {
@@ -573,9 +665,9 @@ function ExamPageContent() {
     }
 
     startSelectedExam();
-  }, [hasHydrated, examId, examMeta, deviceCheckComplete, preferenceLoaded, examStarted, initializeExam, lang, router]);
+  }, [hasHydrated, resumeChecked, examId, examMeta, deviceCheckComplete, preferenceLoaded, examStarted, initializeExam, lang, router]);
 
-  if (!hasHydrated) {
+  if (!hasHydrated || !resumeChecked) {
     return <div className="flex flex-col items-center justify-center min-h-screen flex-1 p-6 text-xl">Preparing exam state...</div>;
   }
 
