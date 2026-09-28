@@ -525,7 +525,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
               announcement += ' ' + optionsText;
             }
           }
-          speak(announcement);
+          speak(announcement, { dedupe: false });
         } else {
           speak(lang === 'hi-IN' ? 'अभी बदलने के लिए कोई चयन नहीं है।' : lang === 'te-IN' ? 'ప్రస్తుతం మార్చడానికి ఏ ఎంపిక లేదు.' : 'There is nothing to change right now.');
         }
