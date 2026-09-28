@@ -12,6 +12,7 @@ import { createClient } from '@/lib/supabase/client';
 import { motion } from 'framer-motion';
 import { fetchDashboardStats, type DashboardStats } from './actions';
 import { usePreferredMode } from '@/lib/hooks/usePreferredMode';
+import { say } from '@/lib/voice/say';
 
 function DashboardContent() {
   const { t } = useI18n();
@@ -109,17 +110,13 @@ function DashboardContent() {
     headingRef.current?.focus();
     
     const announceMsg = redirected ? t('already_signed_in') + ' Dashboard loaded.' : 'Dashboard loaded.';
-    announce(announceMsg);
-    
-    if (interactionMode === 'voice-first') {
-      if (!isContinuous) {
-        startContinuousListening();
-      }
-      if (userName) {
-        speak(`Hey ${userName}, how can I help you today?`);
-      } else {
-        speak("Hey, welcome back. How can I help you today?");
-      }
+    const greeting = userName
+      ? `Hey ${userName}, how can I help you today?`
+      : 'Hey, welcome back. How can I help you today?';
+    say(`${announceMsg} ${greeting}`, interactionMode, speak, announce);
+
+    if (interactionMode === 'voice-first' && !isContinuous) {
+      startContinuousListening();
     }
   }, [announce, t, speak, isContinuous, startContinuousListening, redirected, userName, interactionMode, preferenceLoaded]);
 
