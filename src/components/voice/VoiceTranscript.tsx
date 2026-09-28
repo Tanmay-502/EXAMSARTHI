@@ -18,7 +18,7 @@ export function VoiceTranscript({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'flex max-h-[40vh] flex-col overflow-y-auto bg-zinc-950',
+        'flex h-[min(40dvh,calc(45dvh-3.5rem))] max-h-none flex-col overflow-y-auto bg-zinc-950',
         'space-y-3 p-4 md:p-5',
         className
       )}

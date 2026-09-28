@@ -24,8 +24,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} antialiased dark`}>
+    import type { CSSProperties } from "react";
+
+<html lang="en" style={{ "--voice-dock-height": "56px" } as CSSProperties}>
+      <body className={`${inter.className} antialiased dark`} style={{ paddingBottom: "var(--voice-dock-height)" }}>
         <MotionConfig reducedMotion="user">
           <I18nProvider>
             <AccessibilityProvider>
