@@ -33,11 +33,15 @@ test.describe('Voice navigation escape decisions', () => {
       expect(escapes).toBe(allowed);
     }
 
-    for (const context of ['exam_active', 'practice_active'] as const) {
-      expect(registry.isActionAllowed('OPEN_EXAM', context)).toBe(false);
-      expect(registry.isActionAllowed('START_EXAM', context)).toBe(false);
-      expect(registry.isActionAllowed('OPEN_PRACTICE', context)).toBe(false);
-      expect(registry.isActionAllowed('START_PRACTICE', context)).toBe(false);
+    expect(registry.isActionAllowed('OPEN_EXAM', 'exam_active')).toBe(false);
+    expect(registry.isActionAllowed('OPEN_PRACTICE', 'exam_active')).toBe(false);
+    expect(registry.isActionAllowed('START_PRACTICE', 'exam_active')).toBe(false);
+    // START_EXAM is intentionally allowed in an active exam: ExamEngine consumes it locally
+    // and does not navigate, while active practice must not be able to enter/restart an exam.
+    expect(registry.isActionAllowed('START_EXAM', 'exam_active')).toBe(true);
+
+    for (const action of ['OPEN_EXAM', 'START_EXAM', 'OPEN_PRACTICE', 'START_PRACTICE'] as const) {
+      expect(registry.isActionAllowed(action, 'practice_active')).toBe(false);
     }
   });
 
