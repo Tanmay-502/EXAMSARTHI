@@ -73,7 +73,7 @@ function SignupForm() {
           <section aria-labelledby="google-signup-title" className="space-y-3">
             <h2 id="google-signup-title" className="text-sm font-bold uppercase tracking-[0.18em] text-zinc-200">Fast account creation</h2>
             <button data-testid="google-auth-button" type="button" onClick={signInWithGoogle} disabled={googleLoading} className="inline-flex h-16 w-full items-center justify-center gap-3 rounded-full border border-zinc-600 bg-white px-8 text-sm font-bold text-black shadow-[0_10px_30px_rgba(255,255,255,0.08)] transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white disabled:opacity-60"><span aria-hidden="true" className="text-xl font-semibold">G</span><span>{googleLoading ? 'Opening Google...' : 'Continue with Google'}</span></button>
-            <p className="text-sm text-zinc-500">Google handles sign-in and account creation; you do not need to receive a Magic Link email.</p>
+            <p className="text-sm text-zinc-400">Google handles sign-in and account creation; you do not need to receive a Magic Link email.</p>
             {googleError ? <p role="alert" className="text-sm text-zinc-300">{googleError}</p> : null}
           </section>
 
