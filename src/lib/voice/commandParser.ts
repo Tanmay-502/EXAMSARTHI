@@ -112,6 +112,10 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
   // Check direct mappings
   for (const { commandType, phrase } of allPhrases) {
     if (matchesPhrase(normalized, phrase)) {
+      if ((commandType === 'SELECT_MODE_STANDARD' || commandType === 'SELECT_MODE_VOICE' || commandType === 'OPEN_ANALYSIS')
+        && !contextualModeAnalysis) {
+        continue;
+      }
       if (commandType === 'JUMP_TO_QUESTION') {
         const match = normalized.match(/\d+/);
         if (match) {
