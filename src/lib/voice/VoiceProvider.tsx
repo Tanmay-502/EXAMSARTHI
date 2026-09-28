@@ -131,7 +131,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     } else if (localeVoice) {
       utterance.voice = localeVoice;
       setSpeechWarning(null);
-    } else if (installedVoices.length > 0) {
+    } else {
       const languageName = locale === 'hi-in' ? 'Hindi' : locale === 'te-in' ? 'Telugu' : 'English';
       const warning = `No ${languageName} voice installed. Using the browser default voice.`;
       setSpeechWarning(warning);

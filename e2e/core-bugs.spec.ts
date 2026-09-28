@@ -35,7 +35,9 @@ test.describe('Task B core regression invariants', () => {
     const assistant = read('src/components/voice/GlobalVoiceAssistant.tsx')
     expect(assistant).toContain('handlerRef.current = handler')
     expect(assistant).toContain('const stableHandler = React.useCallback')
-    expect(assistant).toContain('context.registerHandler(stableHandler)')
+    expect(assistant).toContain('registerHandler(stableHandler)')
+    expect(assistant).toContain('unregisterHandler(stableHandler)')
+    expect(assistant).not.toContain('[context, stableHandler]')
   })
 
   test('natural intent payloads are zod-validated and unsupported languages are ignored', () => {
@@ -75,6 +77,13 @@ test.describe('Task B core regression invariants', () => {
     const results = read('src/components/exam/ResultsAnnouncer.tsx')
     expect(engine).toContain("speak(announcement, { dedupe: false })")
     expect(results).toContain("speak(msg, { dedupe: false })")
+  })
+
+  test('voice provider warns when the requested locale has no installed voice', () => {
+    const provider = read('src/lib/voice/VoiceProvider.tsx')
+    expect(provider).toContain('No ${languageName} voice installed. Using the browser default voice.')
+    expect(provider).toContain('} else {')
+    expect(provider).toContain("announce(warning, 'assertive')")
   })
 
   test('timer and voice status do not use routine live updates; threshold alerts remain', () => {
