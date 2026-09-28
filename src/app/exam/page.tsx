@@ -3,7 +3,7 @@
 import { ExamEngine } from '@/components/exam/ExamEngine';
 import { useExamStore } from '@/lib/store/examStore';
 import { useEffect, useState, Suspense, useRef } from 'react';
-import { fetchExamQuestions, startExamSession, fetchAvailableExams } from './actions';
+import { fetchExamQuestions, startExamSession, fetchAvailableExams, verifyActiveSession } from './actions';
 import { useI18n } from '@/lib/i18n/I18nProvider';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { usePreferredMode, InteractionMode } from '@/lib/hooks/usePreferredMode';
@@ -14,6 +14,7 @@ import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 import { SafeAction } from '@/lib/voice/safeActionRegistry';
 import { shouldEscapeToGlobal } from '@/lib/voice/navigationEscape';
 import { say } from '@/lib/voice/say';
+import { clearExamStorage } from '@/lib/store/clearExamStorage';
 import { useVoiceAppContext } from '@/lib/store/voiceContextStore';
 
 function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onComplete: () => void, interactionMode: InteractionMode, setInteractionMode: (m: InteractionMode) => void }) {
@@ -493,6 +494,10 @@ function ExamSelection({
 function ExamPageContent() {
   const initializeExam = useExamStore(state => state.initializeExam);
   const hasHydrated = useExamStore(state => state.hasHydrated);
+  const persistedUserId = useExamStore(state => state.userId);
+  const persistedSessionId = useExamStore(state => state.sessionId);
+  const persistedStatus = useExamStore(state => state.status);
+  const persistedExamId = useExamStore(state => state.examId);
   const { lang } = useI18n();
   const router = useRouter();
   const setVoiceContext = useVoiceAppContext(state => state.setContext);
@@ -511,10 +516,79 @@ function ExamPageContent() {
   const [examStarted, setExamStarted] = useState(false);
   const [deviceCheckComplete, setDeviceCheckComplete] = useState(false);
   const [examMeta, setExamMeta] = useState<{ title: string; duration_minutes: number } | null>(null);
+  const [resumeChecked, setResumeChecked] = useState(false);
+
+  useEffect(() => {
+    if (!hasHydrated || resumeChecked) return;
+
+    async function checkPersistedSession() {
+      if (persistedStatus !== 'IN_PROGRESS' || !persistedSessionId || !persistedUserId || !persistedExamId) {
+        setResumeChecked(true);
+        return;
+      }
+
+      if (examIdParam && examIdParam !== persistedExamId) {
+        await clearExamStorage();
+        setResumeChecked(true);
+        return;
+      }
+
+      try {
+        const verification = await verifyActiveSession(persistedSessionId, false);
+        if (!verification.valid || verification.userId !== persistedUserId || verification.session?.examId !== persistedExamId) {
+          await clearExamStorage();
+          setResumeChecked(true);
+          return;
+        }
+
+        const exams = await fetchAvailableExams();
+        const currentExam = exams.find(exam => exam.id === persistedExamId);
+        if (!currentExam) {
+          await clearExamStorage();
+          setResumeChecked(true);
+          return;
+        }
+
+        const questions = await fetchExamQuestions(
+          persistedExamId,
+          persistedSessionId,
+          lang
+        );
+        if (questions.length === 0) {
+          await clearExamStorage();
+          setResumeChecked(true);
+          return;
+        }
+
+        initializeExam(
+          persistedSessionId,
+          persistedExamId,
+          questions,
+          new Date(verification.session.startedAt).getTime(),
+          verification.userId,
+          verification.serverNow
+        );
+        setExamId(persistedExamId);
+        setExamMeta({
+          title: currentExam.title,
+          duration_minutes: currentExam.duration_minutes,
+        });
+        setExamStarted(true);
+      } catch (error) {
+        console.error('Persisted exam resume validation failed:', error);
+        await clearExamStorage();
+      } finally {
+        setResumeChecked(true);
+      }
+    }
+
+    void checkPersistedSession();
+  }, [hasHydrated, resumeChecked, persistedStatus, persistedSessionId, persistedUserId, persistedExamId, examIdParam, lang, initializeExam]);
 
   // First load only the selected exam metadata. Do not create an in-progress
   // server session until the candidate has passed the device check.
   useEffect(() => {
+    if (!resumeChecked) return;
     if (!examId) {
       setVoiceContext('exam_lobby');
       return;
@@ -549,11 +623,11 @@ function ExamPageContent() {
     }
 
     loadExamMeta();
-  }, [examId, router, setVoiceContext]);
+  }, [examId, router, setVoiceContext, resumeChecked]);
 
   // Only create the server session after the device check is complete.
   useEffect(() => {
-    if (!hasHydrated || !examId || !examMeta || !deviceCheckComplete || !preferenceLoaded || examStarted) {
+    if (!hasHydrated || !resumeChecked || !examId || !examMeta || !deviceCheckComplete || !preferenceLoaded || examStarted) {
       return;
     }
     const selectedExamId: string = examId;
@@ -573,7 +647,9 @@ function ExamPageContent() {
           session.id,
           selectedExamId,
           questions,
-          new Date(session.startedAt).getTime()
+          new Date(session.startedAt).getTime(),
+          session.userId,
+          session.serverNow
         );
         setExamStarted(true);
       } catch (err: unknown) {
@@ -589,9 +665,9 @@ function ExamPageContent() {
     }
 
     startSelectedExam();
-  }, [hasHydrated, examId, examMeta, deviceCheckComplete, preferenceLoaded, examStarted, initializeExam, lang, router]);
+  }, [hasHydrated, resumeChecked, examId, examMeta, deviceCheckComplete, preferenceLoaded, examStarted, initializeExam, lang, router]);
 
-  if (!hasHydrated) {
+  if (!hasHydrated || !resumeChecked) {
     return <div className="flex flex-col items-center justify-center min-h-screen flex-1 p-6 text-xl">Preparing exam state...</div>;
   }
 
