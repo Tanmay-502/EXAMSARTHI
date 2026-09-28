@@ -116,7 +116,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
               const latestState = useExamStore.getState();
               if (latestState.sessionId) {
                 const questionIds = latestState.questions.map(q => q.id);
-                submitExamAnswers(latestState.sessionId, latestState.answers, questionIds).then(() => {
+                submitExamAnswers(latestState.sessionId, latestState.answers, questionIds).then(async () => {
                   setSubmissionError(null);
                   const submittedSessionId = latestState.sessionId;
                   latestState.submitExam();
