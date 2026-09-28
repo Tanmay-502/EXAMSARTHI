@@ -37,41 +37,57 @@ function hasSeenGuide() {
 export function DemoGuide() {
   const pathname = usePathname();
   const { useVoiceAction } = useGlobalVoice();
+  const [sessionSeen, setSessionSeen] = useState(() => hasSeenGuide());
+  const [previousPathname, setPreviousPathname] = useState(pathname);
   const [open, setOpen] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const startButtonRef = useRef<HTMLButtonElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
 
-  const closeGuide = useCallback(() => {
+  if (pathname !== previousPathname) {
+    setPreviousPathname(pathname);
+    if (pathname !== '/') {
+      setOpen(false);
+    }
+  }
+
+  const markGuideSeen = useCallback(() => {
+    setSessionSeen(true);
     try {
       sessionStorage.setItem(SESSION_KEY, 'true');
     } catch {
       // Continue without session persistence if storage is unavailable.
     }
+  }, []);
 
+  const closeGuide = useCallback(() => {
+    markGuideSeen();
     setOpen(false);
     window.requestAnimationFrame(() => {
       returnFocusRef.current?.focus();
     });
-  }, []);
+  }, [markGuideSeen]);
 
   useEffect(() => {
-    if (pathname !== '/' || hasSeenGuide()) return;
+    if (pathname !== '/' || sessionSeen) return;
 
     const openGuide = () => {
-      if (hasSeenGuide()) return;
+      if (sessionSeen || hasSeenGuide()) return;
+
       const activeElement = document.activeElement;
       returnFocusRef.current =
         activeElement instanceof HTMLElement && activeElement !== document.body
           ? activeElement
           : document.querySelector<HTMLElement>('#main-content button');
+
+      markGuideSeen();
       setOpen(true);
     };
 
     window.addEventListener(OPEN_EVENT, openGuide);
 
     return () => window.removeEventListener(OPEN_EVENT, openGuide);
-  }, [pathname]);
+  }, [markGuideSeen, pathname, sessionSeen]);
 
   useEffect(() => {
     if (!open) return;
@@ -105,7 +121,6 @@ export function DemoGuide() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [closeGuide, open]);
-
 
   useVoiceAction((action) => {
     if (!open || action !== 'DISMISS_GUIDE') return false;
