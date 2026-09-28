@@ -504,7 +504,6 @@ function ExamPageContent() {
   const searchParams = useSearchParams();
   const examIdParam = searchParams.get('exam_id');
   const { mode: interactionMode, setMode, isLoaded: preferenceLoaded } = usePreferredMode();
-  const setVoiceContext = useVoiceAppContext(state => state.setContext);
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
