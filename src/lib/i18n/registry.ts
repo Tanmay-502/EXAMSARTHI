@@ -30,6 +30,7 @@ export interface VoiceCommandMap {
   SET_LANGUAGE_TELUGU: string[];
   SIGN_IN: string[];
   SIGN_UP: string[];
+  DISMISS_GUIDE: string[];
 }
 
 export interface LanguageDefinition {
