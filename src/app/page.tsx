@@ -18,7 +18,7 @@ export default async function Home() {
 
         {user ? (
           <section aria-label="Signed-in account" className="mt-8 rounded-2xl border border-zinc-800 bg-zinc-950 p-6 md:p-8">
-            <p className="text-lg font-semibold">You're signed in — Continue</p>
+            <p className="text-lg font-semibold">You&apos;re signed in — Continue</p>
             <p className="mt-2 text-sm text-zinc-400">Your existing ExamSaarthi session is active.</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link href="/welcome" className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-6 text-sm font-semibold text-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950">Continue</Link>
