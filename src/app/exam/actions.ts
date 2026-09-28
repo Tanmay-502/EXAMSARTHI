@@ -458,8 +458,9 @@ export async function fetchAvailablePracticeSubjects() {
     throw new Error(`Failed to fetch practice subjects: ${error.message}`)
   }
 
+  const rows = (data ?? []) as Array<{ subject: string | null }>
   return [...new Set(
-    (data || [])
+    rows
       .map(row => row.subject?.trim())
       .filter((subject): subject is string => Boolean(subject))
   )].sort((a, b) => a.localeCompare(b))
