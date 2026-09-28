@@ -21,7 +21,7 @@ type StatusContent = {
 };
 
 export function VoiceStatusIndicator({ className, dock = false }: VoiceStatusIndicatorProps) {
-  const { voiceState, micError } = useVoice();
+  const { voiceState, micError, speechWarning } = useVoice();
 
   const getStatusContent = (): StatusContent => {
     switch (voiceState) {
@@ -120,7 +120,7 @@ export function VoiceStatusIndicator({ className, dock = false }: VoiceStatusInd
           className
         )}
         role="status"
-        aria-live={shouldAnnounce ? 'assertive' : 'polite'}
+        aria-live={shouldAnnounce ? 'assertive' : 'off'}
         aria-atomic="true"
         aria-label={`Voice state: ${voiceState}. ${status.label}.`}
       >
@@ -138,6 +138,7 @@ export function VoiceStatusIndicator({ className, dock = false }: VoiceStatusInd
         <span className={cn('text-xs font-black uppercase tracking-[0.16em] md:text-sm', status.color)}>
           {status.shortLabel}
         </span>
+        {speechWarning && <span className="sr-only">{speechWarning}</span>}
       </div>
     );
   }
@@ -150,7 +151,7 @@ export function VoiceStatusIndicator({ className, dock = false }: VoiceStatusInd
         className
       )}
       role="status"
-      aria-live={shouldAnnounce ? 'assertive' : 'polite'}
+      aria-live={shouldAnnounce ? 'assertive' : 'off'}
       aria-atomic="true"
       aria-label={`Voice state: ${voiceState}. ${status.label}.`}
     >
@@ -160,6 +161,7 @@ export function VoiceStatusIndicator({ className, dock = false }: VoiceStatusInd
           {status.shortLabel}
         </span>
         <span className="block truncate text-sm font-medium text-zinc-200">{status.label}</span>
+        {speechWarning && <span className="block text-xs text-amber-200">{speechWarning}</span>}
       </div>
     </div>
   );
