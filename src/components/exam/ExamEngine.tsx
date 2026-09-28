@@ -57,7 +57,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   const [visionStatus, setVisionStatus] = useState<'idle' | 'analyzing' | 'failed'>('idle');
   const [isOnline, setIsOnline] = useState(true);
   const [pendingSyncCount, setPendingSyncCount] = useState(0);
-  const [timeRemainingMinutes, setTimeRemainingMinutes] = useState<number | null>(null);
+  const lastRemainingSecondsRef = useRef<number>(Number.POSITIVE_INFINITY);
   const answerQueueRef = useRef<Map<string, Promise<void>>>(new Map());
   const pendingAnswerIdsRef = useRef<Set<string>>(new Set());
   const serverTimeOffsetRef = useRef(0);
@@ -94,16 +94,15 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           const m = Math.floor(remain / 60).toString().padStart(2, '0');
           const s = (remain % 60).toString().padStart(2, '0');
           setTimeRemainingStr(`${m}:${s}`);
-          setTimeRemainingMinutes(Math.ceil(remain / 60));
-          const threshold = remain <= 30 ? 30 : Math.ceil(remain / 60) <= 5 ? 1 : Math.ceil(remain / 60) <= 10 ? 5 : Math.ceil(remain / 60) <= 30 ? 10 : 30;
-          if ([30, 10, 5, 1].includes(threshold) && !announcedThresholdsRef.current.has(threshold)) {
-            announcedThresholdsRef.current.add(threshold);
-            announce(tParams('time_remaining', { time: threshold === 1 ? '1 minute' : `${threshold} minutes` }), 'polite');
+          const previousRemain = lastRemainingSecondsRef.current;
+          for (const threshold of [1800, 600, 300, 60, 30]) {
+            if (previousRemain > threshold && remain <= threshold && !announcedThresholdsRef.current.has(threshold)) {
+              announcedThresholdsRef.current.add(threshold);
+              const label = threshold === 30 ? '30 seconds' : threshold === 60 ? '1 minute' : `${Math.floor(threshold / 60)} minutes`;
+              announce(tParams('time_remaining', { time: label }), 'polite');
+            }
           }
-          if (remain === 30 && !announcedThresholdsRef.current.has(0)) {
-            announcedThresholdsRef.current.add(0);
-            announce(tParams('time_remaining', { time: '30 seconds' }), 'polite');
-          }
+          lastRemainingSecondsRef.current = remain;
 
           if (remain <= 0 && !hasTriggeredExpiry.current) {
             hasTriggeredExpiry.current = true;
@@ -238,8 +237,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           fetchVisionOrReadAlt();
         } else {
           announcement += buildOptionsText();
-          announce(announcement, 'assertive');
-          if (interactionMode === 'voice-first' || isContinuous) speak(announcement);
+          sayMessage(announcement, 'assertive');
         }
       }
     }
@@ -306,8 +304,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      announce(t('end_of_questions'));
-      if (interactionMode === 'voice-first' || isContinuous) speak(t('end_of_questions'));
+      sayMessage(t('end_of_questions'));
     }
   };
 
@@ -315,8 +312,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     } else {
-      announce(t('first_question'));
-      if (interactionMode === 'voice-first' || isContinuous) speak(t('first_question'));
+      sayMessage(t('first_question'));
     }
   };
 
@@ -338,8 +334,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     }
 
     const message = nextMarked ? t('marked_for_review') : t('removed_mark');
-    announce(message);
-    if (interactionMode === 'voice-first' || isContinuous) speak(message);
+    sayMessage(message);
   };
 
   const jumpToUnanswered = () => {
@@ -388,8 +383,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     const confirm = t('submit_confirm_msg');
     
     const msg = warning + ' ' + confirm;
-    announce(msg, 'assertive');
-    speak(msg);
+    sayMessage(msg, 'assertive');
   };
 
   const executeSubmit = async () => {
@@ -473,8 +467,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           spokenStateKey.current = `EXAM-${currentQuestionIndex}`;
           setEngineState('EXAM');
           const msg = t('answer_saved') + ' ' + t('say_next_continue');
-          speak(msg);
-          announce(msg);
+          sayMessage(msg, 'assertive');
         } else if (engineState === 'CONFIRM_SUBMIT') {
           executeSubmit();
         } else {
@@ -628,8 +621,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             setEngineState('CONFIRM_ANSWER');
             const selectedOption = currentQuestion.options[payload.index];
             const prompt = tParams('answer_confirm_prompt', { index: payload.index + 1, option: selectedOption });
-            announce(prompt);
-            speak(prompt);
+            sayMessage(prompt, 'assertive');
           } else {
             speak(t('invalid_option'));
           }
