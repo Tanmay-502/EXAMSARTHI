@@ -103,8 +103,8 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
   if (containsPracticeWord) return { type: 'DASHBOARD_PRACTICE' };
 
   // Hardcoded fallback for onboarding mode selection (English and transliterations)
-  if (contextualModeAnalysis && (matchesPhrase(normalized, 'standard') || matchesPhrase(normalized, 'स्टैंडर्ड') || matchesPhrase(normalized, 'స్టాండర్డ్') || matchesPhrase(normalized, 'సాధారణం'))) return { type: 'SELECT_MODE_STANDARD' };
-  if (contextualModeAnalysis && (matchesPhrase(normalized, 'voice first') || matchesPhrase(normalized, 'voicefirst') || matchesPhrase(normalized, 'voice') || matchesPhrase(normalized, 'वॉइस फर्स्ट') || matchesPhrase(normalized, 'वॉइस') || matchesPhrase(normalized, 'వాయిస్ ఫస్ట్') || matchesPhrase(normalized, 'వాయిస్'))) return { type: 'SELECT_MODE_VOICE' };
+  if (contextualModeAnalysis.has(context ?? '') && (matchesPhrase(normalized, 'standard') || matchesPhrase(normalized, 'स्टैंडर्ड') || matchesPhrase(normalized, 'స్టాండర్డ్') || matchesPhrase(normalized, 'సాధారణం'))) return { type: 'SELECT_MODE_STANDARD' };
+  if (contextualModeAnalysis.has(context ?? '') && (matchesPhrase(normalized, 'voice first') || matchesPhrase(normalized, 'voicefirst') || matchesPhrase(normalized, 'voice') || matchesPhrase(normalized, 'वॉइस फर्स्ट') || matchesPhrase(normalized, 'वॉइस') || matchesPhrase(normalized, 'వాయిస్ ఫస్ట్') || matchesPhrase(normalized, 'వాయిస్'))) return { type: 'SELECT_MODE_VOICE' };
 
   // Natural-language shortcuts for common navigation and study intents.
   // Keep these deterministic and deliberately broad so normal speech does not
