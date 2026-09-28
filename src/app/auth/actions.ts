@@ -33,7 +33,12 @@ export async function loginWithMagicLink(formData: FormData) {
   }
 
   const headersList = await headers()
-  const origin = getOrigin(headersList)
+  let origin: string
+  try {
+    origin = getOrigin(headersList)
+  } catch {
+    return redirect('/auth/login?code=send_failed')
+  }
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
@@ -61,7 +66,12 @@ export async function signUpWithMagicLink(formData: FormData) {
   }
 
   const headersList = await headers()
-  const origin = getOrigin(headersList)
+  let origin: string
+  try {
+    origin = getOrigin(headersList)
+  } catch {
+    return redirect('/auth/signup?code=send_failed')
+  }
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
