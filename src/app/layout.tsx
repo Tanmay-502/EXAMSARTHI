@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import type { CSSProperties } from "react";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/I18nProvider";
 import { AccessibilityProvider } from "@/lib/accessibility/AccessibilityProvider";
@@ -24,8 +25,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} antialiased dark`}>
+    <html lang="en" style={{ "--voice-dock-height": "56px" } as CSSProperties}>
+      <body className={`${inter.className} antialiased dark`} style={{ paddingBottom: "var(--voice-dock-height)" }}>
         <MotionConfig reducedMotion="user">
           <I18nProvider>
             <AccessibilityProvider>
@@ -33,7 +34,10 @@ export default function RootLayout({
                 <GlobalVoiceAssistant>
                   <VoiceOverlay />
                   <ServiceWorkerRegistration />
-                  {children}
+                  <div data-voice-dock-content="true" className="min-h-screen">
+                    {children}
+                    <div aria-hidden="true" style={{ height: "var(--voice-dock-height)" }} />
+                  </div>
                 </GlobalVoiceAssistant>
               </VoiceProvider>
             </AccessibilityProvider>

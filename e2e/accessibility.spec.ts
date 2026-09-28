@@ -52,6 +52,104 @@ test.describe('Accessibility & Keyboard Navigation', () => {
 });
 
 
+
+type PublicRoute = {
+  path: string;
+  name: string;
+};
+
+const publicRoutes: PublicRoute[] = [
+  { path: '/', name: 'landing' },
+  { path: '/onboarding/mode', name: 'mode' },
+  { path: '/onboarding/language', name: 'language' },
+  { path: '/auth/login', name: 'login' },
+];
+
+async function installAccessibilityVoiceStubs(page: Page) {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'userActivation', {
+      configurable: true,
+      value: { hasBeenActive: false },
+    });
+  });
+
+  await page.addInitScript(() => {
+    class MockSpeechRecognition {
+      continuous = false;
+      interimResults = false;
+      lang = 'en-IN';
+      onstart: (() => void) | null = null;
+      onresult: ((event: unknown) => void) | null = null;
+      onerror: ((event: { error: string }) => void) | null = null;
+      onend: (() => void) | null = null;
+
+      start() {
+        queueMicrotask(() => this.onstart?.());
+      }
+
+      stop() {
+        queueMicrotask(() => this.onend?.());
+      }
+
+      abort() {
+        queueMicrotask(() => this.onend?.());
+      }
+    }
+
+    Object.defineProperty(window, 'SpeechRecognition', {
+      configurable: true,
+      value: MockSpeechRecognition,
+    });
+    Object.defineProperty(window, 'webkitSpeechRecognition', {
+      configurable: true,
+      value: MockSpeechRecognition,
+    });
+
+    const speechSynthesis = window.speechSynthesis;
+    if (speechSynthesis) {
+      speechSynthesis.cancel = () => undefined;
+      speechSynthesis.speak = (utterance: SpeechSynthesisUtterance) => {
+        queueMicrotask(() => utterance.onstart?.({} as SpeechSynthesisEvent));
+        queueMicrotask(() => utterance.onend?.({} as SpeechSynthesisEvent));
+      };
+    }
+  });
+}
+
+test.describe('Public route full-page axe coverage', () => {
+  for (const route of publicRoutes) {
+    test(`${route.name} has zero full-page axe violations in both dock states`, async ({ page }) => {
+      await installAccessibilityVoiceStubs(page);
+      await page.goto(route.path);
+      await expect(page.getByTestId('voice-dock')).toBeVisible();
+      await page.waitForTimeout(700);
+
+      if (route.path === '/') {
+        await page.evaluate(() => window.dispatchEvent(new Event('examsaarthi:voice-activated')));
+        await expect(page.getByTestId('demo-guide')).toBeVisible();
+      }
+
+      const collapsed = await new AxeBuilder({ page }).analyze();
+      expect(collapsed.violations).toEqual([]);
+
+      const transcriptButton = page.getByRole('button', { name: 'Transcript' });
+      await expect(transcriptButton).toHaveAttribute('aria-expanded', 'false');
+
+      if (route.path === '/') {
+        await page.evaluate(() => document.getElementById('voice-transcript-toggle')?.click());
+      } else {
+        await transcriptButton.click();
+      }
+
+      await expect(transcriptButton).toHaveAttribute('aria-expanded', 'true');
+      await expect(page.locator('#voice-transcript-panel')).toBeVisible();
+
+      const expanded = await new AxeBuilder({ page }).analyze();
+      expect(expanded.violations).toEqual([]);
+    });
+  }
+});
+
 const authStatePath = process.env.PLAYWRIGHT_AUTH_STATE;
 const readyExamId = process.env.PLAYWRIGHT_READY_EXAM_ID;
 const resultSessionId = process.env.PLAYWRIGHT_RESULT_SESSION_ID;

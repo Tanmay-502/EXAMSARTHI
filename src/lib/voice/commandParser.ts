@@ -50,6 +50,18 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
     return regex.test(text);
   };
 
+  // Practice intent takes precedence whenever the utterance explicitly contains
+  // a practice word. This prevents the generic exam/test catch-alls from winning.
+  const practiceWords = lang === 'hi-IN'
+    ? ['अभ्यास', 'प्रैक्टिस']
+    : lang === 'te-IN'
+      ? ['ప్రాక్టీస్', 'సాధన']
+      : ['practice', 'practise', 'practicing', 'practising'];
+  const containsPracticeWord = practiceWords.some((word) =>
+    /[A-Za-z]/.test(word) ? matchesPhrase(normalized, word) : normalized.includes(word)
+  );
+  if (containsPracticeWord) return { type: 'DASHBOARD_PRACTICE' };
+
   // Hardcoded fallback for onboarding mode selection (English and transliterations)
   if (matchesPhrase(normalized, 'standard') || matchesPhrase(normalized, 'स्टैंडर्ड') || matchesPhrase(normalized, 'స్టాండర్డ్') || matchesPhrase(normalized, 'సాధారణం')) return { type: 'SELECT_MODE_STANDARD' };
   if (matchesPhrase(normalized, 'voice first') || matchesPhrase(normalized, 'voicefirst') || matchesPhrase(normalized, 'voice') || matchesPhrase(normalized, 'वॉइस फर्स्ट') || matchesPhrase(normalized, 'वॉइस') || matchesPhrase(normalized, 'వాయిస్ ఫస్ట్') || matchesPhrase(normalized, 'వాయిస్')) return { type: 'SELECT_MODE_VOICE' };

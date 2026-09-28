@@ -3,6 +3,7 @@ name: Verify
 on:
   push:
     branches: [main]
+  pull_request:
 
 jobs:
   verify:
@@ -15,3 +16,23 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck && npm run lint && npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Start local Supabase stub for public-route E2E
+        run: |
+          python3 -m http.server 54321 --bind 127.0.0.1 >/tmp/examsaarthi-supabase-stub.log 2>&1 &
+      - name: Run voice dock Playwright suite
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: playwright-test-key
+        run: npm run test -- e2e/voice-dock-layout.spec.ts
+      - name: Run full-page accessibility Playwright suite
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: playwright-test-key
+        run: npm run test -- e2e/accessibility.spec.ts
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: voice-dock-playwright-screenshots
+          path: artifacts/voice-dock-screenshots
+          if-no-files-found: ignore
