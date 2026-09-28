@@ -37,7 +37,7 @@ export async function POST() {
     if (!latestSession) return NextResponse.json({ error: 'Not enough data to build profile.' }, { status: 400 });
 
     const cached = insightCache.get(user.id);
-    if (cached?.sessionId === latestSession.id) return NextResponse.json({ insight: cached.insight, cached: true });
+    if (cached && cached.sessionId === latestSession.id) return NextResponse.json({ insight: cached.insight, cached: true });
 
     const apiKey = getGeminiKey();
     if (!apiKey) return NextResponse.json({ error: 'AI API Key not configured' }, { status: 500 });
