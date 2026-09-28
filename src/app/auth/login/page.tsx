@@ -3,7 +3,6 @@
 import { Suspense, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { motion } from 'framer-motion'
 import { loginWithMagicLink } from '../actions'
 import { getAuthMessage } from '../messages'
 import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher'
@@ -84,7 +83,7 @@ function LoginForm() {
           </button>
           {googleError ? <p role="alert" className="text-sm text-zinc-300">{googleError}</p> : null}
 
-          <div className="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-zinc-500" aria-hidden="true"><span className="h-px flex-1 bg-zinc-900" /><span>or</span><span className="h-px flex-1 bg-zinc-900" /></div>
+          <div className="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-zinc-400" aria-hidden="true"><span className="h-px flex-1 bg-zinc-900" /><span>or</span><span className="h-px flex-1 bg-zinc-900" /></div>
 
           <form ref={formRef} action={loginWithMagicLink} onSubmit={() => { setVoiceStep('sending'); setVoiceStatus('Sending Magic Link...') }} className="space-y-8">
             <div className="space-y-3">
@@ -95,7 +94,7 @@ function LoginForm() {
             <button type="submit" className="inline-flex h-14 w-full items-center justify-center rounded-full bg-white px-8 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">{t('send_magic_link')} ↗</button>
           </form>
 
-          <p className="text-sm text-zinc-500">{lang === 'hi-IN' ? 'अकाउंट नया है? ' : lang === 'te-IN' ? 'కొత్త ఖాతా కావాలా? ' : 'Need a new account? '}<Link href="/auth/signup" className="text-zinc-100 underline underline-offset-4">{t('signup')}</Link></p>
+          <p className="text-sm text-zinc-400">{lang === 'hi-IN' ? 'अकाउंट नया है? ' : lang === 'te-IN' ? 'కొత్త ఖాతా కావాలా? ' : 'Need a new account? '}<Link href="/auth/signup" className="text-zinc-100 underline underline-offset-4">{t('signup')}</Link></p>
         </div>
       </div>
     </main>
