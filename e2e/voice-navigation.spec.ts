@@ -32,6 +32,13 @@ test.describe('Voice navigation escape decisions', () => {
       expect(registry.isActionAllowed('OPEN_DASHBOARD', context)).toBe(allowed);
       expect(escapes).toBe(allowed);
     }
+
+    for (const context of ['exam_active', 'practice_active'] as const) {
+      expect(registry.isActionAllowed('OPEN_EXAM', context)).toBe(false);
+      expect(registry.isActionAllowed('START_EXAM', context)).toBe(false);
+      expect(registry.isActionAllowed('OPEN_PRACTICE', context)).toBe(false);
+      expect(registry.isActionAllowed('START_PRACTICE', context)).toBe(false);
+    }
   });
 
   test('practice setup and active registries do not contradict the escape policy', () => {
