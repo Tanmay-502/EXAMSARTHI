@@ -10,6 +10,8 @@ import { createClient } from '@/lib/supabase/client';
 import { updateLearningProfileConsent } from '@/app/exam/actions';
 import { VoiceCore } from '@/components/voice/VoiceCore';
 import { motion } from 'framer-motion';
+import { usePreferredMode } from '@/lib/hooks/usePreferredMode';
+import { say } from '@/lib/voice/say';
 
 export default function SettingsPage() {
   const { lang, setLang, t } = useI18n();
@@ -22,6 +24,7 @@ export default function SettingsPage() {
     updateAccessibilityPreferences,
   } = useAccessibility();
   const { speak } = useVoice();
+  const { mode: interactionMode } = usePreferredMode();
   const router = useRouter();
   
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -75,12 +78,8 @@ export default function SettingsPage() {
     if (newLang === 'hi-IN') langName = 'हिंदी';
     if (newLang === 'te-IN') langName = 'తెలుగు';
     
-    announce(`Language changed to ${langName}`);
-    
-    // For TTS
-    if (newLang === 'en-IN') speak('Language changed to English');
-    else if (newLang === 'hi-IN') speak('भाषा हिंदी में बदल दी गई है');
-    else if (newLang === 'te-IN') speak('భాష తెలుగుకు మార్చబడింది');
+    const message = newLang === 'en-IN' ? 'Language changed to English' : newLang === 'hi-IN' ? 'भाषा हिंदी में बदल दी गई है' : 'భాష తెలుగుకు మార్చబడింది';
+    say(message, interactionMode, speak, announce);
   };
 
   const handleContinue = () => {

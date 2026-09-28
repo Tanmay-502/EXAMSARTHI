@@ -62,6 +62,21 @@ test.describe('Task B core regression invariants', () => {
     expect(parser).toContain("wordCount <= 3")
   })
 
+  test('timer uses the persisted server clock offset', () => {
+    const engine = read('src/components/exam/ExamEngine.tsx')
+    const store = read('src/lib/store/examStore.ts')
+    expect(store).toContain('serverTimeOffsetMs')
+    expect(engine).toContain('Date.now() + state.serverTimeOffsetMs')
+    expect(engine).not.toContain('serverTimeOffsetRef')
+  })
+
+  test('user-requested repeat bypasses announcement dedupe', () => {
+    const engine = read('src/components/exam/ExamEngine.tsx')
+    const results = read('src/components/exam/ResultsAnnouncer.tsx')
+    expect(engine).toContain("speak(announcement, { dedupe: false })")
+    expect(results).toContain("speak(msg, { dedupe: false })")
+  })
+
   test('timer and voice status do not use routine live updates; threshold alerts remain', () => {
     const engine = read('src/components/exam/ExamEngine.tsx')
     const status = read('src/components/voice/VoiceStatusIndicator.tsx')

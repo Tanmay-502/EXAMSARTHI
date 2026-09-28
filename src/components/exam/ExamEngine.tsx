@@ -61,7 +61,6 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   const lastRemainingSecondsRef = useRef<number>(Number.POSITIVE_INFINITY);
   const answerQueueRef = useRef<Map<string, Promise<void>>>(new Map());
   const pendingAnswerIdsRef = useRef<Set<string>>(new Set());
-  const serverTimeOffsetRef = useRef(0);
   const announcedThresholdsRef = useRef<Set<number>>(new Set());
 
   useEffect(() => {
@@ -88,7 +87,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
       timer = setInterval(() => {
         const state = useExamStore.getState();
         if (state.startTime) {
-          const elapsed = Math.floor(((Date.now() + serverTimeOffsetRef.current) - state.startTime) / 1000);
+          const elapsed = Math.floor(((Date.now() + state.serverTimeOffsetMs) - state.startTime) / 1000);
           const maxSeconds = (durationMinutes ?? 60) * 60;
           const remain = Math.max(0, maxSeconds - elapsed);
           const m = Math.floor(remain / 60).toString().padStart(2, '0');
@@ -561,7 +560,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             duration: actualDuration,
             language: lang === 'hi-IN' ? 'हिंदी' : lang === 'te-IN' ? 'తెలుగు' : 'English'
           });
-          speak(announcement);
+          speak(announcement, { dedupe: false });
         } else if (engineState === 'EXAM' && currentQuestion) {
           let announcement = '';
           if (action === 'REPEAT' || action === 'READ_QUESTION') {
@@ -635,7 +634,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         if (mode === 'exam') {
           const state = useExamStore.getState();
           if (state.startTime) {
-            const elapsedSeconds = Math.floor(((Date.now() + serverTimeOffsetRef.current) - state.startTime) / 1000);
+            const elapsedSeconds = Math.floor(((Date.now() + state.serverTimeOffsetMs) - state.startTime) / 1000);
             const remainingSeconds = Math.max(0, ((durationMinutes ?? 60) * 60) - elapsedSeconds);
             const minutesLeft = Math.ceil(remainingSeconds / 60);
             speak(tParams('time_remaining', { time: `${minutesLeft} ${t('minutes')}` }));

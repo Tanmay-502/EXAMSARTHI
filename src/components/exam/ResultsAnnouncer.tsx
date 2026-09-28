@@ -4,6 +4,8 @@ import { useI18n } from '@/lib/i18n/I18nProvider';
 import { useAccessibility } from '@/lib/accessibility/AccessibilityProvider';
 import { useVoice } from '@/lib/voice/VoiceProvider';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
+import { usePreferredMode } from '@/lib/hooks/usePreferredMode';
+import { say } from '@/lib/voice/say';
 import React, { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -20,6 +22,7 @@ type ResultsAnnouncerProps = {
 export function ResultsAnnouncer({ score, total, percentage, correct, incorrect, unanswered, subjectStats }: ResultsAnnouncerProps) {
   const { announce } = useAccessibility();
   const { speak, isContinuous } = useVoice();
+  const { mode: interactionMode } = usePreferredMode();
   const { useVoiceAction } = useGlobalVoice();
   const router = useRouter();
   const { tParams } = useI18n();
@@ -59,14 +62,13 @@ export function ResultsAnnouncer({ score, total, percentage, correct, incorrect,
     headingRef.current?.focus();
     
     const msg = getSummaryMessage();
-    announce(msg, 'assertive');
-    if (isContinuous) speak(msg);
-  }, [announce, speak, isContinuous, getSummaryMessage]);
+    say(msg, interactionMode, speak, announce, 'assertive');
+  }, [announce, speak, getSummaryMessage, interactionMode]);
 
   useVoiceAction((action, payload) => {
     if (action === 'READ_RESULTS' || action === 'REPEAT') {
       const msg = getSummaryMessage();
-      speak(msg);
+      speak(msg, { dedupe: false });
       return true;
     }
 
