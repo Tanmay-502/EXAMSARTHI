@@ -891,6 +891,11 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
               </span>
             </div>
           )}
+          {pendingSyncCount > 0 && !isOnline && (
+            <span className="text-xs font-medium text-amber-200" role="status">
+              {pendingSyncCount} answers not yet synced
+            </span>
+          )}
           <button 
             onClick={toggleListening}
             className={`p-4 rounded-full border transition-all ${isContinuous ? 'border-white text-black bg-white' : micError ? 'border-red-900 text-red-500 bg-red-950/20' : 'border-zinc-800 text-zinc-400 bg-transparent hover:border-zinc-500 hover:text-white'}`}
