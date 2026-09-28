@@ -1,7 +1,7 @@
 import { test, describe } from 'node:test';
 import * as assert from 'node:assert';
-import { parseCommand } from '../commandParser';
-import { normalizeSpokenEmail } from '../emailParser';
+import { parseCommand } from '../commandParser.ts';
+import { normalizeSpokenEmail } from '../emailParser.ts';
 
 describe('Voice Command Parser', () => {
   describe('English (en-IN)', () => {
