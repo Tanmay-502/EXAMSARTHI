@@ -443,17 +443,20 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   const voiceHandler = (action: SafeAction, payload?: Record<string, unknown> | null) => {
     switch (action) {
       case 'START_EXAM':
+      case 'START_PRACTICE':
       case 'OPEN_EXAM':
-        if (mode === 'practice') {
-          if (engineState === 'READY') { setEngineState('EXAM'); return true; }
-          speak('Practice is already in progress. You can continue with the current questions.');
-          return true;
-        }
-        if (mode !== 'exam') return false;
-        if (engineState === 'READY') {
+      case 'OPEN_PRACTICE':
+        if ((mode === 'exam' || mode === 'practice') && engineState === 'READY') {
           setEngineState('EXAM');
           return true;
         }
+        if (mode === 'practice') {
+          speak(engineState === 'PROCESSING'
+            ? 'Your practice session is already being submitted.'
+            : 'Practice is already in progress. You can continue with the current questions.');
+          return true;
+        }
+        if (mode !== 'exam') return false;
         if (engineState === 'CONFIRM_ANSWER' || engineState === 'CONFIRM_SUBMIT') {
           speak('Please finish the current confirmation before continuing.');
         } else if (engineState === 'PROCESSING') {
@@ -462,23 +465,6 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           speak('The exam is already in progress. You can say next, back, time left, or submit.');
         }
         return true;
-
-      case 'START_EXAM':
-      case 'START_PRACTICE':
-      case 'OPEN_EXAM':
-      case 'OPEN_PRACTICE':
-        if (mode !== 'practice') return false;
-        if (engineState === 'READY') {
-          setEngineState('EXAM');
-          return true;
-        }
-        if (engineState === 'PROCESSING') {
-          speak('Your practice session is already being submitted.');
-          return true;
-        }
-        speak('Practice is already in progress. You can continue with the current questions.');
-        return true;
-
 
       case 'CONFIRM':
         if (engineState === 'CONFIRM_ANSWER' && pendingAnswer !== null) {
