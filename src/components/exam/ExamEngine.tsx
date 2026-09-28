@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { useExamStore } from '@/lib/store/examStore';
 import { useVoiceAppContext } from '@/lib/store/voiceContextStore';
 import { say } from '@/lib/voice/say';
+import { clearExamStorage } from '@/lib/store/clearExamStorage';
 import { Mic, MicOff, CheckCircle, AlertTriangle } from 'lucide-react';
 import { VoiceCore } from '@/components/voice/VoiceCore';
 import { motion } from 'framer-motion';
@@ -117,8 +118,10 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
                 const questionIds = latestState.questions.map(q => q.id);
                 submitExamAnswers(latestState.sessionId, latestState.answers, questionIds).then(() => {
                   setSubmissionError(null);
+                  const submittedSessionId = latestState.sessionId;
                   latestState.submitExam();
-                  router.push(`/results?session_id=${latestState.sessionId}`);
+                  await clearExamStorage();
+                  router.push(`/results?session_id=${submittedSessionId}`);
                 }).catch(err => {
                   console.error('Failed to auto-submit exam:', err);
                   setSubmissionError(
@@ -414,8 +417,10 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
       const questionIds = state.questions.map(q => q.id);
       await submitExamAnswers(state.sessionId, state.answers, questionIds);
 
+      const submittedSessionId = state.sessionId;
       state.submitExam();
-      router.push(`/results?session_id=${state.sessionId}`);
+      await clearExamStorage();
+      router.push(`/results?session_id=${submittedSessionId}`);
     } catch (err) {
       console.error('Failed to submit exam:', err);
       const retryMessage =
