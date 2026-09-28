@@ -15,7 +15,7 @@ test.describe('PWA shell', () => {
   test('serves the service worker without authentication', async ({ request }) => {
     const response = await request.get('/sw.js')
     expect(response.ok()).toBe(true)
-    expect(await response.text()).toContain("self.addEventListener('fetch'"))
+    expect(await response.text()).toContain("self.addEventListener('fetch'")
   })
 
   test('registers the production service worker', async ({ page }) => {
