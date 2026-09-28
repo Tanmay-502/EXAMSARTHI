@@ -14,11 +14,11 @@ export type NavigationEscapeScreen =
   | 'active-exam';
 
 const escapeActionsByScreen: Record<NavigationEscapeScreen, ReadonlySet<SafeAction>> = {
-  dashboard: new Set(),
-  results: new Set(),
-  history: new Set(),
-  analysis: new Set(),
-  settings: new Set(),
+  dashboard: new Set<SafeAction>(),
+  results: new Set<SafeAction>(),
+  history: new Set<SafeAction>(),
+  analysis: new Set<SafeAction>(),
+  settings: new Set<SafeAction>(),
   'exam-selection': new Set([
     'OPEN_DASHBOARD',
     'OPEN_PRACTICE',
@@ -37,8 +37,8 @@ const escapeActionsByScreen: Record<NavigationEscapeScreen, ReadonlySet<SafeActi
     'READ_PROGRESS',
     'LOGOUT',
   ]),
-  'active-practice': new Set(),
-  'active-exam': new Set(),
+  'active-practice': new Set<SafeAction>(),
+  'active-exam': new Set<SafeAction>(),
 };
 
 export function shouldEscapeToGlobal(
