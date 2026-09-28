@@ -34,7 +34,7 @@ export function VoiceTranscript({ className, prominent = false }: { className?: 
       {prominent && (
         <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
           <span className="text-xs font-black uppercase tracking-[0.2em] text-zinc-300">Live transcript</span>
-          <span className="text-xs font-medium text-zinc-500">{transcript.length} messages</span>
+          <span className="text-xs font-medium text-zinc-400">{transcript.length} messages</span>
         </div>
       )}
       <AnimatePresence initial={false}>
