@@ -103,7 +103,7 @@ function PracticeContent() {
 
   useEffect(() => {
     fetchAvailablePracticeSubjects()
-      .then(setAvailableSubjects)
+      .then(data => setAvailableSubjects((data ?? []) as string[]))
       .catch((error) => {
         console.error('Failed to load practice subjects', error);
         setAvailableSubjects([]);
