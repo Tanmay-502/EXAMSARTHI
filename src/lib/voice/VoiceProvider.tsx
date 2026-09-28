@@ -121,8 +121,12 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     const localePrefix = locale.split('-')[0];
     const localeVoice = installedVoices.find((voice) => voice.lang.toLowerCase() === locale)
       ?? installedVoices.find((voice) => voice.lang.toLowerCase().startsWith(localePrefix + '-'));
+    const selectedVoiceMatchesLocale = selectedVoice
+      ? selectedVoice.lang.toLowerCase() === locale ||
+        selectedVoice.lang.toLowerCase().startsWith(localePrefix + '-')
+      : false;
 
-    if (selectedVoice) {
+    if (selectedVoice && selectedVoiceMatchesLocale) {
       utterance.voice = selectedVoice;
     } else if (localeVoice) {
       utterance.voice = localeVoice;
