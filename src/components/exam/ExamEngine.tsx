@@ -218,7 +218,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
               const res = await fetch('/api/vision', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ imageUrl })
+                body: JSON.stringify({ sessionId, questionId: currentQuestion.id })
               });
               if (!res.ok) throw new Error(`Vision service returned ${res.status}`);
               const data = await res.json();
@@ -256,31 +256,74 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     return () => stopSpeaking();
   }, [stopSpeaking]);
 
+  const enqueueAnswerSave = useCallback(async (
+    questionId: string,
+    answerData: unknown,
+    markedForReview: boolean,
+  ) => {
+    if (!sessionId) return;
+
+    pendingAnswerIdsRef.current.add(questionId);
+    setPendingSyncCount(pendingAnswerIdsRef.current.size);
+
+    const previous = answerQueueRef.current.get(questionId) ?? Promise.resolve();
+    const task = previous
+      .catch(() => undefined)
+      .then(async () => {
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+          throw new Error('offline');
+        }
+
+        const { saveAnswer } = await import('@/app/exam/actions');
+        let lastError: unknown = null;
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+          try {
+            await saveAnswer(sessionId, questionId, answerData, markedForReview);
+            lastError = null;
+            break;
+          } catch (error) {
+            lastError = error;
+            if (attempt < 2) {
+              await new Promise(resolve => window.setTimeout(resolve, 400 * 2 ** attempt));
+            }
+          }
+        }
+        if (lastError) throw lastError;
+      });
+
+    answerQueueRef.current.set(questionId, task);
+
+    task.then(() => {
+      if (answerQueueRef.current.get(questionId) === task) {
+        answerQueueRef.current.delete(questionId);
+        pendingAnswerIdsRef.current.delete(questionId);
+        setPendingSyncCount(pendingAnswerIdsRef.current.size);
+      }
+    }).catch((error) => {
+      console.error('Answer sync failed:', error);
+      setPendingSyncCount(pendingAnswerIdsRef.current.size);
+    });
+  }, [sessionId]);
+
   const syncPersistedAnswers = useCallback(async () => {
     if (!sessionId || typeof navigator === 'undefined' || !navigator.onLine) return;
 
-    try {
-      const { saveAnswer } = await import('@/app/exam/actions');
-      const state = useExamStore.getState();
-      await Promise.allSettled(
-        Object.values(state.answers).map((answer) =>
-          saveAnswer(
-            sessionId,
-            answer.question_id,
-            answer.answer_data ?? null,
-            answer.is_marked_for_review
-          )
-        )
-      );
-    } catch (error) {
-      console.error('Failed to replay persisted answers:', error);
-    }
-  }, [sessionId]);
+    const state = useExamStore.getState();
+    const tasks = Object.values(state.answers).map(answer =>
+      enqueueAnswerSave(
+        answer.question_id,
+        answer.answer_data ?? null,
+        answer.is_marked_for_review,
+      )
+    );
+    await Promise.allSettled(tasks);
+  }, [enqueueAnswerSave, sessionId]);
 
   useEffect(() => {
     void syncPersistedAnswers();
 
     const handleOnline = () => {
+      setIsOnline(true);
       void syncPersistedAnswers();
     };
 
@@ -290,17 +333,9 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
 
   const handleOptionSelect = (optionIndex: number) => {
     if (!currentQuestion) return;
+    const markedForReview = answers[currentQuestion.id]?.is_marked_for_review ?? false;
     setAnswer(currentQuestion.id, optionIndex);
-    if (sessionId) {
-      import('@/app/exam/actions').then(({ saveAnswer }) => {
-        void saveAnswer(
-          sessionId,
-          currentQuestion.id,
-          optionIndex,
-          answers[currentQuestion.id]?.is_marked_for_review ?? false
-        ).catch(console.error);
-      });
-    }
+    void enqueueAnswerSave(currentQuestion.id, optionIndex, markedForReview);
   };
 
   const handleNext = () => {
@@ -325,16 +360,11 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     const nextMarked = !(currentAnswer?.is_marked_for_review ?? false);
     toggleMarkForReview(currentQuestion.id);
 
-    if (sessionId) {
-      import('@/app/exam/actions').then(({ saveAnswer }) => {
-        void saveAnswer(
-          sessionId,
-          currentQuestion.id,
-          currentAnswer?.answer_data ?? null,
-          nextMarked
-        ).catch(console.error);
-      });
-    }
+    void enqueueAnswerSave(
+      currentQuestion.id,
+      currentAnswer?.answer_data ?? null,
+      nextMarked,
+    );
 
     const message = nextMarked ? t('marked_for_review') : t('removed_mark');
     sayMessage(message);
