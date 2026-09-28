@@ -10,6 +10,7 @@ import { SafeAction, SafeActionRegistry } from '@/lib/voice/safeActionRegistry';
 import { createClient } from '@/lib/supabase/client';
 import { useVoiceAppContext, type VoiceAppContext } from '@/lib/store/voiceContextStore';
 import { naturalIntentEnvelopeSchema, validateNaturalIntentPayload } from '@/lib/voice/naturalIntentSchema';
+import { clearExamStorage } from '@/lib/store/clearExamStorage';
 
 type ConversationState = 'IDLE' | 'AWAITING_LANGUAGE' | 'AWAITING_INTENT' | 'COLLECTING_PARAMETERS' | 'CONFIRMING_ACTION' | 'EXECUTING_ACTION' | 'ERROR_RECOVERY';
 
@@ -233,6 +234,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
         const supabase = createClient();
         const { error } = await supabase.auth.signOut();
         if (error) throw error;
+        await clearExamStorage();
         isNavigatingRef.current = true;
         router.push('/');
       } catch (error) {
