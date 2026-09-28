@@ -263,7 +263,7 @@ function PracticeContent() {
         return false;
       }
       
-      if ((action as string) === 'RAW_TRANSCRIPT' && shouldEscapeToGlobal(raw, lang, 'practice-setup')) {
+      if ((action as string) === 'RAW_TRANSCRIPT' && shouldEscapeToGlobal(raw, lang, 'practice_setup')) {
         return false;
       }
 
