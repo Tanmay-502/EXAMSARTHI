@@ -113,7 +113,7 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
   for (const { commandType, phrase } of allPhrases) {
     if (matchesPhrase(normalized, phrase)) {
       if ((commandType === 'SELECT_MODE_STANDARD' || commandType === 'SELECT_MODE_VOICE' || commandType === 'OPEN_ANALYSIS')
-        && !contextualModeAnalysis) {
+        && !contextualModeAnalysis.has(context ?? '')) {
         continue;
       }
       if (commandType === 'JUMP_TO_QUESTION') {
@@ -143,12 +143,12 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
   // exam/practice context. This prevents ordinary speech like "who is first"
   // from becoming SELECT_OPTION and then being rejected as an unavailable action.
   if (isExamContext || hasExplicitOptionKeyword) {
-    const matchA = values.a.some(v => matchesPhrase(normalized, v));
+    const matchA = values.a.some(v => ['a', 'ay', 'eh'].includes(v) && wordCount > 3 ? false : matchesPhrase(normalized, v));
+    const wordCount = normalized.split(/\s+/).filter(Boolean).length;
+    const matchA = values.a.some(v => ['a', 'ay', 'eh'].includes(v) && wordCount > 3 ? false : matchesPhrase(normalized, v));
     const matchB = values.b.some(v => matchesPhrase(normalized, v));
     const matchC = values.c.some(v => matchesPhrase(normalized, v));
     const matchD = values.d.some(v => matchesPhrase(normalized, v));
-
-    const wordCount = normalized.split(/\s+/).filter(Boolean).length;
     const bareA = wordCount <= 3 && /^(a|ay|eh)$/i.test(normalized);
     const numericHomophone =
       wordCount <= 3 && (normalized === '2' || matchesPhrase(normalized, 'to') || matchesPhrase(normalized, 'too'))
