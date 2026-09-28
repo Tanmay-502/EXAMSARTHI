@@ -354,15 +354,9 @@ authorization: ${registry.isActionAllowed(action, getContextName()) ? 'ALLOWED' 
   }, [lang, setOnResult, intentProvider, getContextName, registry, dispatchAction, pathname]);
 
   return (
-    <GlobalVoiceContext.Provider value={{ 
-      registerHandler: (h) => {
-        if (!handlersRef.current.includes(h)) {
-          handlersRef.current.push(h);
-        }
-      }, 
-      unregisterHandler: (h) => {
-        handlersRef.current = handlersRef.current.filter(x => x !== h);
-      },
+    <GlobalVoiceContext.Provider value={{
+      registerHandler,
+      unregisterHandler,
       dispatchAction,
       getContextName
     }}>
@@ -374,7 +368,9 @@ authorization: ${registry.isActionAllowed(action, getContextName()) ? 'ALLOWED' 
 export function useGlobalVoice() {
   const context = useContext(GlobalVoiceContext);
   if (!context) throw new Error('useGlobalVoice must be used within GlobalVoiceAssistant');
-  
+
+  const { registerHandler, unregisterHandler } = context;
+
   return {
     useVoiceAction: (handler: VoiceActionHandler) => {
       const handlerRef = React.useRef(handler);
