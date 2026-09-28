@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, ReactNode, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useVoice } from '@/lib/voice/VoiceProvider';
 import { useI18n } from '@/lib/i18n/I18nProvider';
@@ -9,6 +9,8 @@ import { OptionalLLMIntentProvider } from '@/lib/voice/intentRouter';
 import { SafeAction, SafeActionRegistry } from '@/lib/voice/safeActionRegistry';
 import { useExamStore } from '@/lib/store/examStore';
 import { createClient } from '@/lib/supabase/client';
+import { useVoiceAppContext, type VoiceAppContext } from '@/lib/store/voiceContextStore';
+import { naturalIntentEnvelopeSchema, validateNaturalIntentPayload } from '@/lib/voice/naturalIntentSchema';
 
 type ConversationState = 'IDLE' | 'AWAITING_LANGUAGE' | 'AWAITING_INTENT' | 'COLLECTING_PARAMETERS' | 'CONFIRMING_ACTION' | 'EXECUTING_ACTION' | 'ERROR_RECOVERY';
 
@@ -27,8 +29,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
   const { setOnResult, speak } = useVoice();
   const { lang, setLang } = useI18n();
   const pathname = usePathname();
-  const examStatus = useExamStore((state) => state.status);
-  const examHydrated = useExamStore((state) => state.hasHydrated);
+  const voiceContext = useVoiceAppContext((state) => state.context);
   const router = useRouter();
 
   const handlersRef = React.useRef<VoiceActionHandler[]>([]);
@@ -38,23 +39,21 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
   const intentProvider = React.useMemo(() => new OptionalLLMIntentProvider(), []);
   const registry = React.useMemo(() => new SafeActionRegistry(), []);
 
-  const getContextName = React.useCallback(() => {
+  const getContextName = useCallback((): VoiceAppContext => {
     if (pathname === '/' || pathname === '/welcome') return 'landing';
     if (pathname === '/onboarding/mode') return 'mode_selection';
     if (pathname === '/onboarding/language') return 'language_selection';
     if (pathname.startsWith('/onboarding')) return 'onboarding';
     if (pathname.startsWith('/dashboard')) return 'dashboard';
-    if (pathname.startsWith('/exam')) {
-      return examHydrated && examStatus !== 'IN_PROGRESS' ? 'exam-selection' : 'exam';
-    }
-    if (pathname.startsWith('/practice')) return 'practice';
+    if (pathname.startsWith('/exam')) return voiceContext === 'exam_active' ? 'exam_active' : 'exam_lobby';
+    if (pathname.startsWith('/practice')) return voiceContext === 'practice_active' ? 'practice_active' : 'practice_setup';
     if (pathname.startsWith('/results')) return 'results';
     if (pathname.startsWith('/history')) return 'history';
     if (pathname.startsWith('/auth')) return 'auth';
     if (pathname.startsWith('/settings')) return 'settings';
     if (pathname.startsWith('/analysis')) return 'analysis';
     return 'unknown';
-  }, [pathname, examHydrated, examStatus]);
+  }, [pathname, voiceContext]);
 
   const contextVersionRef = React.useRef(0);
   const isNavigatingRef = React.useRef(false);
@@ -74,7 +73,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
     const context = getContextName();
 
     if (action === 'QUESTION_SOLVING' as SafeAction) {
-      if (context === 'exam' || context === 'practice') {
+      if (context === 'exam_active' || context === 'practice_active') {
         const msg = lang === 'hi-IN'
           ? 'मैं परीक्षा संचालित करने में आपकी मदद कर सकता हूँ, लेकिन मैं किसी सक्रिय प्रश्न का उत्तर नहीं दे सकता या उसे हल नहीं कर सकता।'
           : lang === 'te-IN'
@@ -87,9 +86,9 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
 
     if (!registry.isActionAllowed(action, context)) {
       console.warn(`Action ${action} is not allowed in context ${context}`);
-      if (context === 'exam' && [
+      if ((context === 'exam_active' || context === 'practice_active') && [
         'OPEN_DASHBOARD', 'OPEN_HISTORY', 'OPEN_SETTINGS', 'OPEN_PRACTICE',
-        'START_PRACTICE', 'OPEN_ANALYSIS', 'LOGOUT'
+        'START_PRACTICE', 'OPEN_EXAM', 'START_EXAM', 'OPEN_ANALYSIS', 'LOGOUT'
       ].includes(action)) {
         speak(
           lang === 'hi-IN'
@@ -190,7 +189,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
       router.push('/dashboard');
     }
     if (action === 'OPEN_EXAM' || action === 'START_EXAM') {
-      if (getContextName() === 'exam') {
+      if (context === 'exam_active') {
         speak(lang === 'hi-IN' ? 'आप पहले से ही परीक्षा मोड में हैं।' : lang === 'te-IN' ? 'మీరు ఇప్పటికే పరీక్ష మోడ్‌లో ఉన్నారు.' : 'You are already in exam mode.');
       } else {
         speak(lang === 'hi-IN' ? 'परीक्षा खोल रहा हूँ।' : lang === 'te-IN' ? 'పరీక్షను తెరుస్తున్నాను.' : 'Opening exam mode.');
@@ -201,7 +200,9 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
       }
     }
     if (action === 'OPEN_PRACTICE' || action === 'START_PRACTICE') {
-      if (getContextName() !== 'practice') {
+      if (context === 'practice_setup' || context === 'practice_active') {
+        return;
+      } else {
         speak(lang === 'hi-IN' ? 'अभ्यास मोड खोल रहा हूँ।' : lang === 'te-IN' ? 'ప్రాక్టీస్ మోడ్ తెరుస్తున్నాను.' : 'Opening practice mode.');
         isNavigatingRef.current = true;
         const query = new URLSearchParams();
@@ -304,8 +305,24 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
         action = registry.getActionMapping(command.type);
         payload = { index: command.index };
       } else if (command.type === 'NATURAL_INTENT') {
-        action = command.intent as SafeAction;
-        payload = command.payload || null;
+        const envelope = naturalIntentEnvelopeSchema.safeParse(command);
+        if (!envelope.success) {
+          console.warn('[VOICE] Invalid natural intent envelope rejected');
+          action = 'UNKNOWN_COMMAND';
+          payload = null;
+        } else {
+          const validatedPayload = validateNaturalIntentPayload(envelope.data.intent, envelope.data.payload);
+          if (!validatedPayload.success) {
+            console.warn('[VOICE] Invalid natural intent payload rejected', envelope.data.intent);
+            action = 'UNKNOWN_COMMAND';
+            payload = null;
+          } else {
+            action = envelope.data.intent as SafeAction;
+            payload = (validatedPayload.data && typeof validatedPayload.data === 'object')
+              ? validatedPayload.data as Record<string, unknown>
+              : null;
+          }
+        }
       } else {
         action = registry.getActionMapping(command.type);
       }
@@ -352,10 +369,16 @@ export function useGlobalVoice() {
   
   return {
     useVoiceAction: (handler: VoiceActionHandler) => {
-      useEffect(() => {
-        context.registerHandler(handler);
-        return () => context.unregisterHandler(handler);
-      }, [handler]);
+      const handlerRef = React.useRef(handler);
+      handlerRef.current = handler;
+      const stableHandler = React.useCallback((...args: Parameters<VoiceActionHandler>) => {
+        return handlerRef.current(...args);
+      }, []);
+
+      React.useEffect(() => {
+        context.registerHandler(stableHandler);
+        return () => context.unregisterHandler(stableHandler);
+      }, [context, stableHandler]);
     },
     dispatchAction: context.dispatchAction,
     getContextName: context.getContextName
