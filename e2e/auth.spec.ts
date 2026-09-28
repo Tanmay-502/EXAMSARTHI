@@ -89,6 +89,13 @@ test.describe('Authentication Architecture Rules', () => {
     expect(content).not.toContain('?message=')
   })
 
+  test('Google OAuth explicitly requests account selection', () => {
+    const login = fs.readFileSync(path.join(process.cwd(), 'src/app/auth/login/page.tsx'), 'utf-8')
+    const signup = fs.readFileSync(path.join(process.cwd(), 'src/app/auth/signup/page.tsx'), 'utf-8')
+    expect(login).toContain("queryParams: { prompt: 'select_account' }")
+    expect(signup).toContain("queryParams: { prompt: 'select_account' }")
+  })
+
   test('auth pages do not consume free-form message query parameters', () => {
     const login = fs.readFileSync(path.join(process.cwd(), 'src/app/auth/login/page.tsx'), 'utf-8')
     const signup = fs.readFileSync(path.join(process.cwd(), 'src/app/auth/signup/page.tsx'), 'utf-8')
