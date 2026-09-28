@@ -63,7 +63,7 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
   const containsPracticeWord = practiceWords.some((word) =>
     /[A-Za-z]/.test(word) ? matchesPhrase(normalized, word) : normalized.includes(word)
   );
-  if (containsPracticeWord && contextualStudy) return { type: 'DASHBOARD_PRACTICE' };
+  if (containsPracticeWord) return { type: 'DASHBOARD_PRACTICE' };
 
   // Hardcoded fallback for onboarding mode selection (English and transliterations)
   if (contextualModeAnalysis && (matchesPhrase(normalized, 'standard') || matchesPhrase(normalized, 'स्टैंडर्ड') || matchesPhrase(normalized, 'స్టాండర్డ్') || matchesPhrase(normalized, 'సాధారణం'))) return { type: 'SELECT_MODE_STANDARD' };
