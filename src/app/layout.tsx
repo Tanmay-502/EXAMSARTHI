@@ -33,7 +33,9 @@ export default function RootLayout({
                 <GlobalVoiceAssistant>
                   <VoiceOverlay />
                   <ServiceWorkerRegistration />
-                  {children}
+                  <div data-voice-dock-content="true" className="min-h-screen">
+                    {children}
+                  </div>
                 </GlobalVoiceAssistant>
               </VoiceProvider>
             </AccessibilityProvider>

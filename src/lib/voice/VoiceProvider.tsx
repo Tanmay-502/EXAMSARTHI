@@ -71,17 +71,6 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   }, [micError]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        const reco = new SpeechRecognition();
-        reco.continuous = false;
-        reco.interimResults = false;
-        recognitionRef.current = reco;
-      }
-    }
-    
     return () => {
       if (restartTimeoutRef.current) {
         clearTimeout(restartTimeoutRef.current);
@@ -104,7 +93,6 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       }
       
       if (isContinuousRef.current && onResultRef.current && micErrorRef.current !== 'denied' && micErrorRef.current !== 'not-supported') {
-        // Small delay before restarting mic after speaking to avoid feedback
         if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
         restartTimeoutRef.current = setTimeout(() => {
           if (isContinuousRef.current && voiceStateRef.current === 'IDLE') {
@@ -183,13 +171,11 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       timestamp: new Date()
     }]);
     
-    // Stop listening temporarily to prevent hearing itself
     const reco = recognitionRef.current;
     if (reco) {
       try { reco.stop(); } catch { /* ignore */ }
     }
 
-    // Split text by punctuation to avoid TTS truncation bug in Chromium
     const parts = text.split(/([.,!?;।]+)/);
     const sentences: string[] = [];
     for (let i = 0; i < parts.length; i += 2) {
@@ -223,16 +209,43 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   }, [updateVoiceState]);
 
   const startListening = useCallback(() => {
-    const recognition = recognitionRef.current;
+    let recognition = recognitionRef.current;
+
+    if (!recognition && typeof window !== 'undefined') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        setMicError('not-supported');
+        micErrorRef.current = 'not-supported';
+        isContinuousRef.current = false;
+        setIsContinuous(false);
+        updateVoiceState('ERROR');
+        speak(t('mic_check_fail'));
+        return;
+      }
+
+      try {
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognitionRef.current = recognition;
+      } catch (error) {
+        console.error('[VOICE] SpeechRecognition initialization failed:', error);
+        setMicError('unavailable');
+        micErrorRef.current = 'unavailable';
+        isContinuousRef.current = false;
+        setIsContinuous(false);
+        updateVoiceState('ERROR');
+        speak(t('mic_check_fail'));
+        return;
+      }
+    }
+
     if (!recognition) {
-      setMicError('not-supported');
-      micErrorRef.current = 'not-supported';
-      isContinuousRef.current = false;
-      setIsContinuous(false);
-      updateVoiceState('ERROR');
-      speak(t('mic_check_fail'));
       return;
     }
+
     setMicError(null);
     micErrorRef.current = null;
     
@@ -324,7 +337,6 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
         updateVoiceState('ERROR');
         speak(t('mic_check_fail'));
       } else if (event.error === 'network' || event.error === 'no-speech' || event.error === 'audio-capture') {
-        // Transient errors, attempt recovery if continuous
         if (event.error === 'network') {
           setMicError('network');
           micErrorRef.current = 'network';
@@ -339,9 +351,9 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
           updateVoiceState('ERROR');
         }
       } else {
-         if (voiceStateRef.current !== 'SPEAKING') {
-           updateVoiceState('IDLE');
-         }
+        if (voiceStateRef.current !== 'SPEAKING') {
+          updateVoiceState('IDLE');
+        }
       }
     };
     
@@ -350,8 +362,6 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
         updateVoiceState('IDLE');
       }
       
-      // Do not start another recognition cycle while a previous transcript
-      // is still being parsed or dispatched by the global assistant.
       if (
         !processingRef.current &&
         isContinuousRef.current &&
@@ -377,7 +387,6 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
         updateVoiceState('REQUESTING_PERMISSION');
         recognition.start();
       } catch {
-        // ignore AlreadyStarted error
         updateVoiceState('LISTENING');
       }
     }
