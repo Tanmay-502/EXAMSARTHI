@@ -6,13 +6,13 @@ test.describe('Voice Security Boundary (Phase 10)', () => {
     const registry = new SafeActionRegistry();
     
     // Allowed actions
-    expect(registry.isActionAllowed('NEXT_QUESTION', 'exam')).toBe(true);
-    expect(registry.isActionAllowed('SELECT_OPTION', 'exam')).toBe(true);
+    expect(registry.isActionAllowed('NEXT_QUESTION', 'exam_active')).toBe(true);
+    expect(registry.isActionAllowed('SELECT_OPTION', 'exam_active')).toBe(true);
     
     // Rejected actions (anti-cheating)
-    expect(registry.isActionAllowed('OPEN_DASHBOARD', 'exam')).toBe(false);
-    expect(registry.isActionAllowed('OPEN_PRACTICE', 'exam')).toBe(false);
-    expect(registry.isActionAllowed('LOGOUT', 'exam')).toBe(false);
+    expect(registry.isActionAllowed('OPEN_DASHBOARD', 'exam_active')).toBe(false);
+    expect(registry.isActionAllowed('OPEN_PRACTICE', 'exam_active')).toBe(false);
+    expect(registry.isActionAllowed('LOGOUT', 'exam_active')).toBe(false);
   });
 
   test('dashboard mode allows open exam', () => {
