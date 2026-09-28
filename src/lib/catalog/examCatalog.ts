@@ -109,7 +109,7 @@ export async function resolveSubject(spokenText: string): Promise<SupportedSubje
     if (error) throw error;
 
     const dbSubjects = Array.from(new Set(
-      (data || [])
+      rows
         .map(d => d.subject?.trim())
         .filter((subject): subject is string => Boolean(subject))
     ));
