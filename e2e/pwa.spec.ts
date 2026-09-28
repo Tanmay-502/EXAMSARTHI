@@ -12,6 +12,12 @@ test.describe('PWA shell', () => {
     expect(manifest.icons?.length).toBeGreaterThan(0);
   });
 
+  test('serves the service worker without authentication', async ({ request }) => {
+    const response = await request.get('/sw.js')
+    expect(response.ok()).toBe(true)
+    expect(await response.text()).toContain('service')
+  })
+
   test('registers the production service worker', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('domcontentloaded');
