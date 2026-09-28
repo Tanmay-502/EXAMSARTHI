@@ -105,6 +105,7 @@ export async function resolveSubject(spokenText: string): Promise<SupportedSubje
   try {
     const supabase = createClient();
     const { data, error } = await supabase.rpc('practice_subjects');
+  const rows = (data ?? []) as Array<{ subject: string | null }>;
     if (error) throw error;
 
     const dbSubjects = Array.from(new Set(
