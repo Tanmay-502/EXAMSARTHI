@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { chunk } from '@/lib/db/chunk'
 
 export type SubjectStats = {
   subject: string;
