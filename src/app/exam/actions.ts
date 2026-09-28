@@ -3,6 +3,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { Question } from '@/lib/store/examStore'
 import { SupabaseClient, User } from '@supabase/supabase-js'
+import { writeAudit } from '@/lib/audit/writeAudit'
 
 type ServerAnalyticsQuestion = {
   id: string;
@@ -302,7 +303,7 @@ export async function startExamSession(examId: string) {
     throw new Error(`Failed to start session: ${error.message}`)
   }
 
-  await adminClient.from('audit_logs').insert({
+  await writeAudit({
     session_id: data.id,
     candidate_id: user.id,
     action: 'started_exam',
@@ -432,7 +433,7 @@ export async function startPracticeSession(questionIds: string[] = [], practiceS
     throw new Error(`Failed to start practice session: ${error.message}`)
   }
 
-  await supabase.from('audit_logs').insert({
+  await writeAudit({
     session_id: data.id,
     candidate_id: user.id,
     action: 'started_practice',
@@ -651,7 +652,7 @@ export async function saveAnswer(
     throw new Error(`Failed to save answer: ${answerError.message}`);
   }
 
-  await supabase.from('audit_logs').insert({
+  await writeAudit({
     session_id: sessionId,
     candidate_id: user.id,
     action: 'answer_saved',
@@ -853,7 +854,7 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     throw new Error('Exam session was already submitted or is no longer active')
   }
 
-  await supabase.from('audit_logs').insert({
+  await writeAudit({
     session_id: sessionId,
     candidate_id: user.id,
     action: 'submitted_exam',
@@ -879,7 +880,7 @@ export async function recordAnswerEvent(sessionId: string, questionId: string) {
 
   if (!session) return { success: false }
 
-  await adminClient.from('audit_logs').insert({
+  await writeAudit({
     session_id: sessionId,
     candidate_id: user.id,
     action: 'answered_question',
