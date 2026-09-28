@@ -120,7 +120,7 @@ export function VoiceStatusIndicator({ className, dock = false }: VoiceStatusInd
           className
         )}
         role="status"
-        aria-live={shouldAnnounce ? 'assertive' : 'off'}
+        aria-live={shouldAnnounce ? 'assertive' : 'polite'}
         aria-atomic="true"
         aria-label={`Voice state: ${voiceState}. ${status.label}.`}
       >
@@ -150,7 +150,7 @@ export function VoiceStatusIndicator({ className, dock = false }: VoiceStatusInd
         className
       )}
       role="status"
-      aria-live={shouldAnnounce ? 'assertive' : 'off'}
+      aria-live={shouldAnnounce ? 'assertive' : 'polite'}
       aria-atomic="true"
       aria-label={`Voice state: ${voiceState}. ${status.label}.`}
     >

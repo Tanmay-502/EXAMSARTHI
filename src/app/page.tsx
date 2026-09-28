@@ -15,6 +15,7 @@ export default function Home() {
   const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement>(null);
   const activationPromptRef = useRef<HTMLButtonElement>(null);
+  const startJourneyRef = useRef<HTMLButtonElement>(null);
   const hasSpokenRef = useRef(false);
   const demoGuideTimerRef = useRef<number | null>(null);
   const [showVoicePrompt, setShowVoicePrompt] = useState(true);
@@ -23,8 +24,12 @@ export default function Home() {
   const activateVoice = useCallback(() => {
     if (hasSpokenRef.current) return;
 
+    const wasActivationPromptFocused = document.activeElement === activationPromptRef.current;
     hasSpokenRef.current = true;
     setShowVoicePrompt(false);
+    if (wasActivationPromptFocused) {
+      window.requestAnimationFrame(() => startJourneyRef.current?.focus());
+    }
     speak(t('gateway_welcome'));
     startContinuousListening();
 
@@ -107,6 +112,7 @@ export default function Home() {
 
           <div className="flex items-center gap-8">
             <button
+              ref={startJourneyRef}
               onClick={navigateFromHero}
               className="group relative inline-flex h-14 items-center justify-center rounded-full bg-white px-8 text-base font-medium text-black transition-all hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-4 focus-visible:ring-offset-black active:scale-[0.98]"
             >
