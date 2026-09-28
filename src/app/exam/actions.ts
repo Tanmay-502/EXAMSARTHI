@@ -255,7 +255,7 @@ export async function startExamSession(examId: string) {
       Date.now() <= startedAt + (durationSeconds + 5) * 1000;
 
     if (stillActive) {
-      return { id: existing.id, startedAt: existing.started_at };
+      return { id: existing.id, startedAt: existing.started_at, serverNow: Date.now(), userId: user.id };
     }
 
     await adminClient
@@ -295,7 +295,7 @@ export async function startExamSession(examId: string) {
 
       if (raced) {
         const racedSession = raced as { id: string; started_at: string };
-        return { id: racedSession.id, startedAt: racedSession.started_at };
+        return { id: racedSession.id, startedAt: racedSession.started_at, serverNow: Date.now(), userId: user.id };
       }
     }
 
@@ -309,7 +309,7 @@ export async function startExamSession(examId: string) {
   })
 
   const insertedSession = data as { id: string; started_at: string };
-  return { id: insertedSession.id, startedAt: insertedSession.started_at }
+  return { id: insertedSession.id, startedAt: insertedSession.started_at, serverNow: Date.now(), userId: user.id }
 }
 
 export async function startPracticeSession(questionIds: string[] = [], practiceSubject = '', practiceDifficulty = '') {
@@ -887,6 +887,37 @@ export async function recordAnswerEvent(sessionId: string, questionId: string) {
   })
 
   return { success: true }
+}
+
+export async function verifyActiveSession(sessionId: string, isPractice: boolean) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const { data: session, error } = await supabase
+    .from('exam_sessions')
+    .select('id, candidate_id, exam_id, is_practice, status, question_ids, started_at')
+    .eq('id', sessionId)
+    .eq('candidate_id', user.id)
+    .single()
+
+  if (error || !session || session.is_practice !== isPractice || session.status !== 'in_progress') {
+    return { valid: false as const, serverNow: Date.now(), userId: user.id }
+  }
+
+  return {
+    valid: true as const,
+    serverNow: Date.now(),
+    userId: user.id,
+    session: {
+      id: session.id,
+      examId: session.exam_id,
+      isPractice: Boolean(session.is_practice),
+      status: session.status,
+      questionIds: Array.isArray(session.question_ids) ? session.question_ids : [],
+      startedAt: session.started_at,
+    },
+  }
 }
 
 export async function updatePreferences(prefs: { preferred_mode?: string; preferred_lang?: string }) {
