@@ -669,10 +669,6 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   if (engineState === 'READY') {
     return (
       <div className="relative flex flex-col min-h-screen w-full mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
-        <div className="absolute inset-0 pointer-events-none opacity-20">
-          <HeroScene />
-        </div>
-        
         <div className="mb-24 flex items-center justify-between border-b border-zinc-900 pb-8 relative z-10">
           <div className="flex flex-col">
             <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">MODE</span>
@@ -766,9 +762,6 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   if (engineState === 'PROCESSING') {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-6 w-full relative">
-        <div className="absolute inset-0 pointer-events-none opacity-20">
-          <HeroScene />
-        </div>
         <VoiceCore size="lg" />
         <motion.h1
           initial={{ opacity: 0, y: 10 }}
@@ -803,10 +796,6 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   // EXAM or CONFIRM_ANSWER state
   return (
     <div className="relative flex flex-col min-h-screen w-full max-w-7xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
-      <div className="absolute inset-0 pointer-events-none opacity-[0.03]">
-        <HeroScene />
-      </div>
-
       {/* Header Info */}
       <div className="mb-24 flex flex-col md:flex-row md:items-center justify-between border-b border-zinc-900 pb-8 relative z-10 gap-8">
         <div className="flex items-center gap-6">
