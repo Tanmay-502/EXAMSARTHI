@@ -22,14 +22,13 @@ const rows: Array<{
 test.describe('Voice navigation escape decisions', () => {
   test('lobby/setup may navigate away while active sessions are blocked', () => {
     const registry = new SafeActionRegistry();
-    const rows = [
-      ['exam_lobby', true, shouldEscapeToGlobal('go to dashboard', 'en-IN', 'exam_lobby')],
-      ['exam_active', false, shouldEscapeToGlobal('go to dashboard', 'en-IN', 'exam_active')],
-      ['practice_setup', true, shouldEscapeToGlobal('go to dashboard', 'en-IN', 'practice_setup')],
-      ['practice_active', false, shouldEscapeToGlobal('go to dashboard', 'en-IN', 'practice_active')],
-    ] as const;
-
-    for (const [context, allowed, escapes] of rows) {
+    for (const [context, allowed] of [
+      ['exam_lobby', true],
+      ['exam_active', false],
+      ['practice_setup', true],
+      ['practice_active', false],
+    ] as const) {
+      const escapes = shouldEscapeToGlobal('go to dashboard', 'en-IN', context);
       expect(registry.isActionAllowed('OPEN_DASHBOARD', context)).toBe(allowed);
       expect(escapes).toBe(allowed);
     }
