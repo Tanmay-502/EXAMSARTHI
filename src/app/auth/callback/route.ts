@@ -9,11 +9,11 @@ function getSafeNextPath(next: string): string {
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
-  const next = getSafeNextPath(requestUrl.searchParams.get('next') ?? '/dashboard')
+  const next = getSafeNextPath(requestUrl.searchParams.get('next') ?? '/welcome')
 
   if (!code) {
     return NextResponse.redirect(
-      new URL('/auth/login?message=Google%20sign-in%20could%20not%20be%20completed.', requestUrl.origin)
+      new URL('/auth/login?code=send_failed', requestUrl.origin)
     )
   }
 
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
   if (error) {
     console.error('Google OAuth callback error:', error)
     return NextResponse.redirect(
-      new URL('/auth/login?message=Google%20sign-in%20could%20not%20be%20completed.', requestUrl.origin)
+      new URL('/auth/login?code=send_failed', requestUrl.origin)
     )
   }
 

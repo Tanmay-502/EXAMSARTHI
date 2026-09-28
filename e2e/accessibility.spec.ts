@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 test.describe('Accessibility & Keyboard Navigation', () => {
-  test('landing page should not have any automatically detectable accessibility issues', async ({ page }) => {
+  test('gateway page should not have any automatically detectable accessibility issues', async ({ page }) => {
     await page.goto('/');
     const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
     expect(accessibilityScanResults.violations).toEqual([]);
@@ -59,10 +59,9 @@ type PublicRoute = {
 };
 
 const publicRoutes: PublicRoute[] = [
-  { path: '/', name: 'landing' },
-  { path: '/onboarding/mode', name: 'mode' },
-  { path: '/onboarding/language', name: 'language' },
+  { path: '/', name: 'gateway' },
   { path: '/auth/login', name: 'login' },
+  { path: '/auth/signup', name: 'signup' },
 ];
 
 async function installAccessibilityVoiceStubs(page: Page) {
@@ -124,22 +123,13 @@ test.describe('Public route full-page axe coverage', () => {
       await expect(page.getByTestId('voice-dock')).toBeVisible();
       await page.waitForTimeout(700);
 
-      if (route.path === '/') {
-        await page.evaluate(() => window.dispatchEvent(new Event('examsaarthi:voice-activated')));
-        await expect(page.getByTestId('demo-guide')).toBeVisible();
-      }
-
       const collapsed = await new AxeBuilder({ page }).analyze();
       expect(collapsed.violations).toEqual([]);
 
       const transcriptButton = page.getByRole('button', { name: 'Transcript' });
       await expect(transcriptButton).toHaveAttribute('aria-expanded', 'false');
 
-      if (route.path === '/') {
-        await page.evaluate(() => document.getElementById('voice-transcript-toggle')?.click());
-      } else {
-        await transcriptButton.click();
-      }
+      await transcriptButton.click();
 
       await expect(transcriptButton).toHaveAttribute('aria-expanded', 'true');
       await expect(page.locator('#voice-transcript-panel')).toBeVisible();

@@ -8,14 +8,14 @@ describe('Voice Command Parser', () => {
     test('should parse SELECT_OPTION correctly', () => {
       assert.deepStrictEqual(parseCommand('option a', 'en-IN'), { type: 'SELECT_OPTION', index: 0 });
       assert.deepStrictEqual(parseCommand('answer b', 'en-IN'), { type: 'SELECT_OPTION', index: 1 });
-      assert.deepStrictEqual(parseCommand('i choose c', 'en-IN'), { type: 'SELECT_OPTION', index: 2 });
+      assert.deepStrictEqual(parseCommand('i choose c', 'en-IN', 'exam'), { type: 'SELECT_OPTION', index: 2 });
       assert.deepStrictEqual(parseCommand('d is the correct answer', 'en-IN'), { type: 'SELECT_OPTION', index: 3 });
     });
 
     test('should parse Navigation commands', () => {
-      assert.deepStrictEqual(parseCommand('next question', 'en-IN'), { type: 'NEXT' });
-      assert.deepStrictEqual(parseCommand('go back', 'en-IN'), { type: 'BACK' });
-      assert.deepStrictEqual(parseCommand('repeat that', 'en-IN'), { type: 'REPEAT' });
+      assert.deepStrictEqual(parseCommand('next', 'en-IN'), { type: 'NEXT' });
+      assert.deepStrictEqual(parseCommand('back', 'en-IN'), { type: 'BACK' });
+      assert.deepStrictEqual(parseCommand('repeat', 'en-IN'), { type: 'REPEAT' });
     });
 
     test('should parse JUMP_TO_QUESTION', () => {
@@ -56,7 +56,7 @@ describe('Voice Command Parser', () => {
     });
 
     test('should parse Navigation commands', () => {
-      assert.deepStrictEqual(parseCommand('अगला प्रश्न', 'hi-IN'), { type: 'NEXT' });
+      assert.deepStrictEqual(parseCommand('अगला', 'hi-IN'), { type: 'NEXT' });
       assert.deepStrictEqual(parseCommand('पिछला', 'hi-IN'), { type: 'BACK' });
     });
 

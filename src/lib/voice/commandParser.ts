@@ -1,4 +1,5 @@
-import { LANGUAGE_REGISTRY, Locale } from '../i18n/registry';
+import { LANGUAGE_REGISTRY } from '../i18n/registry';
+import type { Locale } from '../i18n/registry';
 
 export type VoiceCommand = 
   | { type: 'NEXT' }

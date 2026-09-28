@@ -46,7 +46,7 @@ export function DemoGuide() {
 
   if (pathname !== previousPathname) {
     setPreviousPathname(pathname);
-    if (pathname !== '/') {
+    if (pathname !== '/welcome') {
       setOpen(false);
     }
   }
@@ -69,7 +69,7 @@ export function DemoGuide() {
   }, [markGuideSeen]);
 
   useEffect(() => {
-    if (pathname !== '/' || sessionSeen) return;
+    if (pathname !== '/welcome' || sessionSeen) return;
 
     const openGuide = () => {
       if (sessionSeen || hasSeenGuide()) return;
@@ -128,7 +128,7 @@ export function DemoGuide() {
     return true;
   });
 
-  if (pathname !== '/' || !open) return null;
+  if (pathname !== '/welcome' || !open) return null;
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4 md:p-8" data-testid="demo-guide">

@@ -13,7 +13,7 @@ const rows: Array<{
   { screen: 'history', context: 'history', language: 'en-IN' },
   { screen: 'analysis', context: 'analysis', language: 'en-IN' },
   { screen: 'settings', context: 'settings', language: 'en-IN' },
-  { screen: 'exam-selection', context: 'exam', language: 'en-IN' },
+  { screen: 'exam-selection', context: 'exam-selection', language: 'en-IN' },
   { screen: 'practice-setup', context: 'practice', language: 'en-IN' },
   { screen: 'active-practice', context: 'practice', language: 'en-IN' },
   { screen: 'active-exam', context: 'exam', language: 'en-IN' },

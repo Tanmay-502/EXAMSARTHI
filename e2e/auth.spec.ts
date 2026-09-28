@@ -1,94 +1,82 @@
-import { test, expect } from '@playwright/test';
-import * as fs from 'fs';
-import * as path from 'path';
+import { test, expect } from '@playwright/test'
+import * as fs from 'fs'
+import * as path from 'path'
 
-test.describe('Authentication Flow & Middleware Routing', () => {
-  
-  test('Unauthenticated user can access the login page', async ({ page }) => {
-    await page.goto('/auth/login');
-    await expect(page).toHaveURL(/.*\/auth\/login/);
-    
-    // Check if the form elements are present
-    const emailInput = page.getByRole('textbox', { name: /email/i });
-    await expect(emailInput).toBeVisible();
-    
-    const submitButton = page.getByRole('button', { name: /Send Magic Link/i });
-    await expect(submitButton).toBeVisible();
-  });
+test.describe('Authentication Flow & Gateway Routing', () => {
+  test('gateway is minimal, accessible, and has keyboard shortcuts', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.getByRole('heading', { name: 'ExamSaarthi' })).toBeVisible()
+    const login = page.getByRole('button', { name: /^Log in/ })
+    const signup = page.getByRole('button', { name: /^Sign up/ })
+    await expect(login).toBeVisible()
+    await expect(signup).toBeVisible()
+    await expect(login).toBeFocused()
+    await page.keyboard.press('s')
+    await expect(page).toHaveURL(/\/auth\/signup$/)
+    await page.goto('/')
+    await expect(page.getByRole('button', { name: /^Log in/ })).toBeFocused()
+    await page.keyboard.press('l')
+    await expect(page).toHaveURL(/\/auth\/login$/)
+  })
 
-  test('Auth entry remains a reachable visible route', async ({ page }) => {
-    await page.goto('/auth/login?from=voice');
-    await expect(page).toHaveURL(/.*\/auth\/login\?from=voice/);
-    await expect(page.getByRole('heading', { name: /Login|Sign Up/i })).toBeVisible();
-    await expect(page.getByRole('textbox', { name: /email/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Send Magic Link/i })).toBeVisible();
-  });
+  test('Unauthenticated user can access login and signup pages', async ({ page }) => {
+    await page.goto('/auth/login')
+    await expect(page).toHaveURL(/.*\/auth\/login/)
+    await expect(page.getByRole('textbox', { name: /email/i })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Send Magic Link/i })).toBeVisible()
+
+    await page.goto('/auth/signup')
+    await expect(page).toHaveURL(/.*\/auth\/signup/)
+    await expect(page.getByRole('textbox', { name: /full name/i })).toBeVisible()
+    await expect(page.getByRole('textbox', { name: /email/i })).toBeVisible()
+  })
 
   test('Unauthenticated user is redirected to login when accessing protected routes', async ({ page }) => {
-    // Try to go to dashboard
-    await page.goto('/dashboard');
-    // Should be redirected to login
-    await expect(page).toHaveURL(/.*\/auth\/login/);
+    await page.goto('/dashboard')
+    await expect(page).toHaveURL(/.*\/auth\/login\?code=unauthenticated/)
+    await page.goto('/settings')
+    await expect(page).toHaveURL(/.*\/auth\/login\?code=unauthenticated/)
+  })
 
-    // Try to go to settings
-    await page.goto('/settings');
-    await expect(page).toHaveURL(/.*\/auth\/login/);
-  });
+  test('login Magic Link uses existing-account mode and returns a safe code', async ({ page }) => {
+    await page.goto('/auth/login')
+    await page.getByRole('textbox', { name: /email/i }).fill('test-playwright@example.com')
+    await page.getByRole('button', { name: /Send Magic Link/i }).click()
+    await expect(page).toHaveURL(/.*\/auth\/login\?code=(sent|no_account|send_failed)$/)
+    await expect(page.getByTestId('auth-message')).toBeVisible()
+  })
 
-  test('Submitting magic link form shows success message', async ({ page }) => {
-    page.on('console', msg => console.log(`[Browser] ${msg.type()}: ${msg.text()}`));
-    page.on('pageerror', error => console.log(`[Browser Error]: ${error.message}`));
-    page.on('requestfailed', request => console.log(`[Browser Request Failed]: ${request.url()} - ${request.failure()?.errorText}`));
+  test('signup Magic Link uses account-creation mode and returns a safe code', async ({ page }) => {
+    await page.goto('/auth/signup')
+    await page.getByRole('textbox', { name: /full name/i }).fill('Playwright Candidate')
+    await page.getByRole('textbox', { name: /email/i }).fill('test-playwright-signup@example.com')
+    await page.getByRole('button', { name: /Create account/i }).click()
+    await expect(page).toHaveURL(/.*\/auth\/signup\?code=(sent|send_failed)$/)
+    await expect(page.getByTestId('auth-message')).toBeVisible()
+  })
 
-    await page.goto('/auth/login');
-    
-    const emailInput = page.getByRole('textbox', { name: /email/i });
-    // This will actually hit the Supabase instance, triggering a real magic link send
-    // using a dummy safe email so it doesn't spam real users.
-    await emailInput.fill('test-playwright@example.com');
-    
-    // Wait for hydration before clicking so Next.js can intercept the form submission
-    await page.waitForTimeout(1500);
-
-    const submitButton = page.getByRole('button', { name: /Send Magic Link/i });
-    await submitButton.click();
-    
-    // Should redirect back to login with a success message in URL
-    // Should redirect back to login with a success message or rate limit error
-    await expect(page).toHaveURL(/.*message=(Check|Your).*email|link/i);
-    
-    // Verify accessible message is present
-    const messageAlert = page.getByTestId('auth-message');
-    await expect(messageAlert).toBeVisible();
-  });
-
-  test('Invalid confirm route token shows safe error message', async ({ page }) => {
-    // Manually navigate to /auth/confirm with invalid PKCE token
-    await page.goto('/auth/confirm?token_hash=invalid_token&type=email');
-    
-    // Should redirect to login with a friendly error
-    await expect(page).toHaveURL(/.*message=Your.*sign-in.*link.*could.*not.*be.*verified/i);
-    
-    const messageAlert = page.getByTestId('auth-message');
-    await expect(messageAlert).toContainText('Your sign-in link could not be verified');
-  });
-  
-  // Note: True authenticated behavior (clicking real email links, persistent sessions, 
-  // checking authenticated redirects away from /auth/login, and logout) 
-  // requires a manual verification step or advanced Playwright email interceptors.
-});
+  test('invalid confirm route token shows safe error code', async ({ page }) => {
+    await page.goto('/auth/confirm?token_hash=invalid_token&type=email')
+    await expect(page).toHaveURL(/.*\/auth\/login\?code=link_invalid$/)
+    await expect(page.getByTestId('auth-message')).toContainText('authentication link')
+  })
+})
 
 test.describe('Authentication Architecture Rules', () => {
-  test('actions.ts uses signInWithOtp and does not use signUp', () => {
-    const actionsPath = path.join(process.cwd(), 'src/app/auth/actions.ts');
-    const content = fs.readFileSync(actionsPath, 'utf-8');
-    
-    // The application must use ONE passwordless Magic Link authentication flow.
-    expect(content).toContain('signInWithOtp(');
-    expect(content).toContain('shouldCreateUser: true');
-    expect(content).toContain('emailRedirectTo:');
-    
-    // There must be no accidental call to supabase.auth.signUp()
-    expect(content).not.toContain('signUp(');
-  });
-});
+  test('login uses shouldCreateUser false, signup uses true, and signUp is absent', () => {
+    const actionsPath = path.join(process.cwd(), 'src/app/auth/actions.ts')
+    const content = fs.readFileSync(actionsPath, 'utf-8')
+    expect(content).toContain('shouldCreateUser: false')
+    expect(content).toContain('shouldCreateUser: true')
+    expect(content).toContain('emailRedirectTo:')
+    expect(content).not.toContain('signUp(')
+    expect(content).not.toContain('?message=')
+  })
+
+  test('auth pages do not consume free-form message query parameters', () => {
+    const login = fs.readFileSync(path.join(process.cwd(), 'src/app/auth/login/page.tsx'), 'utf-8')
+    const signup = fs.readFileSync(path.join(process.cwd(), 'src/app/auth/signup/page.tsx'), 'utf-8')
+    expect(login).not.toContain('searchParams.get(\'message\')')
+    expect(signup).not.toContain('searchParams.get(\'message\')')
+  })
+})

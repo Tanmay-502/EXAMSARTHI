@@ -1,44 +1,21 @@
 # Manual Voice Assistant Test Plan
 
-This document outlines the testing procedure to verify that the Voice Assistant provides a deterministic, secure, accessible, and continuous conversational experience.
+## Gateway and auth
+1. Open `/`; do not expect automatic voice activation.
+2. Use gateway actions or `L` / `S`.
+3. For a saved `voice-first` user, verify auth voice email capture.
+4. Verify email read-back and explicit confirmation before sending.
 
-## Prerequisites
-1. Connect a working microphone.
-2. Ensure you have network connectivity to access the LLM endpoint (for fallback queries).
+## Welcome
+1. After authentication, open `/welcome`.
+2. Confirm the voice welcome message and continuous listening behavior.
+3. Confirm DemoGuide opens from the voice activation event and supports dismissal.
 
-## Test 1: Global Voice Lifecycle
-1. Load `/` (Landing Page).
-2. Click the voice microphone button or press the keyboard shortcut to start listening.
-3. Say: "Go to practice mode."
-4. **Expected**: The app navigates to `/practice`. The microphone remains active/listening in the new context if possible, or gracefully transitions.
+## Onboarding
+1. Use voice or keyboard to choose mode.
+2. Select English, Hindi, or Telugu.
+3. Confirm spoken confirmation says preferences were saved and dashboard navigation follows.
+4. Confirm returning users can continue directly to `/dashboard`.
 
-## Test 2: Practice Mode Conversational Setup
-1. On the `/practice` page, the assistant should ask: "What subject would you like to practice?"
-2. Say: "Math"
-3. The assistant should ask: "How many questions would you like?"
-4. Say: "10"
-5. The assistant should ask: "What difficulty?"
-6. Say: "Medium"
-7. **Expected**: The assistant says "Starting a 10-question medium Math practice session" and the exam engine begins.
-
-## Test 3: History & Weak Subject Practice
-1. Say: "Open my history"
-2. **Expected**: Navigates to `/history` (or results if history isn't fully implemented).
-3. Say: "Practice my weakest subject"
-4. **Expected**: The intent parser identifies `{ type: 'START_PRACTICE', payload: { subject: 'weakest' } }`. Navigates to `/practice?subject=weakest`.
-
-## Test 4: Anti-Cheating Bounds (Exam Mode)
-1. Start an actual exam from `/dashboard`.
-2. Once the exam starts, ask: "Can you solve this?" or "What is the answer to the first question?"
-3. **Expected**: The system intercepts this as `QUESTION_SOLVING` intent and REJECTS it, returning an error message (e.g., "I cannot help you solve questions during an active exam.") and does not reveal the answer.
-4. Try to navigate away via voice: "Go to dashboard."
-5. **Expected**: Action blocked by `SafeActionRegistry` in the `exam` context.
-
-## Test 5: Language Switching
-1. Say: "Speak in Hindi" or "Change language to Hindi"
-2. **Expected**: The application language switches to `hi-IN` and TTS responds in Hindi.
-
-## Test 6: Fallback Determinism
-1. Disconnect the network (offline mode).
-2. Say: "Next question"
-3. **Expected**: The app still moves to the next question using local deterministic parsing (`commandParser.ts`), without relying on the LLM.
+## Safety
+Verify voice actions remain constrained by SafeActionRegistry and the assistant never solves active exam questions.

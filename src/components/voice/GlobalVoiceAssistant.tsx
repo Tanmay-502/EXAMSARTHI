@@ -7,6 +7,7 @@ import { useI18n } from '@/lib/i18n/I18nProvider';
 import { Locale } from '@/lib/i18n/registry';
 import { OptionalLLMIntentProvider } from '@/lib/voice/intentRouter';
 import { SafeAction, SafeActionRegistry } from '@/lib/voice/safeActionRegistry';
+import { useExamStore } from '@/lib/store/examStore';
 import { createClient } from '@/lib/supabase/client';
 
 type ConversationState = 'IDLE' | 'AWAITING_LANGUAGE' | 'AWAITING_INTENT' | 'COLLECTING_PARAMETERS' | 'CONFIRMING_ACTION' | 'EXECUTING_ACTION' | 'ERROR_RECOVERY';
@@ -26,6 +27,8 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
   const { setOnResult, speak } = useVoice();
   const { lang, setLang } = useI18n();
   const pathname = usePathname();
+  const examStatus = useExamStore((state) => state.status);
+  const examHydrated = useExamStore((state) => state.hasHydrated);
   const router = useRouter();
 
   const handlersRef = React.useRef<VoiceActionHandler[]>([]);
@@ -36,12 +39,14 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
   const registry = React.useMemo(() => new SafeActionRegistry(), []);
 
   const getContextName = React.useCallback(() => {
-    if (pathname === '/') return 'landing';
+    if (pathname === '/' || pathname === '/welcome') return 'landing';
     if (pathname === '/onboarding/mode') return 'mode_selection';
     if (pathname === '/onboarding/language') return 'language_selection';
     if (pathname.startsWith('/onboarding')) return 'onboarding';
     if (pathname.startsWith('/dashboard')) return 'dashboard';
-    if (pathname.startsWith('/exam')) return 'exam';
+    if (pathname.startsWith('/exam')) {
+      return examHydrated && examStatus !== 'IN_PROGRESS' ? 'exam-selection' : 'exam';
+    }
     if (pathname.startsWith('/practice')) return 'practice';
     if (pathname.startsWith('/results')) return 'results';
     if (pathname.startsWith('/history')) return 'history';
@@ -49,7 +54,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
     if (pathname.startsWith('/settings')) return 'settings';
     if (pathname.startsWith('/analysis')) return 'analysis';
     return 'unknown';
-  }, [pathname]);
+  }, [pathname, examHydrated, examStatus]);
 
   const contextVersionRef = React.useRef(0);
   const isNavigatingRef = React.useRef(false);
@@ -157,7 +162,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
 
       speak(message);
       isNavigatingRef.current = true;
-      router.push('/auth/login?from=voice');
+      router.push(action === 'SIGN_UP' ? '/auth/signup?from=voice' : '/auth/login?from=voice');
       return;
     }
 
