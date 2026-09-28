@@ -106,11 +106,6 @@ export function DemoGuide() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [closeGuide, open]);
 
-  useEffect(() => {
-    if (pathname !== '/') {
-      setOpen(false);
-    }
-  }, [pathname]);
 
   useVoiceAction((action) => {
     if (!open || action !== 'DISMISS_GUIDE') return false;
