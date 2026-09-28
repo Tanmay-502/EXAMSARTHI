@@ -368,7 +368,7 @@ function ExamSelection({
       /\b(exam|exams)\b/.test(normalized)
     ) {
       lastHandledTranscriptRef.current = normalized;
-      const examNames = exams.map((exam, index) => `Exam ${index + 1}: ${exam.title}. ${exam.question_count} questions, ${exam.duration_minutes} minutes.`).join(' ');
+      const examNames = exams.map((exam, index) => tParams('exam_list_item', { index: index + 1, title: exam.title, count: exam.question_count, minutes: exam.duration_minutes })).join(' ');
       speak(tParams('exam_available_prompt', { details: examNames }));
       return true;
     }
@@ -382,12 +382,7 @@ function ExamSelection({
     if (selectByIndex) {
       lastHandledTranscriptRef.current = normalized;
       setSelectedExam(selectByIndex);
-      speak(
-        selectByIndex.title +
-        " selected. It has " +
-        selectByIndex.question_count +
-        " questions. Say yes to start or say change to choose another."
-      );
+      speak(tParams('exam_selected_details', { title: selectByIndex.title, count: selectByIndex.question_count, minutes: selectByIndex.duration_minutes }));
       return true;
     }
 
@@ -405,13 +400,8 @@ function ExamSelection({
 
         speak(
           wantsImmediateStart
-            ? "Starting " + localMatch.title + "."
-            : localMatch.title +
-              " selected. It has " +
-              localMatch.question_count +
-              " questions and " +
-              localMatch.duration_minutes +
-              " minutes. Say yes to start or say change to choose another."
+            ? tParams('starting_exam_named', { title: localMatch.title })
+            : tParams('exam_selected_details', { title: localMatch.title, count: localMatch.question_count, minutes: localMatch.duration_minutes })
         );
 
         if (wantsImmediateStart) onSelect(localMatch.id);

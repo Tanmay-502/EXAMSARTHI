@@ -169,11 +169,7 @@ function PracticeContent() {
         })
         .catch(err => {
           console.error(err);
-          setSetupError(
-            err instanceof Error
-              ? err.message
-               : t('practice_load_error')
-          );
+          setSetupError(t('practice_load_error'));
           setSetupState('ERROR');
           speak(t('practice_load_error'));
         });
@@ -183,11 +179,8 @@ function PracticeContent() {
     if (!hasHydrated || !resumeChecked || setupState !== 'STARTING') return;
 
     const actualCount = fetchedQuestions.length;
-    const confirmMsg = lang === 'hi-IN'
-      ? `${actualCount} प्रश्नों का ${difficulty} स्तर का ${subject} अभ्यास शुरू हो रहा है।`
-      : lang === 'te-IN'
-        ? `${actualCount} प्रश्नల ${difficulty} స్థాయి ${subject} అభ్యాసం ప్రారంభమవుతోంది.`
-        : `Starting a ${actualCount}-question ${difficulty} ${subject} practice session.`;
+    const difficultyLabel = t(difficulty === 'easy' ? 'difficulty_easy' : difficulty === 'medium' ? 'difficulty_medium' : 'difficulty_hard');
+    const confirmMsg = tParams('practice_starting_session', { count: actualCount, difficulty: difficultyLabel, subject: subject ?? '' });
 
     speak(confirmMsg);
     startPracticeSession(
@@ -207,7 +200,7 @@ function PracticeContent() {
         setSetupState('ERROR');
         speak(t('practice_start_error'));
       });
-  }, [hasHydrated, setupState, fetchedQuestions, subject, difficulty, lang, initializeExam, speak]);
+  }, [hasHydrated, setupState, fetchedQuestions, subject, difficulty, lang, initializeExam, speak, t, tParams]);
 
   useEffect(() => {
     if (setupState === 'CONFIRM_SHORTFALL' && !confirmedShortfall) {
@@ -504,7 +497,7 @@ function PracticeContent() {
                   <div className="flex flex-wrap gap-4">
                     {(['easy', 'medium', 'hard'] as const).map(diff => (
                       <button 
-                        key={diff}
+                        key={t(diff === 'easy' ? 'difficulty_easy' : diff === 'medium' ? 'difficulty_medium' : 'difficulty_hard')}
                         onClick={() => { setDifficulty(diff); setSetupState('FETCHING'); }}
                         className="px-8 py-4 rounded-full border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-500 transition-colors text-lg uppercase tracking-widest font-medium"
                       >

@@ -132,7 +132,7 @@ export default function ArchitecturePage() {
   const [activeNode, setActiveNode] = useState<string | null>(null);
 
   return (
-    <main className="min-h-screen bg-black text-white flex flex-col items-center py-16 px-6 md:px-12 relative overflow-hidden">
+    <main id="main-content" className="min-h-dvh bg-black text-white flex flex-col items-center py-16 px-6 md:px-12 relative overflow-hidden">
       
       {/* Decorative Background Elements */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-white/5 blur-[120px] pointer-events-none" />

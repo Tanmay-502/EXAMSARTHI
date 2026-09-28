@@ -77,6 +77,10 @@ export async function fetchExamQuestions(examId: string, sessionId: string, lang
     ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
     : []
 
+  if (rosterIds.length === 0) {
+    throw new Error('Exam session has no frozen question roster')
+  }
+
   // Fetch questions, explicitly EXCLUDING correct_answer_index.
   const baseQuery = supabase
     .from('questions')
@@ -232,7 +236,7 @@ export async function startExamSession(examId: string) {
 
   const { data: existing } = await adminClient
     .from('exam_sessions')
-    .select('id, started_at')
+    .select('id, started_at, question_ids')
     .eq('exam_id', examId)
     .eq('candidate_id', user.id)
     .eq('status', 'in_progress')
@@ -256,7 +260,10 @@ export async function startExamSession(examId: string) {
       durationSeconds > 0 &&
       Date.now() <= startedAt + (durationSeconds + 5) * 1000;
 
-    if (stillActive) {
+    const existingRoster = Array.isArray(existing.question_ids)
+      ? existing.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+      : [];
+    if (stillActive && existingRoster.length > 0) {
       return { id: existing.id, startedAt: existing.started_at, serverNow: Date.now(), userId: user.id };
     }
 
@@ -702,15 +709,10 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
     ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
     : [];
 
-  if (rosterIds.length > 0) {
-    query = query.in('id', rosterIds);
-  } else if (session.is_practice) {
-    throw new Error('Practice session has no question roster');
-  } else {
-    // Legacy exam sessions created before roster persistence can still be graded
-    // against the exam's then-current question set.
-    query = query.eq('exam_id', session.exam_id);
+  if (rosterIds.length === 0) {
+    throw new Error('Session has no frozen question roster');
   }
+  query = query.in('id', rosterIds);
 
   const { data: questions, error: questionsErr } = await query;
 
@@ -883,7 +885,7 @@ export async function recordAnswerEvent(sessionId: string, questionId: string) {
     ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
     : []
 
-  if (roster.length > 0 && !roster.includes(questionId)) return { success: false }
+  if (roster.length === 0 || !roster.includes(questionId)) return { success: false }
 
   await writeAudit({
     session_id: sessionId,
@@ -907,7 +909,11 @@ export async function verifyActiveSession(sessionId: string, isPractice: boolean
     .eq('candidate_id', user.id)
     .single()
 
-  if (error || !session || session.is_practice !== isPractice || session.status !== 'in_progress') {
+  const questionIds = Array.isArray(session?.question_ids)
+    ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+    : []
+
+  if (error || !session || session.is_practice !== isPractice || session.status !== 'in_progress' || questionIds.length === 0) {
     return { valid: false as const, serverNow: Date.now(), userId: user.id }
   }
 
@@ -920,7 +926,7 @@ export async function verifyActiveSession(sessionId: string, isPractice: boolean
       examId: session.exam_id,
       isPractice: Boolean(session.is_practice),
       status: session.status,
-      questionIds: Array.isArray(session.question_ids) ? session.question_ids : [],
+      questionIds,
       startedAt: session.started_at,
     },
   }

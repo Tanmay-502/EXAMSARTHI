@@ -60,7 +60,7 @@ function SignupForm() {
   const authMessage = getAuthMessage(code, lang)
 
   return (
-    <main id="main-content" className="min-h-screen w-full bg-black text-white">
+    <main id="main-content" className="min-h-dvh w-full bg-black text-white">
       <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 pb-24 pt-10 md:px-12 md:pt-12">
         <header className="mb-16 flex items-center justify-between border-b border-zinc-900 pb-8">
           <div>
@@ -104,5 +104,5 @@ function SignupForm() {
 }
 
 export default function SignupPage() {
-  return <Suspense fallback={<main className="min-h-screen bg-black text-white"><div className="mx-auto max-w-3xl px-6 py-12">Loading...</div></main>}><SignupForm /></Suspense>
+  return <Suspense fallback={<main id="main-content" className="min-h-dvh bg-black text-white"><div className="mx-auto max-w-3xl px-6 py-12">Loading...</div></main>}><SignupForm /></Suspense>
 }
