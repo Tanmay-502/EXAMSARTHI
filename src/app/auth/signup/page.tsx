@@ -41,7 +41,7 @@ function SignupForm() {
     setGoogleError('')
     try {
       const supabase = createSupabaseBrowserClient()
-      const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/auth/callback', scopes: 'https://www.googleapis.com/auth/userinfo.email' } })
+      const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/auth/callback', scopes: 'openid profile email' } })
       if (error) throw error
     } catch (error) {
       console.error('Google sign-in error:', error)
@@ -77,7 +77,7 @@ function SignupForm() {
             {googleError ? <p role="alert" className="text-sm text-zinc-300">{googleError}</p> : null}
           </section>
 
-          <div className="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-zinc-400" aria-hidden="true"><span className="h-px flex-1 bg-zinc-900" /><span>or use email</span><span className="h-px flex-1 bg-zinc-400" /></div>
+          <div className="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-zinc-400" aria-hidden="true"><span className="h-px flex-1 bg-zinc-900" /><span>or use email</span><span className="h-px flex-1 bg-zinc-900" /></div>
 
           <section aria-labelledby="magic-link-signup-title" className="space-y-4">
             <h2 id="magic-link-signup-title" className="text-sm font-bold uppercase tracking-[0.18em] text-zinc-200">Magic Link</h2>
