@@ -228,6 +228,7 @@ function ExamSelection({
   const [error, setError] = useState('');
   const [selectedExam, setSelectedExam] = useState<AvailableExam | null>(null);
   const { speak, isContinuous, startContinuousListening } = useVoice();
+  const { lang } = useI18n();
   const { announce } = useAccessibility();
   const hasSpokenWelcome = useRef(false);
   const lastHandledTranscriptRef = useRef<string>('');
@@ -279,7 +280,7 @@ function ExamSelection({
       return true;
     }
 
-    if (action === 'RAW_TRANSCRIPT' && shouldEscapeToGlobal(raw, lang, 'exam-selection')) {
+    if ((action as string) === 'RAW_TRANSCRIPT' && shouldEscapeToGlobal(raw, lang, 'exam-selection')) {
       return false;
     }
 

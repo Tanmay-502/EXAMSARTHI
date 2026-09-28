@@ -154,6 +154,7 @@ for (const viewport of viewports) {
       expect(collapsedBox).not.toBeNull();
       expect(collapsedBox!.height).toBeLessThanOrEqual(64);
       expect(collapsedBox!.height).toBeLessThanOrEqual(viewport.height * 0.12);
+      console.log('[VOICE DOCK MEASURE]', JSON.stringify({ viewport: viewport.width + 'x' + viewport.height, collapsed: collapsedBox!.height }));
 
       const panel = page.locator('#voice-transcript-panel');
       await expect(panel).toBeHidden();
@@ -192,6 +193,7 @@ for (const viewport of viewports) {
       expect(expandedDockBox).not.toBeNull();
       expect(expandedPanelBox!.height).toBeLessThanOrEqual(viewport.height * 0.4 + 2);
       expect(expandedDockBox!.height).toBeLessThanOrEqual(viewport.height * 0.45 + 2);
+      console.log('[VOICE DOCK MEASURE]', JSON.stringify({ viewport: viewport.width + 'x' + viewport.height, expandedPanel: expandedPanelBox!.height, expandedDock: expandedDockBox!.height }));
 
       await expectNoAxeViolations(page);
 
