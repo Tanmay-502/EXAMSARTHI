@@ -52,11 +52,27 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
   };
 
   const contextualModeAnalysis = new Set(['mode_selection', 'onboarding', 'dashboard']);
+  const allowsModeOrAnalysis = contextualModeAnalysis.has(context ?? '');
+  const restrictedModeOrAnalysis = new Set([
+    'voice', 'voice first', 'voicefirst', 'standard', 'analysis',
+    'show analysis', 'open analysis', 'give me the analysis',
+    'tell me my analysis', 'tell me the analysis of me',
+    'analyse my preparation', 'analyze my preparation',
+    'show my performance', 'how am i performing',
+    'how is my preparation', 'analyze', 'analyse',
+    'వాయిస్', 'వాయిస్ ఫస్ట్', 'స్టాండర్డ్', 'విశ్లేషణ',
+    'విశ్లేషణ చూపించు', 'నా విశ్లేషణ', 'నా పనితీరు ఎలా ఉంది',
+    'నా తయారీ ఎలా ఉంది', 'పనితీరు',
+    'वॉइस', 'वॉइस फर्स्ट', 'स्टैंडर्ड',
+  ]);
 
   // Mode and analysis vocabulary is reserved for the UI contexts where those
-  // controls make sense. Outside those contexts, do not let a generic word
-  // like "voice" or "analysis" shadow an unrelated utterance.
-  if (!contextualModeAnalysis.has(context ?? '')) {
+  // controls make sense. Outside those contexts, a bare restricted phrase is
+  // never interpreted as a mode/analysis command.
+  if (!allowsModeOrAnalysis && restrictedModeOrAnalysis.has(normalized)) {
+    return { type: 'UNKNOWN' };
+  }
+  if (!allowsModeOrAnalysis) {
     const restrictedPhrases = new Set([
       'voice', 'voice first', 'voicefirst', 'standard', 'analysis',
       'show analysis', 'open analysis', 'give me the analysis',
