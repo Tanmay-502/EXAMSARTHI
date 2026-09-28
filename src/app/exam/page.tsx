@@ -112,10 +112,25 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
           </div>
         </div>
         
+        {(browserStatus === 'error' || micStatus === 'error') && (
+          <div
+            className="rounded-2xl border border-amber-900/60 bg-amber-950/20 p-6 text-base text-zinc-200 md:text-lg"
+            role="alert"
+            aria-live="assertive"
+          >
+            <div className="font-semibold">Voice is not fully available right now.</div>
+            <p className="mt-2 max-w-3xl text-zinc-400">
+              {browserStatus === 'error'
+                ? 'This browser does not provide speech recognition.'
+                : 'Microphone access was unavailable or denied.'}{' '}
+              Your exam can still be completed with the keyboard and screen reader.
+            </p>
+          </div>
+        )}
         {!allClear && (micStatus !== 'pending' && browserStatus !== 'pending') && (
-           <div className="pt-8 text-zinc-400 font-light text-lg">
-             Voice features are unavailable in this browser right now. You can retry voice access or explicitly continue with keyboard and screen reader mode.
-           </div>
+          <div className="pt-2 text-zinc-400 font-light text-lg" aria-live="polite">
+            Retry voice access, or continue with keyboard and screen reader mode. No exam progress depends on the microphone.
+          </div>
         )}
 
         <div className="pt-16 border-t border-zinc-900 flex flex-wrap justify-end gap-4">
