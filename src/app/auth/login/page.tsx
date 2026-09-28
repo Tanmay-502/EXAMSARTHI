@@ -83,7 +83,7 @@ function LoginForm() {
               <span aria-hidden="true" className="text-xl font-semibold">G</span>
               <span>{googleLoading ? 'Opening Google...' : 'Continue with Google'}</span>
             </button>
-            <p className="text-sm text-zinc-500">Use your Google account without waiting for a Magic Link email.</p>
+            <p className="text-sm text-zinc-400">Use your Google account without waiting for a Magic Link email.</p>
             {googleError ? <p role="alert" className="text-sm text-zinc-300">{googleError}</p> : null}
           </section>
 
