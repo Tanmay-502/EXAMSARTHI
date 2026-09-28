@@ -36,6 +36,7 @@ export default function RootLayout({
                   <ServiceWorkerRegistration />
                   <div data-voice-dock-content="true" className="min-h-screen">
                     {children}
+                    <div aria-hidden="true" style={{ height: "var(--voice-dock-height)" }} />
                   </div>
                 </GlobalVoiceAssistant>
               </VoiceProvider>
