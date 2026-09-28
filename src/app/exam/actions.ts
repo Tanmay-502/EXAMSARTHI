@@ -451,10 +451,7 @@ export async function fetchAvailablePracticeSubjects() {
     throw new Error('Unauthorized')
   }
 
-  const { data, error } = await supabase
-    .from('questions')
-    .select('subject')
-    .not('subject', 'is', null)
+  const { data, error } = await supabase.rpc('practice_subjects')
 
   if (error) {
     throw new Error(`Failed to fetch practice subjects: ${error.message}`)
