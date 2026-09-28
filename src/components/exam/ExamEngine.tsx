@@ -56,7 +56,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   const isSubmittingRef = useRef(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [visionStatus, setVisionStatus] = useState<'idle' | 'analyzing' | 'failed'>('idle');
-  const [isOnline, setIsOnline] = useState(true);
+  const [isOnline, setIsOnline] = useState(() => typeof navigator === 'undefined' ? true : navigator.onLine);
   const [pendingSyncCount, setPendingSyncCount] = useState(0);
   const lastRemainingSecondsRef = useRef<number>(Number.POSITIVE_INFINITY);
   const answerQueueRef = useRef<Map<string, Promise<void>>>(new Map());
@@ -74,7 +74,6 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
-    setIsOnline(typeof navigator === 'undefined' ? true : navigator.onLine);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     return () => {
