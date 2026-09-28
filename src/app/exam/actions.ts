@@ -4,6 +4,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { Question } from '@/lib/store/examStore'
 import { SupabaseClient, User } from '@supabase/supabase-js'
 import { writeAudit } from '@/lib/audit/writeAudit'
+import { chunk } from '@/lib/db/chunk'
 
 type ServerAnalyticsQuestion = {
   id: string;
@@ -1018,13 +1019,16 @@ export async function buildLearningProfile(userId: string) {
   const recentAccuracy = sessions.slice(0, 5).map((s: { percentage: number }) => s.percentage);
 
   const sessionIds = sessions.map((s: { id: string }) => s.id);
-  const { data: answersData } = await adminClient
-    .from('answers')
-    .select('session_id, question_id, selected_option_index')
-    .in('session_id', sessionIds);
-
+  const answerBatches = await Promise.all(
+    chunk(sessionIds).map(ids =>
+      adminClient
+        .from('answers')
+        .select('session_id, question_id, selected_option_index')
+        .in('session_id', ids)
+    )
+  );
   const answerBySessionQuestion = new Map<string, number | null>();
-  for (const answer of answersData || []) {
+  for (const answer of answerBatches.flatMap(batch => batch.data || [])) {
     answerBySessionQuestion.set(
       `${answer.session_id}:${answer.question_id}`,
       answer.selected_option_index
@@ -1046,22 +1050,19 @@ export async function buildLearningProfile(userId: string) {
       .filter((id): id is string => typeof id === 'string')
   )];
 
-  let questionQuery = adminClient
-    .from('questions')
-    .select('id, exam_id, subject, question_answers(correct_answer_index)');
-
-  if (rosterIds.length > 0 && legacyExamIds.length === 0) {
-    questionQuery = questionQuery.in('id', rosterIds);
-  } else if (rosterIds.length === 0 && legacyExamIds.length > 0) {
-    questionQuery = questionQuery.in('exam_id', legacyExamIds);
-  } else if (rosterIds.length > 0 || legacyExamIds.length > 0) {
-    const filters = [];
-    if (rosterIds.length > 0) filters.push(`id.in.(${rosterIds.join(',')})`);
-    if (legacyExamIds.length > 0) filters.push(`exam_id.in.(${legacyExamIds.join(',')})`);
-    questionQuery = questionQuery.or(filters.join(','));
-  }
-
-  const { data: questions } = await questionQuery;
+  const [questionByIdBatches, questionByExamBatches] = await Promise.all([
+    Promise.all(chunk(rosterIds).map(ids =>
+      ids.length === 0
+        ? Promise.resolve({ data: [], error: null })
+        : adminClient.from('questions').select('id, exam_id, subject, question_answers(correct_answer_index)').in('id', ids)
+    )),
+    Promise.all(chunk(legacyExamIds).map(ids =>
+      ids.length === 0
+        ? Promise.resolve({ data: [], error: null })
+        : adminClient.from('questions').select('id, exam_id, subject, question_answers(correct_answer_index)').in('exam_id', ids)
+    )),
+  ]);
+  const questions = [...questionByIdBatches, ...questionByExamBatches].flatMap(batch => batch.data || []);
   const typedQuestions = (questions || []) as ServerAnalyticsQuestion[];
   const questionMap = new Map(typedQuestions.map(question => [question.id, question]));
   const subjectStats = new Map<string, { correct: number; total: number }>();
