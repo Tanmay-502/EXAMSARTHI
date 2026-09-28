@@ -88,6 +88,7 @@ export const LANGUAGE_REGISTRY: Record<Locale, LanguageDefinition> = {
       SET_LANGUAGE_TELUGU: ['telugu'],
       SIGN_IN: ['sign in', 'log me in', 'login', 'log in'],
       SIGN_UP: ['sign up', 'create an account', 'register', 'create account'],
+      DISMISS_GUIDE: ['skip guide', 'dismiss guide', 'close guide'],
     },
     optionKeywords: ['option', 'answer'],
     optionValues: {
@@ -209,6 +210,7 @@ export const LANGUAGE_REGISTRY: Record<Locale, LanguageDefinition> = {
       SET_LANGUAGE_TELUGU: ['तेलुगु', 'telugu'],
       SIGN_IN: ['साइन इन', 'लॉग इन'],
       SIGN_UP: ['साइन अप', 'अकाउंट बनाएं'],
+      DISMISS_GUIDE: ['गाइड छोड़ें', 'गाइड बंद करें', 'skip guide'],
     },
     optionKeywords: ['विकल्प', 'ऑप्शन', 'उत्तर'],
     optionValues: {
@@ -328,6 +330,7 @@ export const LANGUAGE_REGISTRY: Record<Locale, LanguageDefinition> = {
       SET_LANGUAGE_TELUGU: ['తెలుగు', 'telugu'],
       SIGN_IN: ['సైన్ ఇన్', 'లాగిన్'],
       SIGN_UP: ['సైన్ అప్', 'ఖాతా సృష్టించు'],
+      DISMISS_GUIDE: ['గైడ్ దాటవేయి', 'గైడ్ మూసివేయి', 'skip guide'],
     },
     optionKeywords: ['ఎంపిక', 'జవాబు', 'ఆప్షన్'],
     optionValues: {
