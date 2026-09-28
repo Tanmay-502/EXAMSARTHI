@@ -12,7 +12,9 @@ export function VoiceStatusIndicator({ className, prominent = false }: { classNa
   const getStatusContent = () => {
     switch (voiceState) {
       case 'IDLE':
-        return { icon: Mic, label: 'Voice Assistant Ready', color: 'text-blue-400', bg: 'bg-blue-500/10' };
+        return micError === 'network'
+          ? { icon: AlertCircle, label: 'Voice connection issue — keyboard fallback is available', color: 'text-amber-300', bg: 'bg-amber-500/10' }
+          : { icon: Mic, label: 'Voice Assistant Ready', color: 'text-blue-400', bg: 'bg-blue-500/10' };
       case 'REQUESTING_PERMISSION':
         return { icon: Loader2, label: 'Requesting Microphone', color: 'text-amber-300', bg: 'bg-amber-500/10', spin: true };
       case 'LISTENING':
