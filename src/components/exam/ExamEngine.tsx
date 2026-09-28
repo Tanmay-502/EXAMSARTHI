@@ -560,7 +560,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             duration: actualDuration,
             language: lang === 'hi-IN' ? 'हिंदी' : lang === 'te-IN' ? 'తెలుగు' : 'English'
           });
-          speak(announcement);
+          speak(announcement, { dedupe: false });
         } else if (engineState === 'EXAM' && currentQuestion) {
           let announcement = '';
           if (action === 'REPEAT' || action === 'READ_QUESTION') {
