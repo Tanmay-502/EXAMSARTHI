@@ -166,6 +166,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
         percentage={percentage || 0}
         subjectStats={subjectStats}
         weakestSubject={weakestSubject}
+        isPractice={Boolean(session.is_practice)}
       />
     </>
   );

@@ -26,7 +26,7 @@ function PracticeContent() {
   const persistedStatus = useExamStore(state => state.status);
   const persistedQuestions = useExamStore(state => state.questions);
   const hasHydrated = useExamStore(state => state.hasHydrated);
-  const { t, lang } = useI18n();
+  const { t, tParams, lang } = useI18n();
   const setVoiceContext = useVoiceAppContext(state => state.setContext);
   const searchParams = useSearchParams();
   const { speak, startContinuousListening, isContinuous } = useVoice();
@@ -136,7 +136,7 @@ function PracticeContent() {
         setSetupState('READY');
         if (!hasAnnouncedResumeRef.current) {
           hasAnnouncedResumeRef.current = true;
-          speak('Resuming your current practice session.');
+          speak(t('practice_resume'));
         }
       } catch (error) {
         console.error('Persisted practice resume validation failed:', error);
@@ -160,7 +160,7 @@ function PracticeContent() {
           if (res.totalFound < qCount && res.totalFound > 0) {
             setSetupState('CONFIRM_SHORTFALL');
           } else if (res.totalFound === 0) {
-            speak(`I couldn't find any questions for ${subject} at ${difficulty} difficulty. Let's try another subject.`);
+            speak(tParams('practice_none_found', { subject: subject ?? '', difficulty: difficulty ?? '' }));
             setSubject('');
             setSetupState('ASK_SUBJECT');
           } else {
@@ -172,12 +172,12 @@ function PracticeContent() {
           setSetupError(
             err instanceof Error
               ? err.message
-              : "Sorry, there was an error loading practice questions."
+               : t('practice_load_error')
           );
           setSetupState('ERROR');
-          speak("I couldn't load those practice questions. I can retry or you can choose another subject.");
+          speak(t('practice_load_error'));
         });
-  }, [hasHydrated, setupState, subject, count, difficulty, lang, speak]);
+  }, [hasHydrated, setupState, subject, count, difficulty, speak, tParams, resumeChecked]);
 
   useEffect(() => {
     if (!hasHydrated || !resumeChecked || setupState !== 'STARTING') return;
@@ -202,20 +202,16 @@ function PracticeContent() {
       .catch(err => {
         console.error(err);
         setSetupError(
-          err instanceof Error ? err.message : 'Failed to create practice session.'
+          err instanceof Error ? err.message : t('practice_session_start_error')
         );
         setSetupState('ERROR');
-        speak("I couldn't start that practice session. You can retry.");
+        speak(t('practice_start_error'));
       });
   }, [hasHydrated, setupState, fetchedQuestions, subject, difficulty, lang, initializeExam, speak]);
 
   useEffect(() => {
     if (setupState === 'CONFIRM_SHORTFALL' && !confirmedShortfall) {
-      const msg = lang === 'hi-IN'
-        ? `मुझे ${subject} के लिए केवल ${availableCount} उपलब्ध प्रश्न मिले। क्या आप ${availableCount} के साथ शुरू करना चाहेंगे?`
-        : lang === 'te-IN'
-        ? `నాకు ${subject} కోసం కేవలం ${availableCount} అందుబాటులో ఉన్న ప్రశ్నలు మాత్రమే దొరికాయి. మీరు ${availableCount} తో ప్రారంభించాలనుకుంటున్నారా?`
-        : `I found only ${availableCount} available validated questions for ${subject}. Would you like me to start with ${availableCount}?`;
+      const msg = tParams('practice_shortfall', { subject: subject ?? '', availableCount: availableCount ?? 0, difficulty: difficulty ?? '' });
       speak(msg);
     }
   }, [setupState, confirmedShortfall, subject, availableCount, lang, speak]);
@@ -230,9 +226,9 @@ function PracticeContent() {
 
     if (!hasHydrated || !resumeChecked || canResume) return;
 
-    if (setupState === 'ASK_SUBJECT' && !subject) speak("What subject would you like to practice?");
-    if (setupState === 'ASK_COUNT' && !count) speak("How many questions would you like?");
-    if (setupState === 'ASK_DIFFICULTY' && !difficulty) speak("What difficulty? Easy, medium, or hard?");
+    if (setupState === 'ASK_SUBJECT' && !subject) speak(t('practice_subject_prompt'));
+    if (setupState === 'ASK_COUNT' && !count) speak(t('practice_count_prompt'));
+    if (setupState === 'ASK_DIFFICULTY' && !difficulty) speak(t('practice_difficulty_prompt'));
   }, [
     hasHydrated,
     persistedStatus,
@@ -257,7 +253,7 @@ function PracticeContent() {
       const lower = transcript?.trim().toLowerCase() || '';
       if (/\b(retry|again|try again|yes|start)\b/.test(lower)) {
         setSetupState('FETCHING');
-        speak('Retrying the practice question load.');
+        speak(t('practice_retrying'));
         return true;
       }
       if (/\b(change|subject|different)\b/.test(lower)) {
@@ -266,7 +262,7 @@ function PracticeContent() {
         setCount('');
         setDifficulty('');
         setSetupState('ASK_SUBJECT');
-        speak('Okay. What subject would you like to practice?');
+        speak(t('practice_subject_prompt'));
         return true;
       }
       return true;
@@ -287,17 +283,17 @@ function PracticeContent() {
       if (parseCommand(raw, lang).type === 'DASHBOARD_PRACTICE') {
         const reprompt =
           setupState === 'ASK_SUBJECT'
-            ? 'You are already in practice mode. What subject?'
+            ? t('practice_already_subject')
             : setupState === 'ASK_COUNT'
-              ? 'You are already in practice mode. How many questions would you like?'
+              ? t('practice_already_count')
               : setupState === 'ASK_DIFFICULTY'
-                ? 'You are already in practice mode. What difficulty?'
-                : 'You are already in practice mode. Would you like me to start with the available questions?';
+                ? t('practice_already_difficulty')
+                : t('practice_already_ready');
         speak(
           lang === 'hi-IN'
-            ? `आप पहले से अभ्यास मोड में हैं। ${setupState === 'ASK_SUBJECT' ? 'कौन सा विषय?' : setupState === 'ASK_COUNT' ? 'कितने प्रश्न?' : setupState === 'ASK_DIFFICULTY' ? 'कठिनाई क्या है?' : 'क्या मैं उपलब्ध प्रश्नों से शुरू करूँ?'}`
+            ? reprompt
             : lang === 'te-IN'
-              ? `మీరు ఇప్పటికే ప్రాక్టీస్ మోడ్‌లో ఉన్నారు. ${setupState === 'ASK_SUBJECT' ? 'ఏ విషయం?' : setupState === 'ASK_COUNT' ? 'ఎన్ని ప్రశ్నలు కావాలి?' : setupState === 'ASK_DIFFICULTY' ? 'ఏ కఠినత?' : 'అందుబాటులో ఉన్న ప్రశ్నలతో ప్రారంభించనా?'}`
+              ? reprompt
               : reprompt
         );
         return true;
@@ -308,7 +304,7 @@ function PracticeContent() {
         const diff = parseDifficulty(lower) || '';
         resolveSubject(raw).then(resolved => {
           if (!resolved) {
-            handleVoiceFallback("I didn't quite catch that.", "What subject would you like to practice?");
+            handleVoiceFallback(t('voice_not_catch'), t('practice_subject_prompt'));
             return;
           }
 
@@ -332,7 +328,7 @@ function PracticeContent() {
         const diff = parseDifficulty(lower) || '';
 
         if (!countVal) {
-          handleVoiceFallback("Please say the number of questions, such as 10 or 20.", "How many questions would you like?");
+          handleVoiceFallback(t('practice_number_example'), t('practice_count_prompt'));
         } else if (diff) {
           setCount(countVal);
           setDifficulty(diff);
@@ -348,7 +344,7 @@ function PracticeContent() {
         const diff = parseDifficulty(lower) || '';
 
         if (!diff) {
-          handleVoiceFallback("Please say easy, medium, or hard.", "What difficulty?");
+          handleVoiceFallback(t('practice_easy_medium_hard'), t('practice_difficulty_prompt'));
         } else {
           setDifficulty(diff);
           setSetupState('FETCHING');
@@ -364,7 +360,7 @@ function PracticeContent() {
           setCount('');
           setSetupState('ASK_COUNT');
         } else {
-          handleVoiceFallback("Please say yes or no.", "Would you like me to start with the available questions?");
+          handleVoiceFallback(t('confirm_yes_no_hint'), tParams('practice_shortfall', { subject: subject ?? '', availableCount: availableCount ?? 0, difficulty: difficulty ?? '' }));
         }
         return true;
       }
@@ -400,12 +396,12 @@ function PracticeContent() {
   if (setupState !== 'READY') {
     if (setupState === 'ERROR') {
       return (
-        <div className="relative flex flex-col min-h-screen w-full max-w-4xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
+        <div className="relative flex flex-col min-h-0 w-full max-w-4xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
           <div className="flex-1 flex flex-col justify-center space-y-10">
-            <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase">PRACTICE</p>
-            <h1 className="text-[clamp(3rem,6vw,6rem)] font-light tracking-tighter">Something went wrong.</h1>
+            <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase">{t('practice').toUpperCase()}</p>
+            <h2 className="text-[clamp(3rem,6vw,6rem)] font-light tracking-tighter">{t('page_error_title')}</h2>
             <p className="text-xl text-zinc-400 font-light" aria-live="assertive">
-              {setupError || 'I could not start the practice session.'}
+              {setupError || t('practice_start_error')}
             </p>
             <div className="flex flex-wrap gap-4 border-t border-zinc-900 pt-10">
               <button
@@ -413,7 +409,7 @@ function PracticeContent() {
                 onClick={() => setSetupState('FETCHING')}
                 className="px-10 py-4 rounded-full bg-white text-black uppercase tracking-widest text-sm font-bold"
               >
-                Retry
+                {t('retry')}
               </button>
               <button
                 type="button"
@@ -426,7 +422,7 @@ function PracticeContent() {
                 }}
                 className="px-10 py-4 rounded-full border border-zinc-800 text-zinc-300 uppercase tracking-widest text-sm font-medium"
               >
-                Choose another subject
+                {t('choose_another')}
               </button>
             </div>
           </div>
@@ -435,12 +431,12 @@ function PracticeContent() {
     }
 
     return (
-      <div className="relative flex flex-col min-h-screen w-full max-w-7xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
+      <div className="relative flex flex-col min-h-0 w-full max-w-7xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
         
         <div className="mb-24 flex items-center justify-between border-b border-zinc-900 pb-8">
           <div className="flex flex-col">
-            <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">MODE</span>
-            <span className="text-xl font-light tracking-wide">PRACTICE</span>
+            <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">{t('mode')}</span>
+            <span className="text-xl font-light tracking-wide">{t('practice').toUpperCase()}</span>
           </div>
           <VoiceCore size="sm" />
         </div>
@@ -458,8 +454,8 @@ function PracticeContent() {
               {setupState === 'ASK_SUBJECT' && (
                 <div className="space-y-16">
                   <div>
-                    <h2 className="text-[clamp(2.5rem,5vw,5rem)] font-light tracking-tighter leading-tight mb-4">Practice Subject</h2>
-                    <p className="text-2xl text-zinc-400 font-light">&quot;What subject would you like to practice?&quot;</p>
+                    <h2 className="text-[clamp(2.5rem,5vw,5rem)] font-light tracking-tighter leading-tight mb-4">{t('practice')}</h2>
+                    <p className="text-2xl text-zinc-400 font-light">&quot;{t('practice_subject_prompt')}&quot;</p>
                   </div>
                   <div className="flex flex-wrap gap-4">
                     {availableSubjects.length > 0 ? availableSubjects.map(subj => (
@@ -472,7 +468,7 @@ function PracticeContent() {
                       </button>
                     )) : (
                       <p className="text-zinc-400 text-base">
-                        Subjects will appear here once questions are available.
+                        {t('questions_available_hint')}
                       </p>
                     )}
                   </div>
@@ -482,8 +478,8 @@ function PracticeContent() {
               {setupState === 'ASK_COUNT' && (
                 <div className="space-y-16">
                   <div>
-                    <h2 className="text-[clamp(2.5rem,5vw,5rem)] font-light tracking-tighter leading-tight mb-4">Question Count</h2>
-                    <p className="text-2xl text-zinc-400 font-light">&quot;How many questions would you like?&quot;</p>
+                    <h2 className="text-[clamp(2.5rem,5vw,5rem)] font-light tracking-tighter leading-tight mb-4">{t('total_questions')}</h2>
+                    <p className="text-2xl text-zinc-400 font-light">&quot;{t('practice_count_prompt')}&quot;</p>
                   </div>
                   <div className="flex flex-wrap gap-4">
                     {['5', '10', '15'].map(num => (
@@ -502,11 +498,11 @@ function PracticeContent() {
               {setupState === 'ASK_DIFFICULTY' && (
                 <div className="space-y-16">
                   <div>
-                    <h2 className="text-[clamp(2.5rem,5vw,5rem)] font-light tracking-tighter leading-tight mb-4">Difficulty Level</h2>
-                    <p className="text-2xl text-zinc-400 font-light">&quot;What difficulty? Easy, medium, or hard?&quot;</p>
+                    <h2 className="text-[clamp(2.5rem,5vw,5rem)] font-light tracking-tighter leading-tight mb-4">{t('difficulty')}</h2>
+                    <p className="text-2xl text-zinc-400 font-light">&quot;{t('practice_difficulty_prompt')}&quot;</p>
                   </div>
                   <div className="flex flex-wrap gap-4">
-                    {['easy', 'medium', 'hard'].map(diff => (
+                    {(['easy', 'medium', 'hard'] as const).map(diff => (
                       <button 
                         key={diff}
                         onClick={() => { setDifficulty(diff); setSetupState('FETCHING'); }}
@@ -522,21 +518,21 @@ function PracticeContent() {
               {setupState === 'CONFIRM_SHORTFALL' && (
                 <div className="space-y-16">
                   <div>
-                    <h2 className="text-[clamp(2.5rem,5vw,5rem)] font-light tracking-tighter leading-tight mb-4 text-zinc-100">Insufficient Questions</h2>
-                    <p className="text-2xl text-zinc-400 font-light">&quot;Would you like me to start with the available questions?&quot;</p>
+                    <h2 className="text-[clamp(2.5rem,5vw,5rem)] font-light tracking-tighter leading-tight mb-4 text-zinc-100">{tParams('practice_shortfall', { availableCount: availableCount ?? 0, subject: subject ?? '', difficulty: difficulty ?? '' })}</h2>
+                    <p className="text-2xl text-zinc-400 font-light">&quot;{t('practice_shortfall_question')}&quot;</p>
                   </div>
                   <div className="flex flex-wrap gap-4">
                     <button 
                       onClick={() => { setCount(''); setSetupState('ASK_COUNT'); }}
                       className="px-8 py-4 rounded-full border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors uppercase tracking-widest text-sm font-medium"
                     >
-                      Cancel
+                      {t('cancel')}
                     </button>
                     <button 
                       onClick={() => { setConfirmedShortfall(true); setSetupState('STARTING'); }}
                       className="px-8 py-4 rounded-full bg-white text-black hover:bg-zinc-200 transition-colors uppercase tracking-widest text-sm font-bold"
                     >
-                      Start
+                      {t('start')}
                     </button>
                   </div>
                 </div>
@@ -549,19 +545,19 @@ function PracticeContent() {
         <div className="mt-24 pt-8 border-t border-zinc-900 flex gap-12">
           {subject && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col">
-              <span className="text-zinc-400 uppercase tracking-[0.2em] text-xs mb-2">Subject</span>
+              <span className="text-zinc-400 uppercase tracking-[0.2em] text-xs mb-2">{t('subject')}</span>
               <span className="text-zinc-300 font-light capitalize">{subject}</span>
             </motion.div>
           )}
           {count && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col">
-              <span className="text-zinc-400 uppercase tracking-[0.2em] text-xs mb-2">Count</span>
-              <span className="text-zinc-300 font-light">{count} Questions</span>
+              <span className="text-zinc-400 uppercase tracking-[0.2em] text-xs mb-2">{t('count')}</span>
+              <span className="text-zinc-300 font-light">{count} {t('questions')}</span>
             </motion.div>
           )}
           {difficulty && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col">
-              <span className="text-zinc-400 uppercase tracking-[0.2em] text-xs mb-2">Difficulty</span>
+              <span className="text-zinc-400 uppercase tracking-[0.2em] text-xs mb-2">{t('difficulty')}</span>
               <span className="text-zinc-300 font-light capitalize">{difficulty}</span>
             </motion.div>
           )}
@@ -572,7 +568,7 @@ function PracticeContent() {
 
   return (
     <>
-      <div className="sr-only">{t('practice')} Mode</div>
+      <div className="sr-only">{t('practice')} {t('mode')}</div>
       {isLoaded ? (
         <ExamEngine mode="practice" interactionMode={interactionMode} />
       ) : (
@@ -585,7 +581,8 @@ function PracticeContent() {
 export default function PracticePage() {
   const { t } = useI18n();
   return (
-    <main className="flex flex-col flex-1 bg-black min-h-screen">
+    <main id="main-content" className="flex min-h-dvh flex-col flex-1 bg-black">
+      <h1 className="sr-only">{t('practice')}</h1>
       <Suspense fallback={<div className="p-12 text-center text-white/50">{t('loading')}</div>}>
         <PracticeContent />
       </Suspense>

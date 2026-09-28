@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import type { CSSProperties } from "react";
+import { Inter, Noto_Sans_Devanagari, Noto_Sans_Telugu } from "next/font/google";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/I18nProvider";
 import { AccessibilityProvider } from "@/lib/accessibility/AccessibilityProvider";
 import { VoiceProvider } from "@/lib/voice/VoiceProvider";
 import { GlobalVoiceAssistant } from "@/components/voice/GlobalVoiceAssistant";
 import { VoiceOverlay } from "@/components/voice/VoiceOverlay";
-
 import { MotionConfig } from "framer-motion";
 import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
+import { AppShell } from "@/components/layout/AppShell";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const devanagari = Noto_Sans_Devanagari({ subsets: ["devanagari"], variable: "--font-devanagari" });
+const telugu = Noto_Sans_Telugu({ subsets: ["telugu"], variable: "--font-telugu" });
 
 export const metadata: Metadata = {
   title: "EXAMSAARTHI V2",
@@ -25,8 +26,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" style={{ "--voice-dock-height": "56px" } as CSSProperties}>
-      <body className={`${inter.className} antialiased dark`} style={{ paddingBottom: "var(--voice-dock-height)" }}>
+    <html lang="en" className={`${inter.variable} ${devanagari.variable} ${telugu.variable}`}>
+      <body className="font-sans antialiased dark">
         <MotionConfig reducedMotion="user">
           <I18nProvider>
             <AccessibilityProvider>
@@ -34,10 +35,7 @@ export default function RootLayout({
                 <GlobalVoiceAssistant>
                   <VoiceOverlay />
                   <ServiceWorkerRegistration />
-                  <div data-voice-dock-content="true" className="min-h-screen">
-                    {children}
-                    <div aria-hidden="true" style={{ height: "var(--voice-dock-height)" }} />
-                  </div>
+                  <AppShell>{children}</AppShell>
                 </GlobalVoiceAssistant>
               </VoiceProvider>
             </AccessibilityProvider>

@@ -22,6 +22,7 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
   const [browserStatus, setBrowserStatus] = useState<'pending' | 'success' | 'error' | 'not-required'>('pending');
   const { announce } = useAccessibility();
   const { speak } = useVoice();
+  const { t, tParams } = useI18n();
   const hasSpoken = useRef(false);
 
   useEffect(() => {
@@ -72,13 +73,13 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
     
     let msg = '';
     if (interactionMode === 'standard') {
-      msg = 'Keyboard and screen reader controls are ready. You can start the exam using the button.';
+      msg = t('exam_keyboard_ready');
     } else if (micStatus === 'success' && browserStatus === 'success') {
-      msg = 'Microphone and speech services are ready. You can start the exam by saying start exam, or use the button.';
+      msg = t('exam_voice_ready');
     } else if (browserStatus === 'error') {
-      msg = 'This browser does not provide speech recognition. Voice mode cannot be used here. You can continue with keyboard and screen reader mode.';
+      msg = t('exam_browser_no_speech');
     } else {
-      msg = 'Microphone access is unavailable. Your voice-first preference is still kept. Allow microphone access and choose Retry, or continue with keyboard and screen reader mode.';
+      msg = t('exam_mic_unavailable');
     }
     say(msg, interactionMode, speak, announce, 'assertive');
   }, [micStatus, browserStatus, announce, speak, interactionMode, setInteractionMode]);
@@ -88,30 +89,30 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
     (micStatus === 'not-required' && browserStatus === 'not-required');
 
   return (
-    <div className="flex flex-col min-h-screen w-full max-w-4xl mx-auto pt-32 pb-24 px-6 bg-black text-white">
+    <div className="flex flex-col min-h-0 w-full max-w-4xl mx-auto pt-32 pb-24 px-6 bg-black text-white">
       <div className="mb-24 border-b border-zinc-900 pb-8">
-        <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase">SYSTEM CHECK</span>
+        <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase">{t('system_check')}</span>
       </div>
 
       <div className="flex-1 flex flex-col justify-center space-y-16">
         <h2 className="text-[clamp(2.5rem,5vw,5rem)] font-light tracking-tighter leading-tight mb-8">
-          Verifying Environment.
+          {t('exam_verifying_environment')}
         </h2>
         
         <div className="space-y-8 border-t border-zinc-900 pt-8">
           <div className="flex items-center justify-between">
-            <span className="text-2xl font-light text-zinc-400">Browser Speech Services</span>
-            {browserStatus === 'pending' && <span className="text-zinc-400 uppercase tracking-widest text-sm animate-pulse">Checking</span>}
-            {browserStatus === 'success' && <span className="text-white uppercase tracking-widest text-sm font-medium">Ready</span>}
-            {browserStatus === 'not-required' && <span className="text-zinc-400 uppercase tracking-widest text-sm font-medium">Not required</span>}
-            {browserStatus === 'error' && <span className="text-red-500 uppercase tracking-widest text-sm font-medium">Unavailable</span>}
+            <span className="text-2xl font-light text-zinc-400">{t('browser_speech_services')}</span>
+            {browserStatus === 'pending' && <span className="text-zinc-400 uppercase tracking-widest text-sm animate-pulse">{t('checking')}</span>}
+            {browserStatus === 'success' && <span className="text-white uppercase tracking-widest text-sm font-medium">{t('ready')}</span>}
+            {browserStatus === 'not-required' && <span className="text-zinc-400 uppercase tracking-widest text-sm font-medium">{t('not_required')}</span>}
+            {browserStatus === 'error' && <span className="text-red-500 uppercase tracking-widest text-sm font-medium">{t('unavailable')}</span>}
           </div>
           <div className="flex items-center justify-between border-t border-zinc-900 pt-8">
-            <span className="text-2xl font-light text-zinc-400">Microphone Access</span>
-            {micStatus === 'pending' && <span className="text-zinc-400 uppercase tracking-widest text-sm animate-pulse">Checking</span>}
-            {micStatus === 'success' && <span className="text-white uppercase tracking-widest text-sm font-medium">Granted</span>}
-            {micStatus === 'not-required' && <span className="text-zinc-400 uppercase tracking-widest text-sm font-medium">Not required</span>}
-            {micStatus === 'error' && <span className="text-red-500 uppercase tracking-widest text-sm font-medium">Unavailable</span>}
+            <span className="text-2xl font-light text-zinc-400">{t('microphone_access')}</span>
+            {micStatus === 'pending' && <span className="text-zinc-400 uppercase tracking-widest text-sm animate-pulse">{t('checking')}</span>}
+            {micStatus === 'success' && <span className="text-white uppercase tracking-widest text-sm font-medium">{t('granted')}</span>}
+            {micStatus === 'not-required' && <span className="text-zinc-400 uppercase tracking-widest text-sm font-medium">{t('not_required')}</span>}
+            {micStatus === 'error' && <span className="text-red-500 uppercase tracking-widest text-sm font-medium">{t('unavailable')}</span>}
           </div>
         </div>
         
@@ -121,18 +122,18 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
             role="alert"
             aria-live="assertive"
           >
-            <div className="font-semibold">Voice is not fully available right now.</div>
+            <div className="font-semibold">{t('voice_not_fully_available')}</div>
             <p className="mt-2 max-w-3xl text-zinc-400">
               {browserStatus === 'error'
-                ? 'This browser does not provide speech recognition.'
-                : 'Microphone access was unavailable or denied.'}{' '}
-              Your exam can still be completed with the keyboard and screen reader.
+                ? t('exam_browser_no_speech')
+                : t('exam_mic_unavailable')}{' '}
+              {t('exam_keyboard_still_available')}
             </p>
           </div>
         )}
         {!allClear && (micStatus !== 'pending' && browserStatus !== 'pending') && (
           <div className="pt-2 text-zinc-400 font-light text-lg" aria-live="polite">
-            Retry voice access, or continue with keyboard and screen reader mode. No exam progress depends on the microphone.
+            {t('exam_voice_retry_hint')}
           </div>
         )}
 
@@ -144,7 +145,7 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
               disabled={micStatus === 'pending' || browserStatus === 'pending'}
               className="px-8 py-4 rounded-full border border-zinc-800 text-zinc-300 hover:border-zinc-500 hover:text-white disabled:opacity-50 transition-colors uppercase tracking-widest text-sm font-bold"
             >
-              Retry Voice Check
+              {t('retry')}
             </button>
           )}
           {!(micStatus === 'success' && browserStatus === 'success') && (
@@ -153,7 +154,7 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
               onClick={() => setInteractionMode('standard')}
               className="px-8 py-4 rounded-full border border-zinc-800 text-zinc-300 hover:border-zinc-500 hover:text-white transition-colors uppercase tracking-widest text-sm font-bold"
             >
-              Continue with Keyboard
+              {t('continue_keyboard')}
             </button>
           )}
           <button
@@ -161,7 +162,7 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
             disabled={micStatus === 'pending' || browserStatus === 'pending'}
             className="px-12 py-4 rounded-full bg-white text-black hover:bg-zinc-200 disabled:opacity-50 transition-colors uppercase tracking-widest text-sm font-bold"
           >
-            Start Exam
+            {t('start_exam')}
           </button>
         </div>
       </div>
@@ -230,7 +231,7 @@ function ExamSelection({
   const [error, setError] = useState('');
   const [selectedExam, setSelectedExam] = useState<AvailableExam | null>(null);
   const { speak, isContinuous, startContinuousListening } = useVoice();
-  const { lang } = useI18n();
+  const { lang, t, tParams } = useI18n();
   const { mode: voiceMode } = usePreferredMode();
   const setVoiceContext = useVoiceAppContext(state => state.setContext);
   const { announce } = useAccessibility();
@@ -250,7 +251,7 @@ function ExamSelection({
         const data = await fetchAvailableExams();
         setExams(data);
       } catch {
-        setError('Failed to fetch available exams');
+        setError(t('exam_load_error'));
       } finally {
         setLoading(false);
       }
@@ -264,7 +265,7 @@ function ExamSelection({
     if (!hasSpokenWelcome.current && !selectedExam) {
       hasSpokenWelcome.current = true;
       const examNames = exams.map(e => e.title).join(', ');
-      const msg = `Which exam would you like to take? Available exams are ${examNames}. You can say an exam name or say list exams.`;
+      const msg = tParams('exam_available_prompt', { details: examNames });
       say(msg, voiceMode, speak, announce);
       
       if (!isContinuous) {
@@ -305,7 +306,7 @@ function ExamSelection({
 
     if (isDashboardRequest || action === 'OPEN_DASHBOARD') {
       lastHandledTranscriptRef.current = normalized;
-      speak("Taking you back to your dashboard.");
+      speak(t('return_dashboard'));
       router.push('/dashboard');
       return true;
     }
@@ -316,7 +317,7 @@ function ExamSelection({
 
       if (confirmed || action === 'CONFIRM') {
         lastHandledTranscriptRef.current = normalized;
-        speak("Starting exam.");
+        speak(t('exam_starting'));
         onSelect(selectedExam.id);
         return true;
       }
@@ -325,7 +326,7 @@ function ExamSelection({
         lastHandledTranscriptRef.current = normalized;
         hasSpokenWelcome.current = false;
         setSelectedExam(null);
-        speak("Okay. Which exam would you like instead?");
+        speak(t('exam_selecting'));
         return true;
       }
 
@@ -339,13 +340,12 @@ function ExamSelection({
 
         speak(
           wantsImmediateStart
-            ? "Starting " + localMatch.title + "."
-            : localMatch.title +
-              " selected. It has " +
-              localMatch.question_count +
-              " questions and " +
-              localMatch.duration_minutes +
-              " minutes. Say yes to start or say change to choose another."
+            ? tParams('starting_exam_named', { title: localMatch.title })
+            : tParams('exam_selected_details', {
+                title: localMatch.title,
+                count: localMatch.question_count,
+                minutes: localMatch.duration_minutes,
+              })
         );
 
         if (wantsImmediateStart) onSelect(localMatch.id);
@@ -353,13 +353,13 @@ function ExamSelection({
         return true;
       }
       lastHandledTranscriptRef.current = normalized;
-      speak("I couldn't match that to an available exam. Say list exams to hear the choices, or say the exam name again.");
+      speak(t('exam_match_error'));
       return true;
     }
 
     if (!selectedExam && (action === 'START_EXAM' || action === 'OPEN_EXAM')) {
       lastHandledTranscriptRef.current = normalized;
-      speak("Please say the name of an available exam first.");
+      speak(t('exam_select_first'));
       return true;
     }
 
@@ -369,7 +369,7 @@ function ExamSelection({
     ) {
       lastHandledTranscriptRef.current = normalized;
       const examNames = exams.map((exam, index) => `Exam ${index + 1}: ${exam.title}. ${exam.question_count} questions, ${exam.duration_minutes} minutes.`).join(' ');
-      speak("Available exams are " + examNames);
+      speak(tParams('exam_available_prompt', { details: examNames }));
       return true;
     }
 
@@ -419,7 +419,7 @@ function ExamSelection({
       }
 
       lastHandledTranscriptRef.current = normalized;
-      speak("I couldn't match that to an available exam. Say list exams to hear the choices, or say the exam name again.");
+      speak(t('exam_match_error'));
       return true;
     }
 
@@ -428,23 +428,23 @@ function ExamSelection({
 
 
 
-  if (loading) return <div className="flex flex-col items-center justify-center min-h-screen bg-black text-zinc-400 font-light text-xl">Loading available exams...</div>;
-  if (error) return <div className="flex flex-col items-center justify-center min-h-screen bg-black text-red-500 font-light text-xl">{error}</div>;
+  if (loading) return <div className="flex flex-col items-center justify-center min-h-0 bg-black text-zinc-400 font-light text-xl">{t('loading')}</div>;
+  if (error) return <div className="flex flex-col items-center justify-center min-h-0 bg-black text-red-500 font-light text-xl">{error}</div>;
 
   return (
-    <div className="relative flex flex-col min-h-screen w-full max-w-7xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
+    <div className="relative flex flex-col min-h-0 w-full max-w-7xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
       <div className="mb-24 flex items-center justify-between border-b border-zinc-900 pb-8">
         <div className="flex flex-col">
-          <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">MODE</span>
-          <span className="text-xl font-light tracking-wide">EXAMINATION</span>
+          <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">{t('mode')}</span>
+          <span className="text-xl font-light tracking-wide">{t('exam').toUpperCase()}</span>
         </div>
         <VoiceCore size="sm" />
       </div>
 
       <div className="flex-1 flex flex-col justify-center w-full max-w-4xl mx-auto">
         <div className="mb-16">
-          <h2 className="text-[clamp(2.5rem,5vw,5rem)] font-light tracking-tighter leading-tight mb-4">Choose your exam</h2>
-          <p className="text-2xl text-zinc-400 font-light">&quot;Say the name of an available exam.&quot;</p>
+          <h2 className="text-[clamp(2.5rem,5vw,5rem)] font-light tracking-tighter leading-tight mb-4">{t('choose_exam')}</h2>
+          <p className="text-2xl text-zinc-400 font-light">&quot;{t('say_exam_name')}&quot;</p>
         </div>
 
         <div className="flex flex-col">
@@ -463,18 +463,18 @@ function ExamSelection({
                   " minutes. Say yes to start or say change to choose another."
                 );
               }}
-              className={`group flex w-full text-left flex-col md:flex-row md:items-center justify-between py-8 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-inset ${selectedExam?.id === exam.id ? 'text-white' : 'text-zinc-400 hover:text-zinc-300'}`}
+              className={`group flex w-full text-left flex-col md:flex-row md:items-center justify-between py-8 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] focus-visible:ring-inset ${selectedExam?.id === exam.id ? 'text-white' : 'text-zinc-400 hover:text-zinc-300'}`}
               aria-pressed={selectedExam?.id === exam.id}
-              aria-label={`${exam.title}, ${exam.question_count} questions, ${exam.duration_minutes} minutes`}
+              aria-label={tParams('exam_selected_details', { title: exam.title, count: exam.question_count, minutes: exam.duration_minutes })}
             >
               <div className="flex-1 pr-8">
                 <h3 className="text-3xl md:text-4xl font-light tracking-tight mb-2">{exam.title}</h3>
                 {exam.description && <p className="text-lg font-light opacity-60 line-clamp-2">{exam.description}</p>}
               </div>
               <div className="flex flex-row md:flex-col items-center md:items-end gap-4 md:gap-2 mt-4 md:mt-0 opacity-80 uppercase tracking-widest text-xs">
-                <span>{exam.question_count} questions</span>
-                <span className="hidden md:inline">•</span>
-                <span>{exam.duration_minutes} mins</span>
+                <span>{exam.question_count} {t('questions')}</span>
+                <span className="hidden md:inline" aria-hidden="true">•</span>
+                <span>{exam.duration_minutes} {t('minutes_short')}</span>
               </div>
             </button>
           ))}
@@ -482,8 +482,8 @@ function ExamSelection({
         
         {selectedExam && (
           <div className="mt-16 pt-8 border-t border-zinc-900 animate-in fade-in slide-in-from-bottom-4">
-            <p className="text-2xl font-light text-zinc-300 mb-2">You selected <strong className="text-white font-medium">{selectedExam.title}</strong>.</p>
-            <p className="text-zinc-400 font-light">Say &quot;Yes&quot; to start or &quot;No&quot; to choose another.</p>
+            <p className="text-2xl font-light text-zinc-300 mb-2">{tParams('you_selected_exam', { title: selectedExam.title })}</p>
+            <p className="text-zinc-400 font-light">{t('confirm_exam_choice')}</p>
           </div>
         )}
       </div>
@@ -498,7 +498,7 @@ function ExamPageContent() {
   const persistedSessionId = useExamStore(state => state.sessionId);
   const persistedStatus = useExamStore(state => state.status);
   const persistedExamId = useExamStore(state => state.examId);
-  const { lang } = useI18n();
+  const { lang, t, tParams } = useI18n();
   const router = useRouter();
   const setVoiceContext = useVoiceAppContext(state => state.setContext);
 
@@ -602,7 +602,7 @@ function ExamPageContent() {
         const currentExam = exams.find(e => e.id === examId);
 
         if (!currentExam) {
-          setError('The selected exam is no longer available.');
+          setError(t('exam_not_available'));
           return;
         }
 
@@ -616,7 +616,7 @@ function ExamPageContent() {
           return;
         }
 
-        setError(err instanceof Error ? err.message : 'Failed to load exam');
+        setError(err instanceof Error ? err.message : t('exam_load_error'));
       } finally {
         setLoading(false);
       }
@@ -640,7 +640,7 @@ function ExamPageContent() {
         const questions = await fetchExamQuestions(selectedExamId, session.id, lang);
 
         if (questions.length === 0) {
-          throw new Error('This exam has no available questions.');
+          throw new Error(t('exam_no_questions'));
         }
 
         initializeExam(
@@ -658,7 +658,7 @@ function ExamPageContent() {
           return;
         }
 
-        setError(err instanceof Error ? err.message : 'Failed to start exam');
+        setError(err instanceof Error ? err.message : t('exam_start_error'));
       } finally {
         setLoading(false);
       }
@@ -668,7 +668,7 @@ function ExamPageContent() {
   }, [hasHydrated, resumeChecked, examId, examMeta, deviceCheckComplete, preferenceLoaded, examStarted, initializeExam, lang, router]);
 
   if (!hasHydrated || !resumeChecked) {
-    return <div className="flex flex-col items-center justify-center min-h-screen flex-1 p-6 text-xl">Preparing exam state...</div>;
+    return <div className="flex flex-col items-center justify-center min-h-0 flex-1 p-6 text-xl">{t('exam_preparing')}</div>;
   }
 
   if (!examId) {
@@ -680,7 +680,7 @@ function ExamPageContent() {
   }
 
   if (loading && !examMeta) {
-    return <div className="flex flex-col items-center justify-center flex-1 p-6 text-xl">Loading Exam...</div>;
+    return <div className="flex flex-col items-center justify-center flex-1 p-6 text-xl text-zinc-400">{t('loading_exam')}</div>;
   }
 
   if (error) {
@@ -688,7 +688,7 @@ function ExamPageContent() {
   }
 
   if (!preferenceLoaded) {
-    return <div className="flex flex-col items-center justify-center flex-1 p-6 text-xl">Loading preferences...</div>;
+    return <div className="flex flex-col items-center justify-center flex-1 p-6 text-xl text-zinc-400">{t('loading_preferences')}</div>;
   }
 
   if (!deviceCheckComplete) {
@@ -700,26 +700,29 @@ function ExamPageContent() {
   }
 
   if (loading || !examStarted) {
-    return <div className="flex flex-col items-center justify-center flex-1 p-6 text-xl">Starting exam...</div>;
+    return <div className="flex flex-col items-center justify-center flex-1 p-6 text-xl text-zinc-400">{t('exam_starting')}</div>;
   }
 
   return (
-    <main className="flex flex-col flex-1 p-6">
-      <div className="sr-only">Exam Mode</div>
-      <ExamEngine 
+    <div className="flex min-h-0 flex-col flex-1 p-6">
+      <ExamEngine
         mode="exam" 
         examTitle={examMeta?.title} 
         durationMinutes={examMeta?.duration_minutes}
         interactionMode={interactionMode}
       />
-    </main>
+    </div>
   );
 }
 
 export default function ExamPage() {
+  const { t } = useI18n();
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-      <ExamPageContent />
-    </Suspense>
+    <main id="main-content" className="flex min-h-dvh flex-col flex-1 bg-black">
+      <h1 className="sr-only">{t('exam')}</h1>
+      <Suspense fallback={<div className="flex min-h-0 flex-1 items-center justify-center p-12 text-zinc-400">{t('loading')}</div>}>
+        <ExamPageContent />
+      </Suspense>
+    </main>
   );
 }

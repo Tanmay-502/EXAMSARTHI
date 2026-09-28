@@ -2,11 +2,13 @@
 
 import React, { useEffect, useRef } from 'react';
 import { useVoice } from '@/lib/voice/useVoice';
+import { useI18n } from '@/lib/i18n/I18nProvider';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function VoiceTranscript({ className }: { className?: string }) {
   const { transcript } = useVoice();
+  const { t, tParams } = useI18n();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -27,11 +29,11 @@ export function VoiceTranscript({ className }: { className?: string }) {
       tabIndex={0}
       aria-live="off"
       aria-atomic="false"
-      aria-label="Conversation transcript"
+      aria-label={t('live_transcript')}
     >
       <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-        <span className="text-xs font-black uppercase tracking-[0.2em] text-zinc-300">Live transcript</span>
-        <span className="text-xs font-medium text-zinc-400">{transcript.length} messages</span>
+        <span className="text-xs font-black uppercase tracking-[0.2em] text-zinc-300">{t('live_transcript')}</span>
+        <span className="text-xs font-medium text-zinc-400">{tParams('transcript_messages', { count: transcript.length })}</span>
       </div>
 
       <AnimatePresence initial={false}>
@@ -47,7 +49,7 @@ export function VoiceTranscript({ className }: { className?: string }) {
                 : 'self-start rounded-bl-sm border-blue-400/30 bg-blue-500/20 text-blue-50'
             )}
           >
-            <span className="sr-only">{msg.sender === 'user' ? 'You said:' : 'Assistant said:'}</span>
+            <span className="sr-only">{msg.sender === 'user' ? t('you_said') : t('assistant_said')}</span>
             {msg.text}
           </motion.div>
         ))}
@@ -55,7 +57,7 @@ export function VoiceTranscript({ className }: { className?: string }) {
 
       {transcript.length === 0 && (
         <div className="py-6 text-center text-sm italic text-zinc-400">
-          Waiting for voice interaction...
+          {t('waiting_voice')}
         </div>
       )}
     </div>
