@@ -7,7 +7,6 @@ import { useI18n } from '@/lib/i18n/I18nProvider';
 import { Locale } from '@/lib/i18n/registry';
 import { OptionalLLMIntentProvider } from '@/lib/voice/intentRouter';
 import { SafeAction, SafeActionRegistry } from '@/lib/voice/safeActionRegistry';
-import { useExamStore } from '@/lib/store/examStore';
 import { createClient } from '@/lib/supabase/client';
 import { useVoiceAppContext, type VoiceAppContext } from '@/lib/store/voiceContextStore';
 import { naturalIntentEnvelopeSchema, validateNaturalIntentPayload } from '@/lib/voice/naturalIntentSchema';
@@ -202,18 +201,15 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
     if (action === 'OPEN_PRACTICE' || action === 'START_PRACTICE') {
       if (context === 'practice_setup' || context === 'practice_active') {
         return;
-      } else {
-        speak(lang === 'hi-IN' ? 'अभ्यास मोड खोल रहा हूँ।' : lang === 'te-IN' ? 'ప్రాక్టీస్ మోడ్ తెరుస్తున్నాను.' : 'Opening practice mode.');
-        isNavigatingRef.current = true;
-        const query = new URLSearchParams();
-        if (payload?.subject) query.set('subject', payload.subject as string);
-        if (payload?.count) query.set('count', String(payload.count));
-        if (payload?.difficulty) query.set('difficulty', payload.difficulty as string);
-        const queryString = query.toString();
-        router.push(queryString ? `/practice?${queryString}` : '/practice');
-      } else {
-        speak(lang === 'hi-IN' ? 'प्रैक्टिस पहले से चल रही है।' : lang === 'te-IN' ? 'ప్రాక్టీస్ ఇప్పటికే కొనసాగుతోంది.' : 'Practice is already in progress.');
       }
+      speak(lang === 'hi-IN' ? 'अभ्यास मोड खोल रहा हूँ।' : lang === 'te-IN' ? 'ప్రాక్టీస్ మోడ్ తెరుస్తున్నాను.' : 'Opening practice mode.');
+      isNavigatingRef.current = true;
+      const query = new URLSearchParams();
+      if (payload?.subject) query.set('subject', payload.subject as string);
+      if (payload?.count) query.set('count', String(payload.count));
+      if (payload?.difficulty) query.set('difficulty', payload.difficulty as string);
+      const queryString = query.toString();
+      router.push(queryString ? `/practice?${queryString}` : '/practice');
     }
     if (action === 'OPEN_HISTORY' || action === 'READ_HISTORY' || action === 'READ_RESULTS') {
       speak(lang === 'hi-IN' ? 'आपका इतिहास खोल रहा हूँ।' : lang === 'te-IN' ? 'మీ చరిత్రను తెరుస్తున్నాను.' : 'Opening your results and history.');
