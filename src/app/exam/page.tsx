@@ -229,11 +229,17 @@ function ExamSelection({
   const [selectedExam, setSelectedExam] = useState<AvailableExam | null>(null);
   const { speak, isContinuous, startContinuousListening } = useVoice();
   const { lang } = useI18n();
+  const setVoiceContext = useVoiceAppContext(state => state.setContext);
   const { announce } = useAccessibility();
   const hasSpokenWelcome = useRef(false);
   const lastHandledTranscriptRef = useRef<string>('');
   const router = useRouter();
   const { useVoiceAction } = useGlobalVoice();
+
+  useEffect(() => {
+    setVoiceContext('exam_lobby');
+    return () => setVoiceContext('unknown');
+  }, [setVoiceContext]);
 
   useEffect(() => {
     async function load() {
@@ -491,6 +497,7 @@ function ExamPageContent() {
   const searchParams = useSearchParams();
   const examIdParam = searchParams.get('exam_id');
   const { mode: interactionMode, setMode, isLoaded: preferenceLoaded } = usePreferredMode();
+  const setVoiceContext = useVoiceAppContext(state => state.setContext);
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -502,7 +509,10 @@ function ExamPageContent() {
   // First load only the selected exam metadata. Do not create an in-progress
   // server session until the candidate has passed the device check.
   useEffect(() => {
-    if (!examId) return;
+    if (!examId) {
+      setVoiceContext('exam_lobby');
+      return;
+    }
 
     async function loadExamMeta() {
       setLoading(true);
@@ -533,7 +543,7 @@ function ExamPageContent() {
     }
 
     loadExamMeta();
-  }, [examId, router]);
+  }, [examId, router, setVoiceContext]);
 
   // Only create the server session after the device check is complete.
   useEffect(() => {
