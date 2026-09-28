@@ -30,10 +30,6 @@ export function DemoGuide() {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    if (pathname !== '/') setOpen(false);
-  }, [pathname]);
-
-  useEffect(() => {
     if (!open) return;
     closeButtonRef.current?.focus();
 
