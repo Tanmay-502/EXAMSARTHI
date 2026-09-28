@@ -49,7 +49,7 @@ test.describe('Authentication Flow & Gateway Routing', () => {
   test('no-account login state links to signup', async ({ page }) => {
     await page.goto('/auth/login?code=no_account')
     await expect(page.getByTestId('auth-message')).toContainText('No account')
-    await expect(page.getByRole('link', { name: /sign up/i })).toBeVisible()
+    await expect(page.locator('a[href="/auth/signup"]').first()).toBeVisible()
   })
 
   test('signup Magic Link uses account-creation mode and returns a safe code', async ({ page }) => {
