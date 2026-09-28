@@ -558,7 +558,7 @@ function PracticeContent() {
           {difficulty && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col">
               <span className="text-zinc-400 uppercase tracking-[0.2em] text-xs mb-2">{t('difficulty')}</span>
-              <span className="text-zinc-300 font-light capitalize">{difficulty}</span>
+              <span className="text-zinc-300 font-light">{t(difficulty === 'easy' ? 'difficulty_easy' : difficulty === 'medium' ? 'difficulty_medium' : 'difficulty_hard')}</span>
             </motion.div>
           )}
         </div>

@@ -21,8 +21,8 @@ export default async function Home() {
             <p className="text-lg font-semibold">You&apos;re signed in — Continue</p>
             <p className="mt-2 text-sm text-zinc-400">Your existing ExamSaarthi session is active.</p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/welcome" className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-6 text-sm font-semibold text-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950">Continue</Link>
-              <SignOutButton className="min-h-12 rounded-full border border-zinc-700 px-6 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950" />
+              <Link href="/welcome" className="inline-flex min-h-12 items-center justify-center rounded-full bg-white px-6 text-sm font-semibold text-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--brand-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950">Continue</Link>
+              <SignOutButton className="min-h-12 rounded-full border border-zinc-700 px-6 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--brand-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950" />
             </div>
           </section>
         ) : null}

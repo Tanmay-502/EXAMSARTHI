@@ -872,12 +872,18 @@ export async function recordAnswerEvent(sessionId: string, questionId: string) {
   // Verify ownership
   const { data: session } = await supabase
     .from('exam_sessions')
-    .select('id')
+    .select('id, status, question_ids')
     .eq('id', sessionId)
     .eq('candidate_id', user.id)
     .single()
 
-  if (!session) return { success: false }
+  if (!session || session.status !== 'in_progress') return { success: false }
+
+  const roster = Array.isArray(session.question_ids)
+    ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+    : []
+
+  if (roster.length > 0 && !roster.includes(questionId)) return { success: false }
 
   await writeAudit({
     session_id: sessionId,

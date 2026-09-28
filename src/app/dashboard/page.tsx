@@ -321,11 +321,11 @@ function DashboardContent() {
           <div className="border-t border-zinc-900 pt-12">
             <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase mb-8">{t('dashboard')}</p>
             <div className="flex flex-col space-y-4">
-              <Link href="/practice" className="text-xl font-light hover:text-zinc-400 transition-colors">{t('practice')} ↗</Link>
-              <Link href="/exam" className="text-xl font-light hover:text-zinc-400 transition-colors">{t('exam')} ↗</Link>
-              <Link href="/history" className="text-xl font-light hover:text-zinc-400 transition-colors">{t('history')} &amp; {t('results')} ↗</Link>
-              <Link href="/analysis" className="text-xl font-light hover:text-zinc-400 transition-colors">{t('analysis_page').replace('.', '')} ↗</Link>
-              <Link href="/settings" className="text-xl font-light hover:text-zinc-400 transition-colors">{t('settings')} ↗</Link>
+              <Link href="/practice" className="inline-flex min-h-11 items-center text-xl font-light hover:text-zinc-400 transition-colors">{t('practice')} ↗</Link>
+              <Link href="/exam" className="inline-flex min-h-11 items-center text-xl font-light hover:text-zinc-400 transition-colors">{t('exam')} ↗</Link>
+              <Link href="/history" className="inline-flex min-h-11 items-center text-xl font-light hover:text-zinc-400 transition-colors">{t('history')} &amp; {t('results')} ↗</Link>
+              <Link href="/analysis" className="inline-flex min-h-11 items-center text-xl font-light hover:text-zinc-400 transition-colors">{t('analysis_page').replace('.', '')} ↗</Link>
+              <Link href="/settings" className="inline-flex min-h-11 items-center text-xl font-light hover:text-zinc-400 transition-colors">{t('settings')} ↗</Link>
             </div>
           </div>
         </motion.div>

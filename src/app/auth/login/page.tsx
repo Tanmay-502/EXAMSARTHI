@@ -79,11 +79,11 @@ function LoginForm() {
           <p className="max-w-xl text-2xl font-light text-zinc-400 md:text-3xl">Sign in to continue to ExamSaarthi.</p>
 
           {authMessage ? <div data-testid="auth-message" role="status" aria-live="polite" className="border-y border-zinc-900 py-5 text-zinc-300">{authMessage}</div> : null}
-          {code === 'no_account' ? <p className="text-sm text-zinc-400">{lang === 'hi-IN' ? 'नया अकाउंट बनाने के लिए ' : lang === 'te-IN' ? 'కొత్త ఖాతా కోసం ' : 'New to ExamSaarthi? '}<Link href="/auth/signup" className="font-semibold text-white underline underline-offset-4">{t('signup')}</Link></p> : null}
+          {code === 'no_account' ? <p className="text-sm text-zinc-400">{lang === 'hi-IN' ? 'नया अकाउंट बनाने के लिए ' : lang === 'te-IN' ? 'కొత్త ఖాతా కోసం ' : 'New to ExamSaarthi? '}<Link href="/auth/signup" className="inline-flex min-h-11 items-center font-semibold text-white underline underline-offset-4">{t('signup')}</Link></p> : null}
 
           <section aria-labelledby="google-login-title" className="space-y-3">
             <h2 id="google-login-title" className="text-sm font-bold uppercase tracking-[0.18em] text-zinc-200">Fast sign in</h2>
-            <button data-testid="google-auth-button" type="button" onClick={signInWithGoogle} disabled={googleLoading} className="inline-flex h-16 w-full items-center justify-center gap-3 rounded-full border border-zinc-600 bg-white px-8 text-sm font-bold text-black shadow-[0_10px_30px_rgba(255,255,255,0.08)] transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white disabled:opacity-60">
+            <button data-testid="google-auth-button" type="button" onClick={signInWithGoogle} disabled={googleLoading} className="inline-flex h-16 w-full items-center justify-center gap-3 rounded-full border border-zinc-600 bg-white px-8 text-sm font-bold text-black shadow-[0_10px_30px_rgba(255,255,255,0.08)] transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--brand-accent)] disabled:opacity-60">
               <span aria-hidden="true" className="text-xl font-semibold">G</span>
               <span>{googleLoading ? 'Opening Google...' : 'Continue with Google'}</span>
             </button>
@@ -101,11 +101,11 @@ function LoginForm() {
                 <input ref={emailRef} id="email" name="email" type="email" inputMode="email" autoComplete="email" required value={voiceEmail} onChange={(event) => setVoiceEmail(event.target.value)} className="h-14 w-full border-b border-zinc-800 bg-transparent text-xl text-white focus-visible:outline-none focus-visible:border-zinc-400" aria-describedby="voice-status" />
               </div>
               <p id="voice-status" className="min-h-6 text-sm text-zinc-400" aria-live="polite">{voiceStatus}</p>
-              <button type="submit" className="inline-flex h-14 w-full items-center justify-center rounded-full bg-white px-8 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">{t('send_magic_link')} ↗</button>
+              <button type="submit" className="inline-flex h-14 w-full items-center justify-center rounded-full bg-white px-8 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)]">{t('send_magic_link')} ↗</button>
             </form>
           </section>
 
-          <p className="text-sm text-zinc-400">{lang === 'hi-IN' ? 'अकाउंट नया है? ' : lang === 'te-IN' ? 'కొత్త ఖాతా కావాలా? ' : 'Need a new account? '}<Link href="/auth/signup" className="text-zinc-100 underline underline-offset-4">{t('signup')}</Link></p>
+          <p className="text-sm text-zinc-400">{lang === 'hi-IN' ? 'अकाउंट नया है? ' : lang === 'te-IN' ? 'కొత్త ఖాతా కావాలా? ' : 'Need a new account? '}<Link href="/auth/signup" className="inline-flex min-h-11 items-center text-zinc-100 underline underline-offset-4">{t('signup')}</Link></p>
         </div>
       </div>
     </main>
