@@ -205,6 +205,35 @@ function DashboardContent() {
           </Link>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 border-t border-zinc-900 pt-12">
+            {stats && stats.recentSessions.length > 1 && (
+              <div className="border-t border-zinc-900 pt-12">
+                <div className="mb-6 flex items-end justify-between gap-4">
+                  <div>
+                    <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase mb-2">RECENT PERFORMANCE</p>
+                    <p className="text-xl font-light text-zinc-200">Live session trend</p>
+                  </div>
+                  <Link href="/analysis" className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-300 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded-sm">
+                    View analysis ↗
+                  </Link>
+                </div>
+                <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5 md:p-6">
+                  <div className="flex h-36 items-end gap-3 md:h-44">
+                    {stats.recentSessions.slice().reverse().map(session => (
+                      <div key={session.id} className="flex min-w-0 flex-1 flex-col items-center justify-end gap-2">
+                        <span className="text-xs font-bold text-zinc-300">{session.percentage}%</span>
+                        <div
+                          className="w-full max-w-14 rounded-t-lg bg-white transition-all"
+                          style={{ height: `${Math.max(12, session.percentage)}%` }}
+                          role="img"
+                          aria-label={`${session.title ?? 'Session'}: ${session.percentage} percent`}
+                        />
+                        <span className="w-full truncate text-center text-[11px] text-zinc-500">{session.date}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
             <div>
               <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase mb-4">Aggregate Progress</p>
               <div className="flex items-baseline gap-4 mb-2">
