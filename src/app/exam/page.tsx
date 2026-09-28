@@ -13,6 +13,7 @@ import { useAccessibility } from '@/lib/accessibility/AccessibilityProvider';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 import { SafeAction } from '@/lib/voice/safeActionRegistry';
 import { shouldEscapeToGlobal } from '@/lib/voice/navigationEscape';
+import { say } from '@/lib/voice/say';
 import { useVoiceAppContext } from '@/lib/store/voiceContextStore';
 
 function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onComplete: () => void, interactionMode: InteractionMode, setInteractionMode: (m: InteractionMode) => void }) {
@@ -78,8 +79,7 @@ function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onCo
     } else {
       msg = 'Microphone access is unavailable. Your voice-first preference is still kept. Allow microphone access and choose Retry, or continue with keyboard and screen reader mode.';
     }
-    announce(msg, 'assertive');
-    speak(msg);
+    say(msg, interactionMode, speak, announce, 'assertive');
   }, [micStatus, browserStatus, announce, speak, interactionMode, setInteractionMode]);
 
   const allClear =
@@ -263,8 +263,7 @@ function ExamSelection({
       hasSpokenWelcome.current = true;
       const examNames = exams.map(e => e.title).join(', ');
       const msg = `Which exam would you like to take? Available exams are ${examNames}. You can say an exam name or say list exams.`;
-      speak(msg);
-      announce(msg);
+      say(msg, interactionMode, speak, announce);
       
       if (!isContinuous) {
         startContinuousListening();
