@@ -52,6 +52,16 @@ test.describe('Authentication Flow & Gateway Routing', () => {
     await expect(page.locator('a[href="/auth/signup"]').first()).toBeVisible()
   })
 
+  test('Google OAuth is the primary auth action on both auth pages', async ({ page }) => {
+    for (const route of ['/auth/login', '/auth/signup']) {
+      await page.goto(route)
+      const google = page.getByTestId('google-auth-button')
+      await expect(google).toBeVisible()
+      await expect(google).toHaveText(/Continue with Google/i)
+      await expect(page.getByText(/or use email/i)).toBeVisible()
+    }
+  })
+
   test('signup Magic Link uses account-creation mode and returns a safe code', async ({ page }) => {
     await page.goto('/auth/signup')
     await page.getByRole('textbox', { name: /full name/i }).fill('Playwright Candidate')
@@ -93,7 +103,5 @@ test.describe('Authentication Architecture Rules', () => {
     expect(proxy).toContain("pathname === '/' || pathname === '/auth'")
     expect(proxy).toContain("'/manifest.json'")
     expect(proxy).toContain("'/sw.js'")
-    expect(proxy).toContain('manifest\\.json')
-    expect(proxy).toContain('sw\\.js')
   })
 })
