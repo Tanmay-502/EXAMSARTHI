@@ -195,8 +195,8 @@ function PracticeContent() {
       subject,
       difficulty
     )
-      .then(sessionId => {
-        initializeExam(sessionId, 'practice-exam', fetchedQuestions);
+      .then(session => {
+        initializeExam(session.id, 'practice-exam', fetchedQuestions, undefined, session.userId);
         setSetupState('READY');
       })
       .catch(err => {
