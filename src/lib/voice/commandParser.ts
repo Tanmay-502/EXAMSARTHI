@@ -98,7 +98,7 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
   if (matchesPhrase(normalized, 'skip guide') || matchesPhrase(normalized, 'dismiss guide') || matchesPhrase(normalized, 'close guide')) return { type: 'DISMISS_GUIDE' };
 
   // Analysis phrases are navigation shortcuts only in mode-selection/onboarding/dashboard.
-  if (contextualModeAnalysis && (matchesPhrase(normalized, 'analysis') || matchesPhrase(normalized, 'show analysis') || matchesPhrase(normalized, 'open analysis') || matchesPhrase(normalized, 'give me the analysis') || matchesPhrase(normalized, 'tell me my analysis') || matchesPhrase(normalized, 'tell me the analysis of me') || matchesPhrase(normalized, 'analyse my preparation') || matchesPhrase(normalized, 'analyze my preparation') || matchesPhrase(normalized, 'show my performance') || matchesPhrase(normalized, 'how am i performing') || matchesPhrase(normalized, 'how is my preparation') || matchesPhrase(normalized, 'analyze') || matchesPhrase(normalized, 'analyse') || matchesPhrase(normalized, 'విశ్లేషణ') || matchesPhrase(normalized, 'విశ్లేషణ చూపించు') || matchesPhrase(normalized, 'నా విశ్లేషణ') || matchesPhrase(normalized, 'నా పనితీరు ఎలా ఉంది') || matchesPhrase(normalized, 'నా తయారీ ఎలా ఉంది') || matchesPhrase(normalized, 'పనితీరు'))) return { type: 'OPEN_ANALYSIS' };
+  if (contextualModeAnalysis.has(context ?? '') && (matchesPhrase(normalized, 'analysis') || matchesPhrase(normalized, 'show analysis') || matchesPhrase(normalized, 'open analysis') || matchesPhrase(normalized, 'give me the analysis') || matchesPhrase(normalized, 'tell me my analysis') || matchesPhrase(normalized, 'tell me the analysis of me') || matchesPhrase(normalized, 'analyse my preparation') || matchesPhrase(normalized, 'analyze my preparation') || matchesPhrase(normalized, 'show my performance') || matchesPhrase(normalized, 'how am i performing') || matchesPhrase(normalized, 'how is my preparation') || matchesPhrase(normalized, 'analyze') || matchesPhrase(normalized, 'analyse') || matchesPhrase(normalized, 'విశ్లేషణ') || matchesPhrase(normalized, 'విశ్లేషణ చూపించు') || matchesPhrase(normalized, 'నా విశ్లేషణ') || matchesPhrase(normalized, 'నా పనితీరు ఎలా ఉంది') || matchesPhrase(normalized, 'నా తయారీ ఎలా ఉంది') || matchesPhrase(normalized, 'పనితీరు'))) return { type: 'OPEN_ANALYSIS' };
 
   // Collect all phrases and sort by length descending to match longest first
   const allPhrases: { commandType: string, phrase: string }[] = [];
@@ -143,7 +143,6 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
   // exam/practice context. This prevents ordinary speech like "who is first"
   // from becoming SELECT_OPTION and then being rejected as an unavailable action.
   if (isExamContext || hasExplicitOptionKeyword) {
-    const matchA = values.a.some(v => ['a', 'ay', 'eh'].includes(v) && wordCount > 3 ? false : matchesPhrase(normalized, v));
     const wordCount = normalized.split(/\s+/).filter(Boolean).length;
     const matchA = values.a.some(v => ['a', 'ay', 'eh'].includes(v) && wordCount > 3 ? false : matchesPhrase(normalized, v));
     const matchB = values.b.some(v => matchesPhrase(normalized, v));
@@ -153,7 +152,7 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
     const numericHomophone =
       wordCount <= 3 && (normalized === '2' || matchesPhrase(normalized, 'to') || matchesPhrase(normalized, 'too'))
         ? 1
-        : normalized === '3' || matchesPhrase(normalized, 'tree')
+        : wordCount <= 3 && (normalized === '3' || matchesPhrase(normalized, 'tree'))
           ? 2
           : wordCount <= 3 && (normalized === '4' || matchesPhrase(normalized, 'for'))
             ? 3
