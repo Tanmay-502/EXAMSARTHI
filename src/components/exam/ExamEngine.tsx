@@ -157,7 +157,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
 
     if (engineState === 'READY') {
       const actualDuration = durationMinutes ?? 60;
-      const actualTitle = examTitle ?? (mode === 'exam' ? t('selected_exam') : t('practice'));
+      const actualTitle = examTitle ?? (mode === 'exam' ? t('engine_selected_exam') : t('practice'));
       const nativeLanguageName =
         lang === 'en-IN' ? t('language_english') :
         lang === 'hi-IN' ? t('language_hindi') :
