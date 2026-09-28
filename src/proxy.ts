@@ -1,72 +1,43 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const PUBLIC_ASSET_PATHS = new Set(['/manifest.json', '/sw.js', '/icon.svg', '/favicon.ico'])
+
+function isPublicPath(pathname: string) {
+  if (pathname === '/' || pathname === '/auth' || pathname.startsWith('/auth/')) return true
+  if (PUBLIC_ASSET_PATHS.has(pathname)) return true
+  if (pathname.startsWith('/_next/static/') || pathname.startsWith('/_next/image')) return true
+  if (/\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|map|woff2?)$/i.test(pathname)) return true
+  return false
+}
+
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
+  let supabaseResponse = NextResponse.next({ request })
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) throw new Error('Missing Supabase environment variables in proxy')
+
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() { return request.cookies.getAll() },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+        supabaseResponse = NextResponse.next({ request })
+        cookiesToSet.forEach(({ name, value, options }) => supabaseResponse.cookies.set(name, value, options))
+      },
+    },
   })
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const { data: { user } } = await supabase.auth.getUser()
+  const pathname = request.nextUrl.pathname
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase environment variables in proxy');
-  }
-
-  const supabase = createServerClient(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
-          })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    !request.nextUrl.pathname.startsWith('/onboarding') &&
-    request.nextUrl.pathname !== '/'
-  ) {
-    // Return 401 for API routes instead of redirecting
-    if (request.nextUrl.pathname.startsWith('/api/')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Protected routes require authentication in development and production.
+  if (!user && !isPublicPath(pathname)) {
+    if (pathname.startsWith('/api/')) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
-    return NextResponse.redirect(url)
-  }
-
-  if (
-    user &&
-    request.nextUrl.pathname.startsWith('/auth') &&
-    request.nextUrl.pathname !== '/auth/login' &&
-    request.nextUrl.pathname !== '/auth/confirm' &&
-    request.nextUrl.pathname !== '/auth/callback'
-  ) {
-    // Keep the login/confirmation screens reachable for an already-authenticated
-    // candidate so the public auth step remains visible in the onboarding flow.
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
-    url.searchParams.set('redirected', 'true')
+    url.search = ''
+    url.searchParams.set('code', 'unauthenticated')
     return NextResponse.redirect(url)
   }
 
@@ -74,18 +45,9 @@ export async function updateSession(request: NextRequest) {
 }
 
 export default async function proxy(request: NextRequest) {
-  return await updateSession(request);
+  return updateSession(request)
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
-     */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|manifest\\.json|sw\\.js|icon\\.svg|.*\\.(?:svg|png|jpg|jpeg|gif|webp|css|js|map|woff2?))).*'],
 }
