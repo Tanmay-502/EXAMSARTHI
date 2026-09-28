@@ -36,7 +36,7 @@ export default async function Home() {
             <div className="mt-10">
               <GatewayActions />
             </div>
-            <p className="mt-6 text-sm text-zinc-500">Press L to log in or S to sign up. Shortcuts are ignored while typing.</p>
+            <p className="mt-6 text-sm text-zinc-400">Press L to log in or S to sign up. Shortcuts are ignored while typing.</p>
           </div>
         </section>
       </div>
