@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { useI18n } from '@/lib/i18n/I18nProvider';
 import { VoiceCore } from '@/components/voice/VoiceCore';
 import { ScoreVisualizer } from '@/components/exam/ScoreVisualizer';
 import { Trophy, Target, AlertCircle, HelpCircle, ArrowRight, BarChart3, BookOpen, History, Home } from 'lucide-react';
@@ -22,6 +23,7 @@ type ResultsPageContentProps = {
   percentage: number;
   subjectStats: Record<string, SubjectStat>;
   weakestSubject: string;
+  isPractice?: boolean;
 };
 
 export default function ResultsPageContent({
@@ -33,9 +35,11 @@ export default function ResultsPageContent({
   percentage,
   subjectStats,
   weakestSubject,
+  isPractice = false,
 }: ResultsPageContentProps) {
+  const { t, tParams } = useI18n();
   return (
-    <main id="main-content" className="flex flex-col flex-1 min-h-screen w-full bg-black text-white">
+    <main id="main-content" className="flex flex-col flex-1 min-h-dvh w-full bg-black text-white">
       <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 pt-32 pb-24">
         
         <motion.header
@@ -46,7 +50,7 @@ export default function ResultsPageContent({
         >
           <div className="mb-12 flex items-center justify-between border-b border-zinc-900 pb-8">
             <div className="flex flex-col">
-              <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">RESULTS</span>
+              <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">{t('results')}</span>
               <span className="text-xl font-light tracking-wide">EXAMSAARTHI</span>
             </div>
             <VoiceCore size="sm" />
@@ -55,12 +59,12 @@ export default function ResultsPageContent({
           <div className="flex flex-col gap-8">
             <div className="flex items-center gap-4 text-zinc-400">
               <Trophy className="w-6 h-6 text-zinc-400" />
-              <span className="text-xs font-bold uppercase tracking-[0.2em]">Performance summary</span>
+              <span className="text-xs font-bold uppercase tracking-[0.2em]">{t('results_summary')}</span>
             </div>
             <h1 className="text-[clamp(3.5rem,8vw,9rem)] leading-[0.9] font-light tracking-tighter text-zinc-100">
-              Exam<br />complete.
+              {isPractice ? t('results_practice_complete') : t('results_exam_complete')}.
             </h1>
-            <p className="text-2xl md:text-4xl font-light text-zinc-400">Your performance, understood.</p>
+            <p className="text-2xl md:text-4xl font-light text-zinc-400">{isPractice ? t('results_practice_desc') : t('results_desc')}</p>
           </div>
         </motion.header>
 
@@ -72,9 +76,9 @@ export default function ResultsPageContent({
         >
           <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-12">
             <div className="max-w-2xl">
-              <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase mb-4">OVERALL SCORE</p>
+              <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase mb-4">{t('score').toUpperCase()}</p>
               <p className="text-xl md:text-2xl text-zinc-400 font-light leading-relaxed">
-                You answered <span className="text-white">{attempted_questions}</span> out of {total_questions} questions.
+                {tParams('results_answered_count', { answered: attempted_questions, total: total_questions })}
               </p>
             </div>
             <ScoreVisualizer percentage={percentage || 0} />
@@ -89,7 +93,7 @@ export default function ResultsPageContent({
             </div>
             <div>
               <div className="text-5xl font-light">{correct_questions}</div>
-              <div className="text-xs font-bold uppercase text-zinc-400 tracking-[0.2em] mt-2">Correct</div>
+              <div className="text-xs font-bold uppercase text-zinc-400 tracking-[0.2em] mt-2">{t('correct')}</div>
             </div>
           </div>
 
@@ -99,7 +103,7 @@ export default function ResultsPageContent({
             </div>
             <div>
               <div className="text-5xl font-light">{incorrect_questions}</div>
-              <div className="text-xs font-bold uppercase text-zinc-400 tracking-[0.2em] mt-2">Incorrect</div>
+              <div className="text-xs font-bold uppercase text-zinc-400 tracking-[0.2em] mt-2">{t('incorrect')}</div>
             </div>
           </div>
 
@@ -109,7 +113,7 @@ export default function ResultsPageContent({
             </div>
             <div>
               <div className="text-5xl font-light">{unanswered_questions}</div>
-              <div className="text-xs font-bold uppercase text-zinc-400 tracking-[0.2em] mt-2">Skipped</div>
+              <div className="text-xs font-bold uppercase text-zinc-400 tracking-[0.2em] mt-2">{t('unanswered')}</div>
             </div>
           </div>
         </div>
@@ -119,7 +123,7 @@ export default function ResultsPageContent({
           <div className="border-t border-zinc-900 pt-12 mb-24">
             <div className="flex items-center space-x-4 mb-12">
               <BarChart3 className="w-6 h-6 text-zinc-400" />
-              <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">Subject analysis</h2>
+              <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">{t('subject_analysis')}</h2>
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -133,22 +137,22 @@ export default function ResultsPageContent({
                     </div>
                     <div className="w-full bg-zinc-900 rounded-full h-1 mb-8 overflow-hidden">
                       <div 
-                        className="bg-white h-1 rounded-full transition-all duration-1000"
+                        className="bg-[var(--brand-accent)] h-1 rounded-full transition-all duration-1000"
                         style={{ width: `${subjPerc}%` }}
                       />
                     </div>
                     <div className="grid grid-cols-3 gap-4 text-center">
                       <div>
                         <div className="text-xl font-light">{stats.correct}</div>
-                        <div className="text-xs font-bold text-zinc-400 uppercase tracking-widest mt-2">Correct</div>
+                        <div className="text-xs font-bold text-zinc-400 uppercase tracking-widest mt-2">{t('correct')}</div>
                       </div>
                       <div>
                         <div className="text-xl font-light">{stats.incorrect}</div>
-                        <div className="text-xs font-bold text-zinc-400 uppercase tracking-widest mt-2">Incorrect</div>
+                        <div className="text-xs font-bold text-zinc-400 uppercase tracking-widest mt-2">{t('incorrect')}</div>
                       </div>
                       <div>
                         <div className="text-xl font-light">{stats.unanswered}</div>
-                        <div className="text-xs font-bold text-zinc-400 uppercase tracking-widest mt-2">Skipped</div>
+                        <div className="text-xs font-bold text-zinc-400 uppercase tracking-widest mt-2">{t('unanswered')}</div>
                       </div>
                     </div>
                   </div>
@@ -163,23 +167,23 @@ export default function ResultsPageContent({
           {weakestSubject && (
             <Link
               href={`/practice?subject=${encodeURIComponent(weakestSubject)}`}
-              className="group inline-flex items-center justify-center px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest bg-white text-black hover:bg-zinc-200 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="group inline-flex items-center justify-center px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest bg-white text-black hover:bg-zinc-200 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)]"
             >
               <BookOpen className="mr-3 w-4 h-4" />
-              Practice {weakestSubject}
+              {t('practice')} {weakestSubject}
               <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           )}
           <Link
             href="/history"
-            className="inline-flex items-center justify-center px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest border border-zinc-800 hover:border-zinc-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            className="inline-flex items-center justify-center px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest border border-zinc-800 hover:border-zinc-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)]"
           >
             <History className="mr-3 w-4 h-4" />
             View History
           </Link>
           <Link
             href="/dashboard"
-            className="inline-flex items-center justify-center px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest border border-zinc-800 hover:border-zinc-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            className="inline-flex items-center justify-center px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest border border-zinc-800 hover:border-zinc-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)]"
           >
             <Home className="mr-3 w-4 h-4" />
             Dashboard

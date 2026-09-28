@@ -11,7 +11,7 @@ import { useExamStore } from '@/lib/store/examStore';
 import { useVoiceAppContext } from '@/lib/store/voiceContextStore';
 import { say } from '@/lib/voice/say';
 import { clearExamStorage } from '@/lib/store/clearExamStorage';
-import { Mic, MicOff, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Mic, MicOff, CheckCircle, AlertTriangle, Flag, Circle } from 'lucide-react';
 import { VoiceCore } from '@/components/voice/VoiceCore';
 import { motion } from 'framer-motion';
 
@@ -106,7 +106,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           if (remain <= 0 && !hasTriggeredExpiry.current) {
             hasTriggeredExpiry.current = true;
             setEngineState('PROCESSING');
-            const msg = "Time is up. Submitting your exam.";
+            const msg = t('engine_time_up');
             sayMessage(msg, 'assertive');
             
             // Auto submit reusing existing logic
@@ -131,7 +131,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
                       ? 'समय समाप्त हो गया, लेकिन परीक्षा जमा नहीं हो सकी। कनेक्शन जाँचकर फिर से प्रयास करें।'
                       : lang === 'te-IN'
                         ? 'సమయం ముగిసింది, కానీ పరీక్ష సమర్పించలేకపోయాం. మీ కనెక్షన్‌ను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.'
-                        : 'Time ended, but the submission could not be saved. Check your connection and retry.'
+                        : t('engine_autosubmit_error')
                   );
                 });
               }
@@ -200,7 +200,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           const fetchVisionOrReadAlt = async () => {
             if (currentQuestion.image_alt_text) {
               setVisionStatus('idle');
-              const fullAnnouncement = announcement + ' Diagram description: ' + currentQuestion.image_alt_text + buildOptionsText();
+              const fullAnnouncement = announcement + ' ' + tParams('engine_diagram', { description: currentQuestion.image_alt_text }) + buildOptionsText();
               const currentKey = engineState === 'EXAM' ? `${engineState}-${currentQuestionIndex}` : engineState;
               if (spokenStateKey.current === currentKey) {
                         sayMessage(fullAnnouncement, 'assertive');
@@ -209,7 +209,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             }
 
             setVisionStatus('analyzing');
-            const analysisMsg = "This question contains a diagram. Analyzing...";
+            const analysisMsg = t('engine_analyzing');
             sayMessage(analysisMsg, 'assertive');
 
             try {
@@ -222,7 +222,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
               const data = await res.json();
               setVisionStatus('idle');
 
-              const fullAnnouncement = announcement + ' Diagram description: ' + (data.description || 'Unavailable.') + buildOptionsText();
+              const fullAnnouncement = announcement + ' ' + tParams('engine_diagram', { description: data.description || t('unavailable') }) + buildOptionsText();
               
               const currentKey = engineState === 'EXAM' ? `${engineState}-${currentQuestionIndex}` : engineState;
               if (spokenStateKey.current === currentKey) {
@@ -231,7 +231,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             } catch (err) {
               console.error('Vision fetch failed', err);
               setVisionStatus('failed');
-              const fallback = announcement + ' The diagram could not be analyzed. ' + buildOptionsText();
+              const fallback = announcement + ' ' + t('engine_vision_failed') + ' ' + buildOptionsText();
               sayMessage(fallback, 'assertive');
             }
           };
@@ -337,6 +337,10 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   };
 
   const handleNext = () => {
+    if (engineState === 'CONFIRM_ANSWER') {
+      speak(t('engine_finish_confirmation'));
+      return;
+    }
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
@@ -345,6 +349,10 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   };
 
   const handlePrev = () => {
+    if (engineState === 'CONFIRM_ANSWER') {
+      speak(t('engine_finish_confirmation'));
+      return;
+    }
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     } else {
@@ -369,6 +377,10 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   };
 
   const jumpToUnanswered = () => {
+    if (engineState === 'CONFIRM_ANSWER') {
+      speak(t('engine_finish_confirmation'));
+      return;
+    }
     const index = questions.findIndex(q => {
       const answer = answers[q.id]?.answer_data;
       return answer === undefined || answer === null;
@@ -376,24 +388,32 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     if (index !== -1) {
       setCurrentQuestionIndex(index);
     } else {
-      speak('All questions answered.');
+      speak(t('engine_all_answered'));
     }
   };
 
   const jumpToMarked = () => {
+    if (engineState === 'CONFIRM_ANSWER') {
+      speak(t('engine_finish_confirmation'));
+      return;
+    }
     const index = questions.findIndex(q => answers[q.id]?.is_marked_for_review);
     if (index !== -1) {
       setCurrentQuestionIndex(index);
     } else {
-      speak('No questions marked for review.');
+      speak(t('engine_none_marked'));
     }
   };
 
   const jumpToQuestion = (index: number) => {
+    if (engineState === 'CONFIRM_ANSWER') {
+      speak(t('engine_finish_confirmation'));
+      return;
+    }
     if (index >= 0 && index < questions.length) {
       setCurrentQuestionIndex(index);
     } else {
-      speak('Invalid question number.');
+      speak(t('engine_invalid_question'));
     }
   };
 
@@ -405,7 +425,8 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     setEngineState('CONFIRM_SUBMIT');
     spokenStateKey.current = null; // reset to force speaking the submit message
     
-    const warning = tParams('submit_warning_msg', { 
+    const warningKey = markedCount === 1 ? 'submit_warning_msg_one_marked' : 'submit_warning_msg_many_marked';
+    const warning = tParams(warningKey, { 
       total: questions.length, 
       answered: answeredCount, 
       unanswered: unansweredCount, 
@@ -422,7 +443,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
 
     const state = useExamStore.getState();
     if (!state.sessionId) {
-      const message = 'This session has no server session ID. The submission cannot be completed.';
+      const message = t('engine_missing_session');
       setSubmissionError(message);
       setEngineState('PROCESSING');
       speak(message);
@@ -437,7 +458,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         ? 'जमा किया जा रहा है...'
         : lang === 'te-IN'
           ? 'సమర్పిస్తున్నాము...'
-          : 'Processing submission...'
+           : t('engine_processing')
     );
 
     try {
@@ -451,12 +472,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
       router.push(`/results?session_id=${submittedSessionId}`);
     } catch (err) {
       console.error('Failed to submit exam:', err);
-      const retryMessage =
-        lang === 'hi-IN'
-          ? 'परीक्षा जमा नहीं हो सकी। आपके उत्तर सुरक्षित हैं। कनेक्शन जाँचें और फिर से जमा करने के लिए हाँ कहें।'
-          : lang === 'te-IN'
-            ? 'పరీక్ష సమర్పించలేకపోయాం. మీ సమాధానాలు భద్రంగా ఉన్నాయి. కనెక్షన్ తనిఖీ చేసి మళ్లీ సమర్పించడానికి అవును అని చెప్పండి.'
-            : 'The exam could not be submitted. Your answers are preserved. Check your connection and say yes to retry submission.';
+      const retryMessage = t('engine_submit_error');
 
       setSubmissionError(retryMessage);
       setEngineState('CONFIRM_SUBMIT');
@@ -479,17 +495,17 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         }
         if (mode === 'practice') {
           speak(engineState === 'PROCESSING'
-            ? 'Your practice session is already being submitted.'
-            : 'Practice is already in progress. You can continue with the current questions.');
+            ? t('engine_exam_submitting')
+            : t('engine_practice_in_progress'));
           return true;
         }
         if (mode !== 'exam') return false;
         if (engineState === 'CONFIRM_ANSWER' || engineState === 'CONFIRM_SUBMIT') {
-          speak('Please finish the current confirmation before continuing.');
+          speak(t('engine_finish_confirmation'));
         } else if (engineState === 'PROCESSING') {
-          speak('Your exam is already being submitted.');
+          speak(t('engine_exam_submitting'));
         } else {
-          speak('The exam is already in progress. You can say next, back, time left, or submit.');
+          speak(t('engine_exam_in_progress'));
         }
         return true;
 
@@ -504,7 +520,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         } else if (engineState === 'CONFIRM_SUBMIT') {
           executeSubmit();
         } else {
-          speak(lang === 'hi-IN' ? 'अभी पुष्टि करने के लिए कुछ नहीं है।' : lang === 'te-IN' ? 'ప్రస్తుతం నిర్ధారించడానికి ఏమీ లేదు.' : 'There is nothing to confirm right now.');
+          speak(t('engine_nothing_confirm'));
         }
         return true;
         
@@ -513,7 +529,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           setPendingAnswer(null);
           spokenStateKey.current = `EXAM-${currentQuestionIndex}`;
           setEngineState('EXAM');
-          const canceledMsg = lang === 'hi-IN' ? 'रद्द किया गया' : lang === 'te-IN' ? 'రద్దు చేయబడింది' : 'Canceled.';
+          const canceledMsg = t('engine_canceled');
           
           let announcement = canceledMsg + ' ';
           if (currentQuestion) {
@@ -525,7 +541,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           }
           speak(announcement, { dedupe: false });
         } else {
-          speak(lang === 'hi-IN' ? 'अभी बदलने के लिए कोई चयन नहीं है।' : lang === 'te-IN' ? 'ప్రస్తుతం మార్చడానికి ఏ ఎంపిక లేదు.' : 'There is nothing to change right now.');
+          speak(t('engine_nothing_change'));
         }
         return true;
 
@@ -553,12 +569,12 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
       case 'READ_OPTIONS':
         if (engineState === 'READY') {
           const actualDuration = durationMinutes ?? 60;
-          const actualTitle = examTitle ?? (mode === 'exam' ? 'Mock Exam' : 'Practice');
+          const actualTitle = examTitle ?? (mode === 'exam' ? t('engine_selected_exam') : t('practice'));
           const announcement = tParams('exam_orientation', { 
             examName: actualTitle, 
             total: questions.length, 
             duration: actualDuration,
-            language: lang === 'hi-IN' ? 'हिंदी' : lang === 'te-IN' ? 'తెలుగు' : 'English'
+            language: lang === 'en-IN' ? t('language_english') : lang === 'hi-IN' ? t('language_hindi') : t('language_telugu')
           });
           speak(announcement, { dedupe: false });
         } else if (engineState === 'EXAM' && currentQuestion) {
@@ -574,7 +590,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
               cleanText = cleanText.replace(match[0], '').trim();
             }
             if (imgUrl) {
-              cleanText += '. (This question contains a diagram)';
+              cleanText += ' ' + t('diagram_in_question');
             }
             announcement += `${tParams('question_x_of_y', { x: currentQuestionIndex + 1, y: questions.length })}. ${cleanText}. `;
           }
@@ -586,7 +602,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           }
           speak(announcement);
         } else {
-          speak(lang === 'hi-IN' ? 'कृपया पहले शुरू करें।' : lang === 'te-IN' ? 'దయచేసి ముందుగా ప్రారంభించండి.' : 'Please start the session first.');
+          speak(t('engine_start_first'));
         }
         return true;
         
@@ -602,7 +618,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         if (engineState === 'EXAM') {
           jumpToUnanswered();
         } else {
-          speak(lang === 'hi-IN' ? 'कृपया पहले शुरू करें।' : lang === 'te-IN' ? 'దయచేసి ముందుగా ప్రారంభించండి.' : 'Please start the session first.');
+          speak(t('engine_start_first'));
         }
         return true;
         
@@ -610,7 +626,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         if (engineState === 'EXAM') {
           jumpToMarked();
         } else {
-          speak(lang === 'hi-IN' ? 'कृपया पहले शुरू करें।' : lang === 'te-IN' ? 'దయచేసి ముందుగా ప్రారంభించండి.' : 'Please start the session first.');
+          speak(t('engine_start_first'));
         }
         return true;
         
@@ -618,7 +634,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         if (engineState === 'EXAM' && typeof payload?.index === 'number') {
           jumpToQuestion(payload.index);
         } else {
-          speak(lang === 'hi-IN' ? 'कृपया पहले शुरू करें और फिर प्रश्न संख्या बताएं।' : lang === 'te-IN' ? 'దయచేసి ముందుగా ప్రారంభించి, తరువాత ప్రశ్న సంఖ్య చెప్పండి.' : 'Please start the session first, then say the question number.');
+          speak(t('engine_start_first_question'));
         }
         return true;
         
@@ -642,7 +658,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             speak(tParams('time_remaining', { time: `${durationMinutes ?? 60} ${t('minutes')}` }));
           }
         } else {
-          speak(lang === 'hi-IN' ? 'अभ्यास मोड में समय सीमा नहीं है।' : lang === 'te-IN' ? 'ప్రాక్టీస్ మోడ్‌లో సమయ పరిమితి లేదు.' : 'Practice mode has no time limit.');
+          speak(t('practice_no_time_limit'));
         }
         return true;
         
@@ -659,7 +675,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             speak(t('invalid_option'));
           }
         } else {
-          speak(lang === 'hi-IN' ? 'कृपया पहले शुरू करें और फिर विकल्प चुनें।' : lang === 'te-IN' ? 'దయచేసి ముందుగా ప్రారంభించి, తరువాత ఒక ఎంపికను చెప్పండి.' : 'Please start the session first, then choose an option.');
+          speak(t('engine_start_first_option'));
         }
         return true;
         
@@ -738,10 +754,10 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   // Renders for different engine states
   if (engineState === 'READY') {
     return (
-      <div className="relative flex flex-col min-h-screen w-full mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
+      <div className="relative flex flex-col min-h-dvh w-full mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
         <div className="mb-24 flex items-center justify-between border-b border-zinc-900 pb-8 relative z-10">
           <div className="flex flex-col">
-            <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">MODE</span>
+            <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">{t('mode')}</span>
             <span className="text-xl font-light tracking-wide">{mode === 'exam' ? 'EXAMINATION' : 'PRACTICE'}</span>
           </div>
           <VoiceCore size="sm" />
@@ -753,11 +769,11 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           transition={{ duration: 0.8, delay: 0.2 }}
           className="flex-1 flex flex-col justify-center w-full max-w-4xl mx-auto relative z-10 space-y-12"
         >
-          <h1 className="text-[clamp(3rem,6vw,7rem)] font-light tracking-tighter leading-tight mb-4">
-            {t('exam')} Orientation
-          </h1>
+          <h2 className="text-[clamp(3rem,6vw,7rem)] font-light tracking-tighter leading-tight mb-4">
+            {t('exam')} {t('orientation')}
+          </h2>
           <p className="text-2xl text-zinc-400 font-light leading-relaxed max-w-2xl" aria-live="polite">
-            {tParams('exam_orientation', { examName: examTitle ?? (mode === 'exam' ? 'Selected Exam' : 'Practice'), total: questions.length, duration: durationMinutes ?? 60, language: lang === 'en-IN' ? 'English' : lang === 'hi-IN' ? 'Hindi' : 'Telugu' })}
+            {tParams('exam_orientation', { examName: examTitle ?? (mode === 'exam' ? t('engine_selected_exam') : t('practice')), total: questions.length, duration: durationMinutes ?? 60, language: lang === 'en-IN' ? t('language_english') : lang === 'hi-IN' ? t('language_hindi') : t('language_telugu') })}
           </p>
           
           <div className="pt-16 border-t border-zinc-900 flex justify-between items-center">
@@ -769,7 +785,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
                 stopSpeaking();
                 setEngineState('EXAM');
               }}
-              className="px-12 py-4 bg-white text-black text-sm font-bold uppercase tracking-widest rounded-full hover:bg-zinc-200 transition-colors focus-visible:ring-4 focus-visible:ring-white/30"
+              className="px-12 py-4 bg-white text-black text-sm font-bold uppercase tracking-widest rounded-full hover:bg-zinc-200 transition-colors focus-visible:ring-4 focus-visible:ring-[var(--brand-accent)]"
             >
               START EXAM
             </button>
@@ -781,7 +797,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
 
   if (engineState === 'CONFIRM_SUBMIT') {
     return (
-      <div className="flex flex-col min-h-screen w-full mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
+      <div className="flex flex-col min-h-dvh w-full mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
         <div className="flex-1 flex flex-col justify-center w-full max-w-4xl mx-auto space-y-12">
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
@@ -791,9 +807,9 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             <AlertTriangle className="w-12 h-12 text-red-500" />
           </motion.div>
           
-          <h1 className="text-[clamp(3rem,6vw,7rem)] font-light tracking-tighter leading-tight mb-4">
+          <h2 className="text-[clamp(3rem,6vw,7rem)] font-light tracking-tighter leading-tight mb-4">
             {t('submit')}
-          </h1>
+          </h2>
           <p className="text-2xl text-zinc-400 font-light leading-relaxed max-w-2xl" aria-live="polite">
             {t('submit_confirm_msg')}
           </p>
@@ -802,11 +818,11 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             <div
               className="rounded-2xl border border-amber-900/60 bg-amber-950/20 p-6 text-base text-zinc-200 md:text-lg"
               role="alert"
-              aria-live="assertive"
+              aria-live="off"
             >
-              <p className="font-semibold">Previous submission attempt was not saved.</p>
+              <p className="font-semibold">{t('no_submission_saved')}</p>
               <p className="mt-2 text-zinc-400">{submissionError}</p>
-              <p className="mt-2 text-zinc-300">Your current answers remain on this device. Check the connection and try again.</p>
+              <p className="mt-2 text-zinc-300">{t('answers_preserved')}</p>
             </div>
           )}
 
@@ -831,9 +847,9 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
 
   if (engineState === 'PROCESSING') {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-6 w-full relative">
+      <div className="flex flex-col items-center justify-center min-h-dvh bg-black text-white p-6 w-full relative">
         <VoiceCore size="lg" />
-        <motion.h1
+        <motion.h2
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -841,9 +857,9 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           aria-live="assertive"
         >
           {submissionError
-            ? (lang === 'hi-IN' ? 'Submission could not be completed' : lang === 'te-IN' ? 'సమర్పణ పూర్తి కాలేదు' : 'Submission could not be completed')
-            : (lang === 'hi-IN' ? 'जमा किया जा रहा है...' : lang === 'te-IN' ? 'సమర్పిస్తున్నాము...' : 'Processing submission...')}
-        </motion.h1>
+            ? t('engine_submission_failed')
+            : t('engine_processing')}
+        </motion.h2>
 
         {submissionError && (
           <div className="mt-8 w-full max-w-xl text-center">
@@ -853,7 +869,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             <button
               type="button"
               onClick={() => void executeSubmit()}
-              className="mt-8 px-10 py-4 bg-white text-black rounded-full text-sm font-bold uppercase tracking-widest hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/30"
+              className="mt-8 px-10 py-4 bg-white text-black rounded-full text-sm font-bold uppercase tracking-widest hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--brand-accent)]"
             >
               Retry Submission
             </button>
@@ -865,21 +881,78 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
 
   // EXAM or CONFIRM_ANSWER state
   return (
-    <div className="relative flex flex-col min-h-screen w-full max-w-7xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
+    <div className="relative flex flex-col min-h-dvh w-full max-w-7xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
       {/* Header Info */}
       <div className="mb-24 flex flex-col md:flex-row md:items-center justify-between border-b border-zinc-900 pb-8 relative z-10 gap-8">
         <div className="flex items-center gap-6">
           <VoiceCore size="sm" />
           <div className="flex flex-col">
             <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">
-              {mode === 'exam' ? 'Real Exam' : 'Practice Mode'}
+              {mode === 'exam' ? t('engine_real_exam') : t('engine_practice_mode')}
             </span>
             <span className="text-2xl font-light tracking-wide" aria-live="polite">
-              Question {currentQuestionIndex + 1} / {questions.length}
+              {tParams('question_x_of_y', { x: currentQuestionIndex + 1, y: questions.length })}
             </span>
           </div>
         </div>
         
+        <div className="mb-10">
+          <div className="mb-2 flex items-center justify-between gap-4 text-sm">
+            <span className="text-zinc-400">{t('progress')}</span>
+            <span className="text-zinc-400">{currentQuestionIndex + 1} / {questions.length}</span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-900"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(((currentQuestionIndex + 1) / questions.length) * 100)}
+            aria-label={t('question_progress')}
+          >
+            <div
+              className="h-full rounded-full bg-[var(--brand-accent)] transition-[width] duration-300"
+              style={{ width: `${Math.round(((currentQuestionIndex + 1) / questions.length) * 100)}%` }}
+            />
+          </div>
+        </div>
+
+        <section aria-labelledby="question-palette-heading" className="mb-12 rounded-2xl border border-zinc-800 bg-zinc-950 p-5">
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <h3 id="question-palette-heading" className="text-sm font-bold uppercase tracking-[0.18em] text-zinc-400">{t('question_palette')}</h3>
+            <span className="text-sm text-zinc-400">{t('question_palette_hint')}</span>
+          </div>
+          <div className="grid grid-cols-4 gap-3 sm:grid-cols-6 md:grid-cols-8" role="list">
+            {questions.map((question, index) => {
+              const answer = answers[question.id];
+              const answered = answer?.answer_data !== null && answer?.answer_data !== undefined;
+              const marked = answer?.is_marked_for_review === true;
+              const isCurrent = index === currentQuestionIndex;
+              const stateLabel = marked ? t('marked') : answered ? t('answered') : t('unanswered');
+              const StateIcon = marked ? Flag : answered ? CheckCircle : Circle;
+              return (
+                <button
+                  key={question.id}
+                  type="button"
+                  onClick={() => {
+                    setPendingAnswer(null);
+                    setCurrentQuestionIndex(index);
+                  }}
+                  aria-current={isCurrent ? "step" : undefined}
+                  aria-label={tParams('question_palette_item', { number: index + 1, state: stateLabel })}
+                  className={[
+                    'min-h-11 min-w-11 rounded-xl border px-2 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)]',
+                    isCurrent ? 'border-[var(--brand-accent)] text-[var(--brand-accent)]' : 'border-zinc-700 text-zinc-100 hover:border-zinc-400',
+                  ].join(" ")}
+                >
+                  <span className="flex items-center justify-center gap-1.5">
+                    <StateIcon className="h-4 w-4" aria-hidden="true" />
+                    <span>{index + 1}</span>
+                  </span>
+                  <span className="sr-only">{stateLabel}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
         <div className="flex flex-row-reverse md:flex-row items-center justify-between md:justify-end gap-8 w-full md:w-auto">
           {mode === 'exam' && (
             <div className="flex flex-col md:items-end">
@@ -897,8 +970,8 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           <button 
             onClick={toggleListening}
             className={`p-4 rounded-full border transition-all ${isContinuous ? 'border-white text-black bg-white' : micError ? 'border-red-900 text-red-500 bg-red-950/20' : 'border-zinc-800 text-zinc-400 bg-transparent hover:border-zinc-500 hover:text-white'}`}
-            aria-label={micError === 'denied' ? 'Microphone denied' : isContinuous ? 'Pause voice control' : 'Enable voice control'}
-            title={micError === 'denied' ? 'Microphone access denied' : ''}
+            aria-label={micError === 'denied' ? t('microphone_access_denied') : isContinuous ? t('pause_voice') : t('enable_voice')}
+            title={micError === 'denied' ? t('microphone_access_denied') : ''}
           >
             {micError ? <MicOff className="w-5 h-5 text-red-500" /> : isContinuous ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
           </button>
@@ -917,7 +990,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
               <h2 className="text-3xl md:text-5xl font-light tracking-tighter" aria-live="assertive">
                 {currentQuestion.options && pendingAnswer !== null 
                   ? tParams('answer_confirm_prompt', { index: pendingAnswer + 1, option: currentQuestion.options[pendingAnswer] })
-                  : 'Confirm answer?'}
+                  : t('confirm') + '?'}
               </h2>
             </div>
             <div className="flex gap-4 border-t border-zinc-900 pt-12">
@@ -950,7 +1023,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             {(() => {
               let cleanText = currentQuestion.question_text;
               let imgUrl = currentQuestion.image_url || null;
-              const altText = currentQuestion.image_alt_text || "Question diagram";
+              const altText = currentQuestion.image_alt_text || t('question_diagram');
               
               // Legacy fallback
               const match = cleanText.match(/\[IMAGE:(.*?)\]/);
@@ -973,12 +1046,12 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
                     <div className="mt-12">
                       {visionStatus === 'analyzing' && (
                         <div className="mb-4 rounded-2xl border border-blue-900/60 bg-blue-950/20 px-5 py-4 text-base text-blue-100" role="status" aria-live="polite">
-                          Reading the diagram with Vision AI. The question itself is not being solved.
+                          {t('engine_analyzing')}
                         </div>
                       )}
                       {visionStatus === 'failed' && (
                         <div className="mb-4 rounded-2xl border border-amber-900/60 bg-amber-950/20 px-5 py-4 text-base text-zinc-200" role="alert" aria-live="assertive">
-                          Vision AI could not describe this diagram right now. The image remains available, and you can continue with the keyboard or screen reader.
+                          {t('engine_vision_failed')}
                         </div>
                       )}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -992,7 +1065,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             {/* Options */}
             <div 
               role="radiogroup" 
-              aria-label="Answer options"
+              aria-label={t('answer_options')}
               className="flex flex-col border-t border-zinc-900"
             >
               {Array.isArray(currentQuestion.options) && currentQuestion.options.map((option, idx) => {
@@ -1013,13 +1086,14 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
                             handleOptionSelect(idx);
                           }}
                           className="sr-only"
-                          aria-label={`Option ${String.fromCharCode(65 + idx)}: ${option}`}
+                          aria-label={tParams('option_label', { letter: String.fromCharCode(65 + idx), option })}
                         />
                         {isSelected && <div className="w-2.5 h-2.5 bg-black rounded-full" />}
                       </div>
                       
                       <div className="flex-1 flex flex-col md:flex-row md:items-baseline gap-2 md:gap-8">
-                        <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest shrink-0">Opt {String.fromCharCode(65 + idx)}</span>
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-700 text-sm font-bold text-zinc-100" aria-hidden="true">{String.fromCharCode(65 + idx)}</span>
+                         <span className="sr-only">{t('option')} {String.fromCharCode(65 + idx)}</span>
                         <span className={`text-xl md:text-2xl font-light leading-relaxed ${isSelected ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-200'}`}>{option}</span>
                       </div>
                     </div>
@@ -1031,16 +1105,16 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         )}
 
         <section aria-labelledby="keyboard-shortcuts" className="mt-12 border-y border-zinc-900 py-6 relative z-10">
-        <h3 id="keyboard-shortcuts" className="mb-4 text-xs font-black uppercase tracking-[0.2em] text-zinc-400">Keyboard shortcuts</h3>
+        <h3 id="keyboard-shortcuts" className="mb-4 text-xs font-black uppercase tracking-[0.2em] text-zinc-400">{t('keyboard_shortcuts')}</h3>
         <div className="grid grid-cols-2 gap-3 text-sm text-zinc-300 md:grid-cols-4">
-          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">Esc</kbd> Stop speaking</span>
-          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">R</kbd> Repeat</span>
-          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">T</kbd> Time left</span>
-          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">M</kbd> Mark</span>
-          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">N</kbd> Next</span>
-          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">P</kbd> Previous</span>
-          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">1–4</kbd> Select option</span>
-          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">?</kbd> Help</span>
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">Esc</kbd> {t('stop_speaking')}</span>
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">R</kbd> {t('repeat')}</span>
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">T</kbd> {t('time_left')}</span>
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">M</kbd> {t('mark_review')}</span>
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">N</kbd> {t('next')}</span>
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">P</kbd> {t('back')}</span>
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">1–4</kbd> {t('select_option')}</span>
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">?</kbd> {t('help')}</span>
         </div>
       </section>
 

@@ -32,6 +32,8 @@ jobs:
         run: npm test
       - name: Run command parser unit gate
         run: node --test src/lib/voice/__tests__/commandParser.test.ts
+      - name: Run i18n dictionary unit gate
+        run: node --test src/lib/i18n/__tests__/registry.test.ts
       - name: Run full-page accessibility Playwright suite
         env:
           NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321

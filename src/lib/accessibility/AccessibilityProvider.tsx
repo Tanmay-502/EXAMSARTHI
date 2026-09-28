@@ -152,12 +152,6 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
 
   return (
     <AccessibilityContext.Provider value={{ announce, ...preferences, updateAccessibilityPreferences }}>
-      <a 
-        href="#main-content" 
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:p-4 focus:bg-background focus:text-foreground focus:ring-2 focus:ring-primary focus:outline-none rounded-md"
-      >
-        Skip to main content
-      </a>
       {children}
       <div
         aria-live={announcement.politeness === 'polite' ? 'polite' : 'off'}

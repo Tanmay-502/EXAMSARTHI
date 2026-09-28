@@ -15,7 +15,7 @@ import { usePreferredMode } from '@/lib/hooks/usePreferredMode';
 import { say } from '@/lib/voice/say';
 
 function DashboardContent() {
-  const { t } = useI18n();
+  const { t, tParams } = useI18n();
   const { announce } = useAccessibility();
   const { speak, isContinuous, startContinuousListening, transcript } = useVoice();
   const { useVoiceAction } = useGlobalVoice();
@@ -29,6 +29,7 @@ function DashboardContent() {
   const timeOfDay: 'morning' | 'afternoon' | 'evening' = currentHour < 12 ? 'morning' : currentHour < 17 ? 'afternoon' : 'evening';
   const [userName, setUserName] = useState<string | null>(null);
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [statsError, setStatsError] = useState(false);
   const [insight, setInsight] = useState<string | null>(null);
   const { mode: interactionMode, isLoaded: preferenceLoaded } = usePreferredMode();
   // Auto-scroll transcript
@@ -73,6 +74,7 @@ function DashboardContent() {
         setStats(data);
       } catch (err) {
         console.error('Failed to fetch dashboard stats', err);
+        setStatsError(true);
       }
     };
     const fetchInsight = async () => {
@@ -104,15 +106,22 @@ function DashboardContent() {
     fetchInsight();
   }, []);
 
+  const retryStats = () => {
+    setStatsError(false);
+    void fetchDashboardStats()
+      .then((data) => setStats(data))
+      .catch(() => setStatsError(true));
+  };
+
   useEffect(() => {
     if (!preferenceLoaded || hasSpokenRef.current || userName === null) return;
     hasSpokenRef.current = true;
     headingRef.current?.focus();
     
-    const announceMsg = redirected ? t('already_signed_in') + ' Dashboard loaded.' : 'Dashboard loaded.';
+    const announceMsg = redirected ? t('already_signed_in') + ' ' + t('dashboard') + ' loaded.' : t('dashboard') + ' loaded.';
     const greeting = userName
-      ? `Hey ${userName}, how can I help you today?`
-      : 'Hey, welcome back. How can I help you today?';
+      ? `${tParams(timeOfDay === 'morning' ? 'good_morning' : timeOfDay === 'afternoon' ? 'good_afternoon' : 'good_evening', { name: userName.split(' ')[0] })}`
+      : tParams(timeOfDay === 'morning' ? 'good_morning' : timeOfDay === 'afternoon' ? 'good_afternoon' : 'good_evening', { name: '' }).replace(' ,', '.');
     say(`${announceMsg} ${greeting}`, interactionMode, speak, announce);
 
     if (interactionMode === 'voice-first' && !isContinuous) {
@@ -122,22 +131,25 @@ function DashboardContent() {
 
   useVoiceAction((action) => {
     if (action === 'HELP') {
-      speak("You are on the dashboard. You can ask me to start an exam, prepare a practice session, check your progress, view history, open analysis, or open settings.");
+      speak(t('dashboard_announce'));
       return true;
     }
 
     if (action === 'READ_PROGRESS') {
       if (!stats) {
-        speak("Your progress is still loading. Please try again in a moment.");
+        speak(t('loading'));
         return true;
       }
 
       const focusText = stats.focusSubject && stats.focusPercentage !== null
-        ? ` Your current focus is ${stats.focusSubject} at ${stats.focusPercentage} percent accuracy.`
+        ? tParams('focus_progress', { subject: stats.focusSubject, percentage: stats.focusPercentage })
         : '';
       speak(
-        `You have completed ${stats.totalExams + stats.totalPractice} sessions with an average score of ${stats.avgPercentage} percent.` +
-        focusText
+        tParams('progress_summary', {
+          sessions: stats.totalExams + stats.totalPractice,
+          percentage: stats.avgPercentage,
+          focus: focusText,
+        })
       );
       return true;
     }
@@ -147,8 +159,8 @@ function DashboardContent() {
 
 
   return (
-    <div className="relative flex flex-col min-h-screen w-full max-w-7xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
-      <h1 tabIndex={-1} ref={headingRef} className="sr-only">Dashboard Command Center</h1>
+    <div className="relative flex flex-col min-h-0 w-full max-w-7xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
+      <h1 tabIndex={-1} ref={headingRef} className="sr-only">{t('command_center')}</h1>
       
       {/* Editorial Header */}
       <motion.div 
@@ -158,9 +170,12 @@ function DashboardContent() {
         className="mb-32"
       >
         <h2 className="text-[clamp(3rem,6vw,7rem)] leading-[0.9] font-light tracking-tighter mb-4 text-zinc-100">
-          {userName ? `Good ${timeOfDay}, ${userName.split(' ')[0]}.` : `Good ${timeOfDay}.`}
+          {userName
+            ? tParams(timeOfDay === 'morning' ? 'good_morning' : timeOfDay === 'afternoon' ? 'good_afternoon' : 'good_evening', { name: userName.split(' ')[0] })
+            : tParams(timeOfDay === 'morning' ? 'good_morning' : timeOfDay === 'afternoon' ? 'good_afternoon' : 'good_evening', { name: '' }).replace(/,\s*\./, '.')
+          }
         </h2>
-        <p className="text-2xl md:text-4xl font-light text-zinc-400">Continue your preparation.</p>
+        <p className="text-2xl md:text-4xl font-light text-zinc-400">{t('continue_your_preparation')}</p>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24">
@@ -172,45 +187,60 @@ function DashboardContent() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="lg:col-span-8 flex flex-col space-y-12"
         >
-          <Link
-            href={stats?.focusSubject ? `/practice?subject=${encodeURIComponent(stats.focusSubject)}` : '/practice'}
-            className="group block border-t border-zinc-900 pt-12 pb-12 transition-colors hover:border-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-4 focus-visible:ring-offset-black"
-            aria-label={stats?.focusSubject ? `Continue practicing ${stats.focusSubject}` : 'Choose a subject to practice'}
-          >
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
-              <div>
-                <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase mb-4">CURRENT FOCUS</p>
-                <h3 className="text-5xl md:text-8xl font-light tracking-tighter">
-                  {stats?.focusSubject || 'Choose a subject'}
-                </h3>
-              </div>
-              <div className="text-right">
-                {stats?.focusPercentage !== null && stats?.focusPercentage !== undefined ? (
-                  <>
-                    <span className="text-5xl md:text-7xl font-light">{stats.focusPercentage}%</span>
-                    <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase mt-2">CURRENT ACCURACY</p>
-                  </>
-                ) : (
-                  <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase mt-2">NO DATA YET</p>
-                )}
-              </div>
+
+          {statsError ? (
+            <div className="rounded-2xl border border-amber-900/60 bg-amber-950/20 p-8" role="alert">
+              <h3 className="text-2xl font-light">{t('page_error_title')}</h3>
+              <p className="mt-3 text-base text-zinc-400">{t('dashboard_error_desc')}</p>
+              <button type="button" onClick={retryStats} className="mt-6 inline-flex min-h-11 items-center rounded-full bg-white px-6 text-sm font-semibold text-black focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)]">
+                {t('retry')}
+              </button>
             </div>
-            
-            <div className="flex items-center text-sm tracking-wide font-medium text-white transition-transform group-hover:translate-x-2">
-              Continue preparation ↗
+          ) : !stats ? (
+            <div className="space-y-5 border-t border-zinc-900 pt-12" aria-busy="true">
+              <div role="status" className="sr-only">{t('loading')}</div>
+              <div className="h-5 w-32 animate-pulse rounded bg-zinc-800" />
+              <div className="h-24 max-w-xl animate-pulse rounded bg-zinc-900" />
+              <div className="h-5 w-48 animate-pulse rounded bg-zinc-900" />
             </div>
-          </Link>
+          ) : (
+            <Link
+              href={stats.focusSubject ? `/practice?subject=${encodeURIComponent(stats.focusSubject)}` : '/practice'}
+              className="group block border-t border-zinc-900 pt-12 pb-12 transition-colors hover:border-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-black"
+              aria-label={stats.focusSubject ? `${t('continue_preparation_arrow')} ${stats.focusSubject}` : t('choose_subject')}
+            >
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+                <div>
+                  <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase mb-4">{t('current_focus')}</p>
+                  <h3 className="text-5xl md:text-8xl font-light tracking-tighter">{stats.focusSubject || t('choose_subject')}</h3>
+                </div>
+                <div className="text-right">
+                  {stats.focusPercentage !== null && stats.focusPercentage !== undefined ? (
+                    <>
+                      <span className="text-5xl md:text-7xl font-light">{stats.focusPercentage}%</span>
+                      <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase mt-2">{t('current_accuracy')}</p>
+                    </>
+                  ) : (
+                    <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase mt-2">{t('no_data_yet')}</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center text-sm tracking-wide font-medium text-[var(--brand-accent)] transition-transform group-hover:translate-x-2">
+                {t('continue_preparation_arrow')}
+              </div>
+            </Link>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 border-t border-zinc-900 pt-12">
             {stats && stats.recentSessions.length > 1 && (
               <div className="border-t border-zinc-900 pt-12">
                 <div className="mb-6 flex items-end justify-between gap-4">
                   <div>
-                    <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase mb-2">RECENT PERFORMANCE</p>
-                    <p className="text-xl font-light text-zinc-200">Live session trend</p>
+                    <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase mb-2">{t('recent_performance').toUpperCase()}</p>
+                    <p className="text-xl font-light text-zinc-200">{t('live_session_trend')}</p>
                   </div>
-                  <Link href="/analysis" className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-300 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded-sm">
-                    View analysis ↗
+                  <Link href="/analysis" className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-300 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] rounded-sm">
+                    {t('view_analysis_arrow')}
                   </Link>
                 </div>
                 <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5 md:p-6">
@@ -219,12 +249,12 @@ function DashboardContent() {
                       <div key={session.id} className="flex min-w-0 flex-1 flex-col items-center justify-end gap-2">
                         <span className="text-xs font-bold text-zinc-300">{session.percentage}%</span>
                         <div
-                          className="w-full max-w-14 rounded-t-lg bg-white transition-all"
+                          className="w-full max-w-14 rounded-t-lg bg-[var(--brand-accent)] transition-all"
                           style={{ height: `${Math.max(12, session.percentage)}%` }}
                           role="img"
-                          aria-label={`${session.title ?? 'Session'}: ${session.percentage} percent`}
+                          aria-label={`${session.title ?? t('session')}: ${session.percentage} percent`}
                         />
-                        <span className="w-full truncate text-center text-[11px] text-zinc-500">{session.date}</span>
+                        <span className="w-full truncate text-center text-xs text-zinc-400">{session.date}</span>
                       </div>
                     ))}
                   </div>
@@ -232,19 +262,19 @@ function DashboardContent() {
               </div>
             )}
             <div>
-              <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase mb-4">Aggregate Progress</p>
+              <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase mb-4">{t('aggregate_progress')}</p>
               <div className="flex items-baseline gap-4 mb-2">
                 <span className="text-4xl font-light">{stats ? stats.totalExams + stats.totalPractice : 0}</span>
-                <span className="text-zinc-400">Sessions</span>
+                <span className="text-zinc-400">{t('sessions')}</span>
               </div>
               <div className="flex items-baseline gap-4">
                 <span className="text-4xl font-light">{stats ? stats.avgPercentage : 0}%</span>
-                <span className="text-zinc-400">Avg Score</span>
+                <span className="text-zinc-400">{t('avg_score')}</span>
               </div>
             </div>
             {insight && (
               <div>
-                <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase mb-4">AI Insight</p>
+                <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase mb-4">{t('ai_insight')}</p>
                 <p className="text-lg font-light text-zinc-300 leading-relaxed">{insight}</p>
               </div>
             )}
@@ -259,7 +289,7 @@ function DashboardContent() {
           className="lg:col-span-4 flex flex-col space-y-12"
         >
           <div className="flex flex-col items-center justify-center p-8 border border-zinc-900 rounded-3xl mb-8 relative overflow-hidden">
-            <p className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-6 relative z-10">Voice Assistant</p>
+            <p className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-6 relative z-10">{t('voice_assistant')}</p>
             <VoiceCore size="sm" />
             {transcript.length > 0 && interactionMode === 'voice-first' && (
               <div className="mt-8 text-center text-sm font-light text-zinc-400 relative z-10">
@@ -269,7 +299,7 @@ function DashboardContent() {
           </div>
 
           <div>
-            <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase mb-8">RECENT ACTIVITY</p>
+            <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase mb-8">{t('recent_activity').toUpperCase()}</p>
             
             <div className="flex flex-col">
               {stats?.recentSessions && stats.recentSessions.length > 0 ? (
@@ -283,19 +313,19 @@ function DashboardContent() {
                   </div>
                 ))
               ) : (
-                <div className="py-6 text-zinc-400 font-light">No recent activity found.</div>
+                <div className="py-6 text-zinc-400 font-light">{t('no_activity_yet')}</div>
               )}
             </div>
           </div>
 
           <div className="border-t border-zinc-900 pt-12">
-            <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase mb-8">NAVIGATION</p>
+            <p className="text-zinc-400 tracking-[0.2em] text-sm uppercase mb-8">{t('dashboard')}</p>
             <div className="flex flex-col space-y-4">
-              <Link href="/practice" className="text-xl font-light hover:text-zinc-400 transition-colors">Practice ↗</Link>
-              <Link href="/exam" className="text-xl font-light hover:text-zinc-400 transition-colors">Real Exam ↗</Link>
-              <Link href="/history" className="text-xl font-light hover:text-zinc-400 transition-colors">History & Results ↗</Link>
-              <Link href="/analysis" className="text-xl font-light hover:text-zinc-400 transition-colors">Analysis ↗</Link>
-              <Link href="/settings" className="text-xl font-light hover:text-zinc-400 transition-colors">Settings ↗</Link>
+              <Link href="/practice" className="text-xl font-light hover:text-zinc-400 transition-colors">{t('practice')} ↗</Link>
+              <Link href="/exam" className="text-xl font-light hover:text-zinc-400 transition-colors">{t('exam')} ↗</Link>
+              <Link href="/history" className="text-xl font-light hover:text-zinc-400 transition-colors">{t('history')} &amp; {t('results')} ↗</Link>
+              <Link href="/analysis" className="text-xl font-light hover:text-zinc-400 transition-colors">{t('analysis_page').replace('.', '')} ↗</Link>
+              <Link href="/settings" className="text-xl font-light hover:text-zinc-400 transition-colors">{t('settings')} ↗</Link>
             </div>
           </div>
         </motion.div>
@@ -305,9 +335,9 @@ function DashboardContent() {
 }
 
 export default function DashboardPage() {
-  const { t } = useI18n();
+  const { t, tParams } = useI18n();
   return (
-    <main id="main-content" className="flex-1 w-full bg-black min-h-screen">
+    <main id="main-content" className="flex min-h-dvh w-full flex-1 bg-black">
       <Suspense fallback={<div className="p-12 text-center text-white/50">{t('loading')}</div>}>
         <DashboardContent />
       </Suspense>

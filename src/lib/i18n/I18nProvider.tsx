@@ -61,7 +61,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   return (
     <I18nContext.Provider value={{ lang, setLang, t, tParams }}>
-      <div className="min-h-screen bg-background text-foreground flex flex-col">
+      <div className="flex min-h-0 flex-1 flex-col bg-background text-foreground">
         {children}
       </div>
     </I18nContext.Provider>
