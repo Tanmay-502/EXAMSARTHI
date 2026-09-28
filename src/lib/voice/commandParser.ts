@@ -51,8 +51,10 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
     return regex.test(text);
   };
 
-  // Practice intent takes precedence whenever the utterance explicitly contains
-  // a practice word. This prevents the generic exam/test catch-alls from winning.
+  const contextualModeAnalysis = new Set(['mode_selection', 'onboarding', 'dashboard']);
+  const contextualStudy = contextualModeAnalysis.has(context ?? '');
+
+  // Practice intent is a navigation shortcut only in mode-selection/onboarding/dashboard.
   const practiceWords = lang === 'hi-IN'
     ? ['अभ्यास', 'प्रैक्टिस']
     : lang === 'te-IN'
@@ -61,7 +63,7 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
   const containsPracticeWord = practiceWords.some((word) =>
     /[A-Za-z]/.test(word) ? matchesPhrase(normalized, word) : normalized.includes(word)
   );
-  if (containsPracticeWord) return { type: 'DASHBOARD_PRACTICE' };
+  if (containsPracticeWord && contextualStudy) return { type: 'DASHBOARD_PRACTICE' };
 
   // Hardcoded fallback for onboarding mode selection (English and transliterations)
   if (matchesPhrase(normalized, 'standard') || matchesPhrase(normalized, 'स्टैंडर्ड') || matchesPhrase(normalized, 'స్టాండర్డ్') || matchesPhrase(normalized, 'సాధారణం')) return { type: 'SELECT_MODE_STANDARD' };
@@ -95,8 +97,8 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
 
   if (matchesPhrase(normalized, 'skip guide') || matchesPhrase(normalized, 'dismiss guide') || matchesPhrase(normalized, 'close guide')) return { type: 'DISMISS_GUIDE' };
 
-  // Hardcoded fallback for analysis
-  if (matchesPhrase(normalized, 'analysis') || matchesPhrase(normalized, 'show analysis') || matchesPhrase(normalized, 'open analysis') || matchesPhrase(normalized, 'give me the analysis') || matchesPhrase(normalized, 'tell me my analysis') || matchesPhrase(normalized, 'tell me the analysis of me') || matchesPhrase(normalized, 'analyse my preparation') || matchesPhrase(normalized, 'analyze my preparation') || matchesPhrase(normalized, 'show my performance') || matchesPhrase(normalized, 'how am i performing') || matchesPhrase(normalized, 'how is my preparation') || matchesPhrase(normalized, 'analyze') || matchesPhrase(normalized, 'analyse') || matchesPhrase(normalized, 'విశ్లేషణ') || matchesPhrase(normalized, 'విశ్లేషణ చూపించు') || matchesPhrase(normalized, 'నా విశ్లేషణ') || matchesPhrase(normalized, 'నా పనితీరు ఎలా ఉంది') || matchesPhrase(normalized, 'నా తయారీ ఎలా ఉంది') || matchesPhrase(normalized, 'పనితీరు')) return { type: 'OPEN_ANALYSIS' };
+  // Analysis phrases are navigation shortcuts only in mode-selection/onboarding/dashboard.
+  if (contextualModeAnalysis && (matchesPhrase(normalized, 'analysis') || matchesPhrase(normalized, 'show analysis') || matchesPhrase(normalized, 'open analysis') || matchesPhrase(normalized, 'give me the analysis') || matchesPhrase(normalized, 'tell me my analysis') || matchesPhrase(normalized, 'tell me the analysis of me') || matchesPhrase(normalized, 'analyse my preparation') || matchesPhrase(normalized, 'analyze my preparation') || matchesPhrase(normalized, 'show my performance') || matchesPhrase(normalized, 'how am i performing') || matchesPhrase(normalized, 'how is my preparation') || matchesPhrase(normalized, 'analyze') || matchesPhrase(normalized, 'analyse') || matchesPhrase(normalized, 'విశ్లేషణ') || matchesPhrase(normalized, 'విశ్లేషణ చూపించు') || matchesPhrase(normalized, 'నా విశ్లేషణ') || matchesPhrase(normalized, 'నా పనితీరు ఎలా ఉంది') || matchesPhrase(normalized, 'నా తయారీ ఎలా ఉంది') || matchesPhrase(normalized, 'పనితీరు'))) return { type: 'OPEN_ANALYSIS' };
 
   // Collect all phrases and sort by length descending to match longest first
   const allPhrases: { commandType: string, phrase: string }[] = [];
@@ -122,8 +124,14 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
   }
 
   // Check option selection
-  const values = langDef.optionValues;
-  const isExamContext = context === 'exam' || context === 'practice';
+  const values = {
+    ...langDef.optionValues,
+    a: [...langDef.optionValues.a, 'a', 'ay', 'eh'],
+    b: [...langDef.optionValues.b, 'b', 'be', 'bee'],
+    c: [...langDef.optionValues.c, 'c', 'see', 'sea'],
+    d: [...langDef.optionValues.d, 'd', 'dee'],
+  };
+  const isExamContext = context === 'exam_active' || context === 'practice_active';
   const hasExplicitOptionKeyword =
     langDef.optionKeywords.some(keyword => matchesPhrase(normalized, keyword));
 
@@ -136,7 +144,19 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
     const matchC = values.c.some(v => matchesPhrase(normalized, v));
     const matchD = values.d.some(v => matchesPhrase(normalized, v));
 
-    if (matchA) return { type: 'SELECT_OPTION', index: 0 };
+    const wordCount = normalized.split(/\s+/).filter(Boolean).length;
+    const bareA = wordCount <= 3 && /^(a|ay|eh)$/i.test(normalized);
+    const numericHomophone =
+      normalized === '2' || matchesPhrase(normalized, 'to') || matchesPhrase(normalized, 'too')
+        ? 1
+        : normalized === '3' || matchesPhrase(normalized, 'tree')
+          ? 2
+          : normalized === '4' || matchesPhrase(normalized, 'for')
+            ? 3
+            : null;
+
+    if (numericHomophone !== null) return { type: 'SELECT_OPTION', index: numericHomophone };
+    if (matchA || bareA) return { type: 'SELECT_OPTION', index: 0 };
     if (matchB) return { type: 'SELECT_OPTION', index: 1 };
     if (matchC) return { type: 'SELECT_OPTION', index: 2 };
     if (matchD) return { type: 'SELECT_OPTION', index: 3 };
