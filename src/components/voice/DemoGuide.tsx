@@ -37,41 +37,57 @@ function hasSeenGuide() {
 export function DemoGuide() {
   const pathname = usePathname();
   const { useVoiceAction } = useGlobalVoice();
+  const [sessionSeen, setSessionSeen] = useState(() => hasSeenGuide());
+  const [previousPathname, setPreviousPathname] = useState(pathname);
   const [open, setOpen] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const startButtonRef = useRef<HTMLButtonElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
 
-  const closeGuide = useCallback(() => {
+  if (pathname !== previousPathname) {
+    setPreviousPathname(pathname);
+    if (pathname !== '/') {
+      setOpen(false);
+    }
+  }
+
+  const markGuideSeen = useCallback(() => {
+    setSessionSeen(true);
     try {
       sessionStorage.setItem(SESSION_KEY, 'true');
     } catch {
       // Continue without session persistence if storage is unavailable.
     }
+  }, []);
 
+  const closeGuide = useCallback(() => {
+    markGuideSeen();
     setOpen(false);
     window.requestAnimationFrame(() => {
       returnFocusRef.current?.focus();
     });
-  }, []);
+  }, [markGuideSeen]);
 
   useEffect(() => {
-    if (pathname !== '/' || hasSeenGuide()) return;
+    if (pathname !== '/' || sessionSeen) return;
 
     const openGuide = () => {
-      if (hasSeenGuide()) return;
+      if (sessionSeen || hasSeenGuide()) return;
+
       const activeElement = document.activeElement;
       returnFocusRef.current =
         activeElement instanceof HTMLElement && activeElement !== document.body
           ? activeElement
           : document.querySelector<HTMLElement>('#main-content button');
+
+      markGuideSeen();
       setOpen(true);
     };
 
     window.addEventListener(OPEN_EVENT, openGuide);
 
     return () => window.removeEventListener(OPEN_EVENT, openGuide);
-  }, [pathname]);
+  }, [markGuideSeen, pathname, sessionSeen]);
 
   useEffect(() => {
     if (!open) return;
@@ -121,7 +137,7 @@ export function DemoGuide() {
         aria-modal="true"
         aria-label="Quick demo guide"
         aria-describedby="demo-guide-description"
-        className="relative max-h-[calc(100svh-2rem)] w-full max-w-5xl overflow-y-auto rounded-3xl border border-white/15 bg-zinc-950 p-6 shadow-2xl md:max-h-[calc(100svh-4rem)] md:p-10"
+        className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-5xl overflow-y-auto rounded-3xl border border-white/15 bg-zinc-950 p-6 shadow-2xl md:p-10"
       >
         <div className="flex items-start justify-between gap-6 border-b border-zinc-800 pb-6">
           <div>

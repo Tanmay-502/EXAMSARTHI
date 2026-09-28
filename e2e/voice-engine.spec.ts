@@ -24,6 +24,16 @@ test.describe('Voice Command Parser', () => {
     expect(parseCommand('ఆప్షన్ 1', 'te-IN')).toEqual({ type: 'SELECT_OPTION', index: 0 });
   });
 
+  test('practice words take precedence over the generic exam/test catch-alls', () => {
+    expect(parseCommand('open practice exam', 'en-IN').type).toBe('DASHBOARD_PRACTICE');
+    expect(parseCommand('practice test', 'en-IN').type).toBe('DASHBOARD_PRACTICE');
+    expect(parseCommand('अभ्यास परीक्षा', 'hi-IN').type).toBe('DASHBOARD_PRACTICE');
+    expect(parseCommand('प्रैक्टिस टेस्ट', 'hi-IN').type).toBe('DASHBOARD_PRACTICE');
+    expect(parseCommand('ప్రాక్టీస్ పరీక్ష', 'te-IN').type).toBe('DASHBOARD_PRACTICE');
+    expect(parseCommand('సాధన పరీక్ష', 'te-IN').type).toBe('DASHBOARD_PRACTICE');
+    expect(parseCommand('exam', 'en-IN').type).toBe('DASHBOARD_EXAM');
+  });
+
   test('handles unknown commands gracefully', () => {
     expect(parseCommand('random text', 'en-IN').type).toBe('UNKNOWN');
     expect(parseCommand('ऑप्शन 5', 'hi-IN').type).toBe('UNKNOWN'); // invalid index

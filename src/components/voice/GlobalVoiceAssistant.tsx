@@ -203,9 +203,10 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
         if (payload?.subject) query.set('subject', payload.subject as string);
         if (payload?.count) query.set('count', String(payload.count));
         if (payload?.difficulty) query.set('difficulty', payload.difficulty as string);
-        router.push(`/practice?${query.toString()}`);
+        const queryString = query.toString();
+        router.push(queryString ? `/practice?${queryString}` : '/practice');
       } else {
-        speak(lang === 'hi-IN' ? 'आप पहले से ही अभ्यास मोड में हैं।' : lang === 'te-IN' ? 'మీరు ఇప్పటికే ప్రాక్టీస్ మోడ్‌లో ఉన్నారు.' : 'You are already in practice mode.');
+        speak(lang === 'hi-IN' ? 'प्रैक्टिस पहले से चल रही है।' : lang === 'te-IN' ? 'ప్రాక్టీస్ ఇప్పటికే కొనసాగుతోంది.' : 'Practice is already in progress.');
       }
     }
     if (action === 'OPEN_HISTORY' || action === 'READ_HISTORY' || action === 'READ_RESULTS') {

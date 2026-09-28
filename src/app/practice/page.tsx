@@ -12,7 +12,9 @@ import { fetchPracticeQuestions, fetchAvailablePracticeSubjects, startPracticeSe
 import { usePreferredMode } from '@/lib/hooks/usePreferredMode';
 import { resolveSubject } from '@/lib/catalog/examCatalog';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
+import { parseCommand } from '@/lib/voice/commandParser';
 import { SafeAction } from '@/lib/voice/safeActionRegistry';
+import { shouldEscapeToGlobal } from '@/lib/voice/navigationEscape';
 
 function PracticeContent() {
   const initializeExam = useExamStore(state => state.initializeExam);
@@ -252,6 +254,29 @@ function PracticeContent() {
 
       if (/\b(help|support|dashboard|home|history|analysis|settings|logout|log out)\b/.test(lower)) {
         return false;
+      }
+      
+      if ((action as string) === 'RAW_TRANSCRIPT' && shouldEscapeToGlobal(raw, lang, 'practice-setup')) {
+        return false;
+      }
+
+      if (parseCommand(raw, lang).type === 'DASHBOARD_PRACTICE') {
+        const reprompt =
+          setupState === 'ASK_SUBJECT'
+            ? 'You are already in practice mode. What subject?'
+            : setupState === 'ASK_COUNT'
+              ? 'You are already in practice mode. How many questions would you like?'
+              : setupState === 'ASK_DIFFICULTY'
+                ? 'You are already in practice mode. What difficulty?'
+                : 'You are already in practice mode. Would you like me to start with the available questions?';
+        speak(
+          lang === 'hi-IN'
+            ? `आप पहले से अभ्यास मोड में हैं। ${setupState === 'ASK_SUBJECT' ? 'कौन सा विषय?' : setupState === 'ASK_COUNT' ? 'कितने प्रश्न?' : setupState === 'ASK_DIFFICULTY' ? 'कठिनाई क्या है?' : 'क्या मैं उपलब्ध प्रश्नों से शुरू करूँ?'}`
+            : lang === 'te-IN'
+              ? `మీరు ఇప్పటికే ప్రాక్టీస్ మోడ్‌లో ఉన్నారు. ${setupState === 'ASK_SUBJECT' ? 'ఏ విషయం?' : setupState === 'ASK_COUNT' ? 'ఎన్ని ప్రశ్నలు కావాలి?' : setupState === 'ASK_DIFFICULTY' ? 'ఏ కఠినత?' : 'అందుబాటులో ఉన్న ప్రశ్నలతో ప్రారంభించనా?'}`
+              : reprompt
+        );
+        return true;
       }
 
       if (setupState === 'ASK_SUBJECT') {
