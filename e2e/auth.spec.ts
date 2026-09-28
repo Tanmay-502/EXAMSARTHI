@@ -14,6 +14,7 @@ test.describe('Authentication Flow & Gateway Routing', () => {
     await page.keyboard.press('s')
     await expect(page).toHaveURL(/\/auth\/signup$/)
     await page.goto('/')
+    await expect(page.getByRole('button', { name: /^Log in/ })).toBeFocused()
     await page.keyboard.press('l')
     await expect(page).toHaveURL(/\/auth\/login$/)
   })
