@@ -125,7 +125,7 @@ async function expectPrimaryElementsVisible(page: Page, route: (typeof routes)[n
     await expect(locator).toBeVisible();
     const box = await locator.boundingBox();
     expect(box).not.toBeNull();
-    expect(box!.y).toBeLessThanOrEqual(viewport.height + 1);
+    expect(box!.y).toBeLessThanOrEqual((await page.evaluate(() => window.innerHeight)) + 1);
   }
 }
 
