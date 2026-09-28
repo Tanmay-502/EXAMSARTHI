@@ -46,6 +46,12 @@ test.describe('Authentication Flow & Gateway Routing', () => {
     await expect(page.getByTestId('auth-message')).toBeVisible()
   })
 
+  test('no-account login state links to signup', async ({ page }) => {
+    await page.goto('/auth/login?code=no_account')
+    await expect(page.getByTestId('auth-message')).toContainText('No account')
+    await expect(page.getByRole('link', { name: /sign up/i })).toBeVisible()
+  })
+
   test('signup Magic Link uses account-creation mode and returns a safe code', async ({ page }) => {
     await page.goto('/auth/signup')
     await page.getByRole('textbox', { name: /full name/i }).fill('Playwright Candidate')
@@ -78,5 +84,16 @@ test.describe('Authentication Architecture Rules', () => {
     const signup = fs.readFileSync(path.join(process.cwd(), 'src/app/auth/signup/page.tsx'), 'utf-8')
     expect(login).not.toContain('searchParams.get(\'message\')')
     expect(signup).not.toContain('searchParams.get(\'message\')')
+  })
+
+  test('auth callback defaults Magic Links to welcome and proxy leaves PWA assets public', () => {
+    const confirm = fs.readFileSync(path.join(process.cwd(), 'src/app/auth/confirm/route.ts'), 'utf-8')
+    const proxy = fs.readFileSync(path.join(process.cwd(), 'src/proxy.ts'), 'utf-8')
+    expect(confirm).toContain("searchParams.get('next') ?? '/welcome'")
+    expect(proxy).toContain("pathname === '/' || pathname === '/auth'")
+    expect(proxy).toContain("'/manifest.json'")
+    expect(proxy).toContain("'/sw.js'")
+    expect(proxy).toContain('manifest\\.json')
+    expect(proxy).toContain('sw\\.js')
   })
 })
