@@ -66,8 +66,8 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
   if (containsPracticeWord && contextualStudy) return { type: 'DASHBOARD_PRACTICE' };
 
   // Hardcoded fallback for onboarding mode selection (English and transliterations)
-  if (matchesPhrase(normalized, 'standard') || matchesPhrase(normalized, 'स्टैंडर्ड') || matchesPhrase(normalized, 'స్టాండర్డ్') || matchesPhrase(normalized, 'సాధారణం')) return { type: 'SELECT_MODE_STANDARD' };
-  if (matchesPhrase(normalized, 'voice first') || matchesPhrase(normalized, 'voicefirst') || matchesPhrase(normalized, 'voice') || matchesPhrase(normalized, 'वॉइस फर्स्ट') || matchesPhrase(normalized, 'वॉइस') || matchesPhrase(normalized, 'వాయిస్ ఫస్ట్') || matchesPhrase(normalized, 'వాయిస్')) return { type: 'SELECT_MODE_VOICE' };
+  if (contextualModeAnalysis && (matchesPhrase(normalized, 'standard') || matchesPhrase(normalized, 'स्टैंडर्ड') || matchesPhrase(normalized, 'స్టాండర్డ్') || matchesPhrase(normalized, 'సాధారణం'))) return { type: 'SELECT_MODE_STANDARD' };
+  if (contextualModeAnalysis && (matchesPhrase(normalized, 'voice first') || matchesPhrase(normalized, 'voicefirst') || matchesPhrase(normalized, 'voice') || matchesPhrase(normalized, 'वॉइस फर्स्ट') || matchesPhrase(normalized, 'वॉइस') || matchesPhrase(normalized, 'వాయిస్ ఫస్ట్') || matchesPhrase(normalized, 'వాయిస్'))) return { type: 'SELECT_MODE_VOICE' };
 
   // Natural-language shortcuts for common navigation and study intents.
   // Keep these deterministic and deliberately broad so normal speech does not
@@ -147,11 +147,11 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
     const wordCount = normalized.split(/\s+/).filter(Boolean).length;
     const bareA = wordCount <= 3 && /^(a|ay|eh)$/i.test(normalized);
     const numericHomophone =
-      normalized === '2' || matchesPhrase(normalized, 'to') || matchesPhrase(normalized, 'too')
+      wordCount <= 3 && (normalized === '2' || matchesPhrase(normalized, 'to') || matchesPhrase(normalized, 'too'))
         ? 1
         : normalized === '3' || matchesPhrase(normalized, 'tree')
           ? 2
-          : normalized === '4' || matchesPhrase(normalized, 'for')
+          : wordCount <= 3 && (normalized === '4' || matchesPhrase(normalized, 'for'))
             ? 3
             : null;
 
