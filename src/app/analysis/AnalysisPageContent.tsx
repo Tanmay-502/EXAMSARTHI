@@ -6,6 +6,65 @@ import { motion } from 'framer-motion';
 import { VoiceCore } from '@/components/voice/VoiceCore';
 import type { AnalyticsData } from './actions';
 
+function TrendChart({ points }: { points: AnalyticsData['sessionTrend'] }) {
+  if (points.length === 0) {
+    return (
+      <div className="flex min-h-48 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-950 text-zinc-400">
+        Complete a session to start the performance trend.
+      </div>
+    );
+  }
+
+  const width = 760;
+  const height = 240;
+  const padX = 32;
+  const padY = 28;
+  const usableWidth = width - padX * 2;
+  const usableHeight = height - padY * 2;
+  const xStep = points.length === 1 ? 0 : usableWidth / (points.length - 1);
+  const linePoints = points.map((point, index) => {
+    const x = padX + index * xStep;
+    const y = padY + usableHeight - (point.percentage / 100) * usableHeight;
+    return { ...point, x, y };
+  });
+  const path = linePoints.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`).join(' ');
+
+  return (
+    <div className="overflow-x-auto rounded-2xl border border-zinc-800 bg-zinc-950 p-4 md:p-6">
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        className="h-auto min-w-[620px] w-full"
+        role="img"
+        aria-label={`Performance trend across ${points.length} recent sessions`}
+      >
+        {[0, 25, 50, 75, 100].map(value => {
+          const y = padY + usableHeight - (value / 100) * usableHeight;
+          return (
+            <g key={value}>
+              <line x1={padX} y1={y} x2={width - padX} y2={y} stroke="#27272a" strokeWidth="1" />
+              <text x="4" y={y + 4} fill="#a1a1aa" fontSize="11">{value}</text>
+            </g>
+          );
+        })}
+        <path d={path} fill="none" stroke="#f4f4f5" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+        {linePoints.map(point => (
+          <g key={point.id}>
+            <circle cx={point.x} cy={point.y} r="7" fill="#000" stroke="#f4f4f5" strokeWidth="3" />
+            <text x={point.x} y={height - 6} fill="#a1a1aa" fontSize="11" textAnchor="middle">{point.label}</text>
+          </g>
+        ))}
+      </svg>
+      <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-zinc-400" aria-hidden="true">
+        {points.map(point => (
+          <span key={point.id}>
+            {point.label}: <span className="text-white">{point.percentage}%</span> {point.isPractice ? 'practice' : 'exam'}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function formatDuration(seconds: number) {
   if (seconds < 60) return seconds + 's';
   const m = Math.floor(seconds / 60);
@@ -68,6 +127,26 @@ export default function AnalysisPageContent({ data }: { data: AnalyticsData }) {
             </div>
           </div>
         </motion.div>
+
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.25 }}
+          className="mb-24 border-t border-zinc-900 pt-8"
+        >
+          <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="text-4xl md:text-5xl font-light tracking-tighter">Performance Trend</h2>
+              <p className="mt-3 text-lg font-light text-zinc-400">Recent session accuracy, from the real backend.</p>
+            </div>
+            {data.overall.totalSessions >= 2 && (
+              <p className="text-sm uppercase tracking-[0.18em] text-zinc-400">
+                {data.sessionTrend[0]?.percentage ?? 0}% → {data.sessionTrend[data.sessionTrend.length - 1]?.percentage ?? 0}%
+              </p>
+            )}
+          </div>
+          <TrendChart points={data.sessionTrend} />
+        </motion.section>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
