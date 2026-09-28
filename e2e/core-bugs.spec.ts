@@ -1,0 +1,86 @@
+import { test, expect } from '@playwright/test'
+import * as fs from 'fs'
+import * as path from 'path'
+
+const read = (relative: string) => fs.readFileSync(path.join(process.cwd(), relative), 'utf8')
+
+test.describe('Task B core regression invariants', () => {
+  test('exam/practice context model separates lobby/setup from active state', () => {
+    const registry = read('src/lib/voice/safeActionRegistry.ts')
+    const navigation = read('src/lib/voice/navigationEscape.ts')
+    const contextStore = read('src/lib/store/voiceContextStore.ts')
+
+    for (const context of ['exam_lobby', 'exam_active', 'practice_setup', 'practice_active']) {
+      expect(contextStore).toContain(context)
+      expect(registry).toContain(context)
+      expect(navigation).toContain(context)
+    }
+
+    expect(registry).toContain("OPEN_DASHBOARD")
+    expect(navigation).toContain("practice_setup: new Set")
+    expect(navigation).toContain("practice_active: new Set<SafeAction>()")
+    expect(navigation).toContain("exam_active: new Set<SafeAction>()")
+  })
+
+  test('practice start intents are consumed inside ExamEngine', () => {
+    const engine = read('src/components/exam/ExamEngine.tsx')
+    expect(engine).toContain("case 'START_EXAM':")
+    expect(engine).toContain("case 'START_PRACTICE':")
+    expect(engine).toContain("case 'OPEN_EXAM':")
+    expect(engine).toContain("case 'OPEN_PRACTICE':")
+    expect(engine).toContain("if ((mode === 'exam' || mode === 'practice') && engineState === 'READY')")
+  })
+
+  test('global voice action registration uses a stable wrapper', () => {
+    const assistant = read('src/components/voice/GlobalVoiceAssistant.tsx')
+    expect(assistant).toContain('handlerRef.current = handler')
+    expect(assistant).toContain('const stableHandler = React.useCallback')
+    expect(assistant).toContain('context.registerHandler(stableHandler)')
+  })
+
+  test('natural intent payloads are zod-validated and unsupported languages are ignored', () => {
+    const schema = read('src/lib/voice/naturalIntentSchema.ts')
+    const assistant = read('src/components/voice/GlobalVoiceAssistant.tsx')
+    const i18n = read('src/lib/i18n/I18nProvider.tsx')
+    expect(schema).toContain("z.enum(['en-IN', 'hi-IN', 'te-IN'])")
+    expect(schema).toContain("z.number().int().min(0).max(3)")
+    expect(schema).toContain("z.number().int().min(1).max(100)")
+    expect(assistant).toContain('validateNaturalIntentPayload')
+    expect(i18n).toContain("if (newLang !== 'en-IN' && newLang !== 'hi-IN' && newLang !== 'te-IN')")
+  })
+
+  test('command parser has contextual mode/analysis gates and STT homophones', () => {
+    const parser = read('src/lib/voice/commandParser.ts')
+    expect(parser).toContain("const contextualModeAnalysis = new Set(['mode_selection', 'onboarding', 'dashboard'])")
+    expect(parser).toContain("'bee'")
+    expect(parser).toContain("'sea'")
+    expect(parser).toContain("'dee'")
+    expect(parser).toContain("'to')")
+    expect(parser).toContain("'too')")
+    expect(parser).toContain("'tree'")
+    expect(parser).toContain("'for')")
+    expect(parser).toContain("wordCount <= 3")
+  })
+
+  test('timer and voice status do not use routine live updates; threshold alerts remain', () => {
+    const engine = read('src/components/exam/ExamEngine.tsx')
+    const status = read('src/components/voice/VoiceStatusIndicator.tsx')
+    expect(engine).toContain("announce(tParams('time_remaining'")
+    expect(status).toContain("aria-live={shouldAnnounce ? 'assertive' : 'off'}")
+    expect(engine).not.toContain('aria-live="polite">\n                {timeRemainingStr}')
+  })
+
+  test('audit writes use the privileged helper and analytics use bounded chunks', () => {
+    const audit = read('src/lib/audit/writeAudit.ts')
+    const exam = read('src/app/exam/actions.ts')
+    const dashboard = read('src/app/dashboard/actions.ts')
+    const analysis = read('src/app/analysis/actions.ts')
+    expect(audit).toContain('createAdminClient')
+    expect(audit).toContain('writeAudit')
+    expect(exam).not.toContain(".from('audit_logs').insert")
+    expect(dashboard).toContain("import { chunk } from '@/lib/db/chunk'")
+    expect(analysis).toContain("import { chunk } from '@/lib/db/chunk'")
+    expect(dashboard).not.toContain('.or(filters.join')
+    expect(analysis).not.toContain('.or(filters.join')
+  })
+})
