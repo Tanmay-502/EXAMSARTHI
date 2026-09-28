@@ -639,6 +639,51 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
 
   useVoiceAction(voiceHandler);
 
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLSelectElement ||
+        target instanceof HTMLTextAreaElement ||
+        (target instanceof HTMLElement && target.isContentEditable)
+      ) {
+        return;
+      }
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+      const key = event.key;
+      if (key === 'Escape') {
+        event.preventDefault();
+        stopSpeaking();
+        return;
+      }
+
+      const actionByKey: Record<string, SafeAction> = {
+        r: 'REPEAT',
+        t: 'TIME_LEFT',
+        m: 'MARK_REVIEW',
+        n: 'NEXT_QUESTION',
+        p: 'PREVIOUS_QUESTION',
+        '?': 'HELP',
+      };
+      const action = actionByKey[key.toLowerCase()];
+      if (action) {
+        event.preventDefault();
+        voiceHandler(action);
+        return;
+      }
+
+      if (/^[1-4]$/.test(key)) {
+        event.preventDefault();
+        voiceHandler('SELECT_OPTION', { index: Number(key) - 1 });
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [voiceHandler, stopSpeaking]);
+
   // Removed duplicated setup logic for MIC_TEST in useEffect
 
   const toggleListening = () => {
@@ -806,7 +851,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           {mode === 'exam' && (
             <div className="flex flex-col md:items-end">
               <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">{t('time_left')}</span>
-              <span className="text-3xl font-light tracking-tight text-zinc-100" aria-live="polite">
+              <span className="text-3xl font-light tracking-tight text-zinc-100">
                 {timeRemainingStr}
               </span>
             </div>
@@ -947,7 +992,21 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
           </div>
         )}
 
-        {/* Navigation Controls */}
+        <section aria-labelledby="keyboard-shortcuts" className="mt-12 border-y border-zinc-900 py-6 relative z-10">
+        <h3 id="keyboard-shortcuts" className="mb-4 text-xs font-black uppercase tracking-[0.2em] text-zinc-400">Keyboard shortcuts</h3>
+        <div className="grid grid-cols-2 gap-3 text-sm text-zinc-300 md:grid-cols-4">
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">Esc</kbd> Stop speaking</span>
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">R</kbd> Repeat</span>
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">T</kbd> Time left</span>
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">M</kbd> Mark</span>
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">N</kbd> Next</span>
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">P</kbd> Previous</span>
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">1–4</kbd> Select option</span>
+          <span><kbd className="mr-2 rounded border border-zinc-700 px-2 py-1">?</kbd> Help</span>
+        </div>
+      </section>
+
+      {/* Navigation Controls */}
         <div className="mt-24 pt-8 flex flex-col md:flex-row gap-8 justify-between items-center relative z-10">
           <div className="flex gap-4 w-full md:w-auto">
             <button
