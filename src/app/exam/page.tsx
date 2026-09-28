@@ -522,7 +522,7 @@ function ExamPageContent() {
         });
       } catch (err: unknown) {
         if (err instanceof Error && err.message === 'Unauthorized') {
-          router.push('/auth/login?message=unauthenticated');
+          router.push('/auth/login?code=unauthenticated');
           return;
         }
 
@@ -562,7 +562,7 @@ function ExamPageContent() {
         setExamStarted(true);
       } catch (err: unknown) {
         if (err instanceof Error && err.message === 'Unauthorized') {
-          router.push('/auth/login?message=unauthenticated');
+          router.push('/auth/login?code=unauthenticated');
           return;
         }
 
