@@ -13,6 +13,7 @@ import { useAccessibility } from '@/lib/accessibility/AccessibilityProvider';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 import { SafeAction } from '@/lib/voice/safeActionRegistry';
 import { shouldEscapeToGlobal } from '@/lib/voice/navigationEscape';
+import { useVoiceAppContext } from '@/lib/store/voiceContextStore';
 
 function DeviceCheck({ onComplete, interactionMode, setInteractionMode }: { onComplete: () => void, interactionMode: InteractionMode, setInteractionMode: (m: InteractionMode) => void }) {
   const [micStatus, setMicStatus] = useState<'pending' | 'success' | 'error' | 'not-required'>('pending');
@@ -286,7 +287,7 @@ function ExamSelection({
       return true;
     }
 
-    if ((action as string) === 'RAW_TRANSCRIPT' && shouldEscapeToGlobal(raw, lang, 'exam-selection')) {
+    if ((action as string) === 'RAW_TRANSCRIPT' && shouldEscapeToGlobal(raw, lang, 'exam_lobby')) {
       return false;
     }
 
@@ -494,6 +495,12 @@ function ExamPageContent() {
   const hasHydrated = useExamStore(state => state.hasHydrated);
   const { lang } = useI18n();
   const router = useRouter();
+  const setVoiceContext = useVoiceAppContext(state => state.setContext);
+
+  useEffect(() => {
+    setVoiceContext('exam_lobby');
+    return () => setVoiceContext('unknown');
+  }, [setVoiceContext]);
   const searchParams = useSearchParams();
   const examIdParam = searchParams.get('exam_id');
   const { mode: interactionMode, setMode, isLoaded: preferenceLoaded } = usePreferredMode();
