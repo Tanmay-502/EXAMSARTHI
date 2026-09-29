@@ -7,9 +7,10 @@ import { useI18n } from '@/lib/i18n/I18nProvider';
 import { AnalyticsData } from './actions';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 
+/** Announces an analytics summary during continuous listening and handles voice requests to practice the weakest subject. */
 export default function AnalysisVoiceHandler({ data }: { data: AnalyticsData }) {
   const { speak, isContinuous } = useVoice();
-  const { lang } = useI18n();
+  const { t, tParams } = useI18n();
   const hasSpoken = useRef(false);
   const router = useRouter();
   const { useVoiceAction } = useGlobalVoice();
@@ -24,23 +25,11 @@ export default function AnalysisVoiceHandler({ data }: { data: AnalyticsData }) 
         .sort((a, b) => a.accuracy - b.accuracy || a.subject.localeCompare(b.subject))[0]?.subject;
 
       if (!weakest) {
-        speak(
-          lang === 'hi-IN'
-            ? 'अभी कमजोर विषय चुनने के लिए पर्याप्त डेटा नहीं है।'
-            : lang === 'te-IN'
-              ? 'ఇప్పటివరకు బలహీనమైన సబ్జెక్ట్ ఎంచుకోవడానికి తగిన డేటా లేదు.'
-              : 'I do not have enough subject data to choose a focus subject yet.'
-        );
+        speak(t('analysis_no_focus_subject'));
         return true;
       }
 
-      speak(
-        lang === 'hi-IN'
-          ? `${weakest} के लिए अभ्यास खोल रहा हूँ।`
-          : lang === 'te-IN'
-            ? `${weakest} కోసం ప్రాక్టీస్ తెరుస్తున్నాను.`
-            : `Opening practice for ${weakest}.`
-      );
+      speak(tParams('analysis_open_practice', { subject: weakest }));
       router.push(`/practice?subject=${encodeURIComponent(weakest)}`);
       return true;
     }
@@ -54,36 +43,16 @@ export default function AnalysisVoiceHandler({ data }: { data: AnalyticsData }) 
       const { overall, strongSubjects, weakSubjects } = data;
       const accuracy = overall.avgPercentage;
       
-      let summary = '';
-      if (lang === 'hi-IN') {
-         summary = `आपका कुल एक्यूरेसी ${accuracy} प्रतिशत है। `;
-         if (strongSubjects.length > 0) {
-            summary += `आपका मजबूत विषय ${strongSubjects.join(' और ')} है। `;
-         }
-         if (weakSubjects.length > 0) {
-            summary += `आपको ${weakSubjects.join(' और ')} में अभ्यास की आवश्यकता है।`;
-         }
-      } else if (lang === 'te-IN') {
-         summary = `మీ మొత్తం ఖచ్చితత్వం ${accuracy} శాతం. `;
-         if (strongSubjects.length > 0) {
-            summary += `మీ బలమైన సబ్జెక్టులు ${strongSubjects.join(' మరియు ')}. `;
-         }
-         if (weakSubjects.length > 0) {
-            summary += `మీరు ${weakSubjects.join(' మరియు ')} లో ప్రాక్టీస్ చేయాలి.`;
-         }
-      } else {
-         summary = `Your overall accuracy is ${accuracy} percent. `;
-         if (strongSubjects.length > 0) {
-            summary += `Your strong subjects are ${strongSubjects.join(' and ')}. `;
-         }
-         if (weakSubjects.length > 0) {
-            summary += `You need to improve in ${weakSubjects.join(' and ')}.`;
-         }
-      }
-      
+      const summaryParts = [
+        tParams('analysis_overall_accuracy', { accuracy }),
+        ...(strongSubjects.length > 0 ? [tParams('analysis_strong_subjects', { subjects: strongSubjects.join(', ') })] : []),
+        ...(weakSubjects.length > 0 ? [tParams('analysis_weak_subjects', { subjects: weakSubjects.join(', ') })] : []),
+      ];
+      const summary = summaryParts.join(' ');
+
       speak(summary);
     }
-  }, [isContinuous, data, lang, speak]);
+  }, [isContinuous, data, speak, t, tParams]);
 
   return null;
 }

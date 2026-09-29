@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Lang } from '@/lib/i18n/dictionaries';
 import { LANGUAGE_REGISTRY } from '@/lib/i18n/registry';
 import { createClient } from '@/lib/supabase/client';
-import { updateLearningProfileConsent } from '@/app/exam/actions';
+import { updateLearningProfileConsent, updatePreferences } from '@/app/exam/actions';
 import { VoiceCore } from '@/components/voice/VoiceCore';
 import { motion } from 'framer-motion';
 import { usePreferredMode } from '@/lib/hooks/usePreferredMode';
@@ -16,6 +16,7 @@ import { say } from '@/lib/voice/say';
 import { clearExamStorage } from '@/lib/store/clearExamStorage';
 import { signOut } from '@/app/auth/actions';
 
+/** Renders language, accessibility, interaction-mode, and learning-profile consent settings for the candidate. */
 export default function SettingsPage() {
   const { lang, setLang, t, tParams } = useI18n();
   const {
@@ -26,14 +27,15 @@ export default function SettingsPage() {
     fontScale,
     updateAccessibilityPreferences,
   } = useAccessibility();
-  const { speak } = useVoice();
-  const { mode: interactionMode, setMode } = usePreferredMode();
+  const { speak, pauseListening, startContinuousListening, isContinuous } = useVoice();
+  const { mode: interactionMode, setMode, isLoaded: modeLoaded } = usePreferredMode();
   const router = useRouter();
   
   const headingRef = useRef<HTMLHeadingElement>(null);
   const [consent, setConsent] = useState<boolean>(false);
   const [loadingConsent, setLoadingConsent] = useState<boolean>(true);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [isSavingMode, setIsSavingMode] = useState(false);
 
   useEffect(() => {
     headingRef.current?.focus();
@@ -85,6 +87,30 @@ export default function SettingsPage() {
 
   const handleContinue = () => {
     router.push('/dashboard');
+  };
+
+  /** Saves an optimistic interaction-mode change and restores the previous mode and prior listening state if saving fails. */
+  const handleModeChange = async (newMode: 'standard' | 'voice-first') => {
+    if (!modeLoaded || isSavingMode || newMode === interactionMode) return;
+
+    const previousMode = interactionMode;
+    const wasListening = isContinuous;
+    setMode(newMode);
+    if (newMode === 'standard') pauseListening();
+
+    setIsSavingMode(true);
+    try {
+      await updatePreferences({ preferred_mode: newMode, preferred_lang: lang });
+    } catch (error) {
+      console.error('Interaction mode preference save failed:', error);
+      setMode(previousMode);
+      if (previousMode === 'voice-first' && wasListening) {
+        startContinuousListening();
+      }
+      announce(t('preferences_save_error'), 'assertive');
+    } finally {
+      setIsSavingMode(false);
+    }
   };
 
   const handleSignOut = async () => {
@@ -161,7 +187,7 @@ export default function SettingsPage() {
                     key={mode}
                     type="button"
                     aria-pressed={interactionMode === mode}
-                    onClick={() => setMode(mode)}
+                    onClick={() => void handleModeChange(mode)}
                     className={[
                       'min-h-14 rounded-xl border px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)]',
                       interactionMode === mode

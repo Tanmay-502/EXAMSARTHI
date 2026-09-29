@@ -1,5 +1,6 @@
 type Window = { startedAt: number; count: number }
 
+// In serverless deployments this in-memory window is scoped to one function instance; it is not shared across instances.
 const windows = new Map<string, Window>()
 
 export function checkRateLimit(key: string, limit = 20, windowMs = 60_000): { allowed: boolean; retryAfterSeconds: number } {

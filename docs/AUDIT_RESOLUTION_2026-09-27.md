@@ -31,7 +31,8 @@ This checkpoint records actionable code-level fixes found by the repository scan
 - Real Magic Link delivery/callback.
 - NVDA/VoiceOver walkthrough.
 - Real network interruption/reconnect.
-- Target Supabase migrations through 00009.
+- Question RLS: browser question reads are restricted to the authenticated candidate's active server-defined roster; practice discovery/resolution runs through privileged server actions.
+- Target Supabase migrations through 00014_questions_roster_rls.sql.
 - PWA installability/update behavior.
 - End-to-end voice-only rehearsal.
 

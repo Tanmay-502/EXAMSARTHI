@@ -1,5 +1,7 @@
 'use server'
 
+import { LANGUAGE_REGISTRY, type Locale } from '@/lib/i18n/registry';
+
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { chunk } from '@/lib/db/chunk'
@@ -30,12 +32,27 @@ export type DashboardStats = {
   }[];
 }
 
+/**
+ * Builds the authenticated candidate's dashboard statistics from submitted sessions.
+ * Localizes practice and fallback exam titles using the profile language, defaulting to English.
+ * @throws If authentication or a required session, answer, or question query fails.
+ */
 export async function fetchDashboardStats(): Promise<DashboardStats> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     throw new Error('Unauthorized');
   }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('preferred_lang')
+    .eq('id', user.id)
+    .maybeSingle();
+  const preferredLang: Locale = profile?.preferred_lang === 'hi-IN' || profile?.preferred_lang === 'te-IN'
+    ? profile.preferred_lang
+    : 'en-IN';
+  const dictionary = LANGUAGE_REGISTRY[preferredLang].dictionary;
 
   // Get all exam sessions
   const { data: sessions, error: sessionsError } = await supabase
@@ -63,8 +80,10 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
   const recentSessions = completedSessions.slice(0, 5).map(s => ({
     id: s.id,
     title: s.is_practice
-      ? `Practice${s.practice_subject ? ` — ${s.practice_subject}` : ''}`
-      : (Array.isArray(s.exams) ? s.exams[0]?.title : (s.exams as { title?: string } | null)?.title) || 'Unknown Exam',
+      ? (s.practice_subject
+          ? dictionary.dashboard_practice_title.replace('{subject}', s.practice_subject)
+          : dictionary.practice)
+      : (Array.isArray(s.exams) ? s.exams[0]?.title : (s.exams as { title?: string } | null)?.title) || dictionary.unknown_exam,
     date: new Date(s.started_at).toLocaleDateString(),
     score: s.score || 0,
     percentage: s.percentage || 0,

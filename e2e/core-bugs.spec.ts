@@ -95,7 +95,7 @@ test.describe('Task B core regression invariants', () => {
   test('timer and voice status do not use routine live updates; threshold alerts remain', () => {
     const engine = read('src/components/exam/ExamEngine.tsx')
     const status = read('src/components/voice/VoiceStatusIndicator.tsx')
-    expect(engine).toContain("announce(tParams('time_remaining'")
+    expect(engine).toContain("sayMessage(tParams('time_remaining'")
     expect(status).toContain("aria-live={shouldAnnounce ? 'assertive' : 'off'}")
     expect(engine).not.toContain('aria-live="polite">\n                {timeRemainingStr}')
   })

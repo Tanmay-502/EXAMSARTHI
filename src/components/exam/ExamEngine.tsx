@@ -25,6 +25,7 @@ type ExamEngineProps = {
 type EngineState = 'READY' | 'EXAM' | 'CONFIRM_ANSWER' | 'CONFIRM_SUBMIT' | 'PROCESSING';
 
 
+/** Runs the exam or practice interface, coordinating answer confirmation, timing, voice controls, and submission. */
 export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode = 'voice-first' }: ExamEngineProps) {
   const { t, tParams, lang } = useI18n();
   const { announce } = useAccessibility();
@@ -100,7 +101,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
               const label = threshold < 60
                 ? `${threshold} ${t('seconds')}`
                 : `${threshold === 60 ? 1 : Math.floor(threshold / 60)} ${threshold === 60 ? t('minute') : t('minutes')}`;
-              announce(tParams('time_remaining', { time: label }), 'polite');
+              sayMessage(tParams('time_remaining', { time: label }), 'polite');
             }
           }
           lastRemainingSecondsRef.current = remain;
@@ -128,13 +129,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
                     t('engine_autosubmit_error')
                   );
                   setEngineState('PROCESSING');
-                  speak(
-                    lang === 'hi-IN'
-                      ? 'समय समाप्त हो गया, लेकिन परीक्षा जमा नहीं हो सकी। कनेक्शन जाँचकर फिर से प्रयास करें।'
-                      : lang === 'te-IN'
-                        ? 'సమయం ముగిసింది, కానీ పరీక్ష సమర్పించలేకపోయాం. మీ కనెక్షన్‌ను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.'
-                        : t('engine_autosubmit_error')
-                  );
+                  speak(t('engine_autosubmit_error'));
                 });
               }
             });
@@ -440,6 +435,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     sayMessage(msg, 'assertive');
   };
 
+  /** Submits the current session once at a time, clears local exam state on success, and offers a retry on failure. */
   const executeSubmit = async () => {
     if (isSubmittingRef.current) return;
 
@@ -455,13 +451,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
     isSubmittingRef.current = true;
     setSubmissionError(null);
     setEngineState('PROCESSING');
-    speak(
-      lang === 'hi-IN'
-        ? 'जमा किया जा रहा है...'
-        : lang === 'te-IN'
-          ? 'సమర్పిస్తున్నాము...'
-           : t('engine_processing')
-    );
+    speak(t('engine_processing'));
 
     try {
       const { submitExamAnswers } = await import('@/app/exam/actions');
@@ -737,7 +727,9 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
 
   // Removed duplicated setup logic for MIC_TEST in useEffect
 
+  /** Pauses or starts continuous listening when the interaction mode is voice-first. */
   const toggleListening = () => {
+    if (interactionMode !== 'voice-first') return;
     if (isContinuous) {
       pauseListening();
     } else {
@@ -760,7 +752,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
         <div className="mb-24 flex items-center justify-between border-b border-zinc-900 pb-8 relative z-10">
           <div className="flex flex-col">
             <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">{t('mode')}</span>
-            <span className="text-xl font-light tracking-wide">{mode === 'exam' ? 'EXAMINATION' : 'PRACTICE'}</span>
+            <span className="text-xl font-light tracking-wide">{mode === 'exam' ? t('engine_examination') : t('engine_practice_mode')}</span>
           </div>
           <VoiceCore size="sm" />
         </div>
@@ -789,7 +781,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
               }}
               className="px-12 py-4 bg-white text-black text-sm font-bold uppercase tracking-widest rounded-full hover:bg-zinc-200 transition-colors focus-visible:ring-4 focus-visible:ring-[var(--brand-accent)]"
             >
-              START EXAM
+              {t('start_exam')}
             </button>
           </div>
         </motion.div>
@@ -833,13 +825,13 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
               onClick={() => setEngineState('EXAM')}
               className="px-12 py-4 rounded-full border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors uppercase tracking-widest text-sm font-medium"
             >
-              NO, GO BACK
+              {t('engine_go_back')}
             </button>
             <button
               onClick={executeSubmit}
               className="px-12 py-4 bg-red-600 text-white rounded-full hover:bg-red-500 transition-colors uppercase tracking-widest text-sm font-bold shadow-[0_0_20px_rgba(220,38,38,0.2)]"
             >
-              YES, SUBMIT
+              {t('engine_yes_submit')}
             </button>
           </div>
         </div>
@@ -873,7 +865,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
               onClick={() => void executeSubmit()}
               className="mt-8 px-10 py-4 bg-white text-black rounded-full text-sm font-bold uppercase tracking-widest hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--brand-accent)]"
             >
-              Retry Submission
+              {t('engine_retry_submission')}
             </button>
           </div>
         )}
@@ -885,7 +877,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
   return (
     <div className="relative flex flex-col min-h-dvh w-full max-w-7xl mx-auto pt-32 pb-24 px-6 md:px-12 bg-black text-white">
       {/* Header Info */}
-      <div className="mb-24 flex flex-col md:flex-row md:items-center justify-between border-b border-zinc-900 pb-8 relative z-10 gap-8">
+      <div className="mb-24 flex flex-col gap-8 border-b border-zinc-900 pb-8 relative z-10 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-6">
           <VoiceCore size="sm" />
           <div className="flex flex-col">
@@ -897,8 +889,32 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             </span>
           </div>
         </div>
-        
-        <div className="mb-10">
+        <div className="flex flex-row-reverse md:flex-row items-center justify-between md:justify-end gap-8 w-full md:w-auto">
+          {mode === 'exam' && (
+            <div className="flex flex-col md:items-end">
+              <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">{t('time_left')}</span>
+              <span className="text-3xl font-light tracking-tight text-zinc-100">{timeRemainingStr}</span>
+            </div>
+          )}
+          {pendingSyncCount > 0 && !isOnline && (
+            <span className="text-xs font-medium text-amber-200" role="status">
+              {tParams('answers_not_synced', { count: pendingSyncCount })}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={toggleListening}
+            disabled={interactionMode !== 'voice-first'}
+            className={`p-4 rounded-full border transition-all ${isContinuous ? 'border-white text-black bg-white' : micError ? 'border-red-900 text-red-500 bg-red-950/20' : 'border-zinc-800 text-zinc-400 bg-transparent hover:border-zinc-500 hover:text-white'} ${interactionMode !== 'voice-first' ? 'cursor-not-allowed opacity-40' : ''}`}
+            aria-label={micError === 'denied' ? t('microphone_access_denied') : isContinuous ? t('pause_voice') : t('enable_voice')}
+            title={micError === 'denied' ? t('microphone_access_denied') : ''}
+          >
+            {micError ? <MicOff className="w-5 h-5 text-red-500" /> : isContinuous ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+          </button>
+        </div>
+      </div>
+
+      <section aria-label={t('progress')} className="mb-10">
           <div className="mb-2 flex items-center justify-between gap-4 text-sm">
             <span className="text-zinc-400">{t('progress')}</span>
             <span className="text-zinc-400">{currentQuestionIndex + 1} / {questions.length}</span>
@@ -915,7 +931,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
               style={{ width: `${Math.round(((currentQuestionIndex + 1) / questions.length) * 100)}%` }}
             />
           </div>
-        </div>
+        </section>
 
         <section aria-labelledby="question-palette-heading" className="mb-12 rounded-2xl border border-zinc-800 bg-zinc-950 p-5">
           <div className="mb-4 flex items-center justify-between gap-4">
@@ -955,31 +971,6 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
             })}
           </div>
         </section>
-        <div className="flex flex-row-reverse md:flex-row items-center justify-between md:justify-end gap-8 w-full md:w-auto">
-          {mode === 'exam' && (
-            <div className="flex flex-col md:items-end">
-              <span className="text-zinc-400 tracking-[0.2em] text-xs uppercase mb-2">{t('time_left')}</span>
-              <span className="text-3xl font-light tracking-tight text-zinc-100">
-                {timeRemainingStr}
-              </span>
-            </div>
-          )}
-          {pendingSyncCount > 0 && !isOnline && (
-            <span className="text-xs font-medium text-amber-200" role="status">
-              {pendingSyncCount} answers not yet synced
-            </span>
-          )}
-          <button 
-            onClick={toggleListening}
-            className={`p-4 rounded-full border transition-all ${isContinuous ? 'border-white text-black bg-white' : micError ? 'border-red-900 text-red-500 bg-red-950/20' : 'border-zinc-800 text-zinc-400 bg-transparent hover:border-zinc-500 hover:text-white'}`}
-            aria-label={micError === 'denied' ? t('microphone_access_denied') : isContinuous ? t('pause_voice') : t('enable_voice')}
-            title={micError === 'denied' ? t('microphone_access_denied') : ''}
-          >
-            {micError ? <MicOff className="w-5 h-5 text-red-500" /> : isContinuous ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
-          </button>
-        </div>
-      </div>
-
       <div className="flex-1 w-full max-w-4xl mx-auto relative z-10">
         {engineState === 'CONFIRM_ANSWER' ? (
           <motion.div 
@@ -1003,7 +994,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
                 }}
                 className="px-8 py-4 rounded-full border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors uppercase tracking-widest text-sm font-medium"
               >
-                CHANGE
+                {t('change')}
               </button>
               <button
                 onClick={() => {
@@ -1015,7 +1006,7 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
                 }}
                 className="px-8 py-4 rounded-full bg-white text-black hover:bg-zinc-200 transition-colors uppercase tracking-widest text-sm font-bold"
               >
-                CONFIRM
+                {t('confirm')}
               </button>
             </div>
           </motion.div>

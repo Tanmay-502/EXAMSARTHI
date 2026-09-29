@@ -19,13 +19,14 @@ type ResultsAnnouncerProps = {
   subjectStats?: Record<string, { total: number; correct: number; incorrect: number; unanswered: number }>;
 };
 
+/** Announces localized results after the interaction mode loads and handles voice requests to repeat results or practice the weakest subject. */
 export function ResultsAnnouncer({ score, total, percentage, correct, incorrect, unanswered, subjectStats }: ResultsAnnouncerProps) {
   const { announce } = useAccessibility();
   const { speak, isContinuous } = useVoice();
-  const { mode: interactionMode } = usePreferredMode();
+  const { mode: interactionMode, isLoaded: modeLoaded } = usePreferredMode();
   const { useVoiceAction } = useGlobalVoice();
   const router = useRouter();
-  const { tParams } = useI18n();
+  const { t, tParams } = useI18n();
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   const hasSpokenRef = useRef(false);
@@ -57,13 +58,13 @@ export function ResultsAnnouncer({ score, total, percentage, correct, incorrect,
   }, [tParams, score, total, percentage, correct, incorrect, unanswered, subjectStats]);
 
   useEffect(() => {
-    if (hasSpokenRef.current) return;
+    if (!modeLoaded || hasSpokenRef.current) return;
     hasSpokenRef.current = true;
     headingRef.current?.focus();
     
     const msg = getSummaryMessage();
     say(msg, interactionMode, speak, announce, 'assertive');
-  }, [announce, speak, getSummaryMessage, interactionMode]);
+  }, [announce, speak, getSummaryMessage, interactionMode, modeLoaded]);
 
   useVoiceAction((action, payload) => {
     if (action === 'READ_RESULTS' || action === 'REPEAT') {
@@ -86,11 +87,11 @@ export function ResultsAnnouncer({ score, total, percentage, correct, incorrect,
         })[0]?.[0];
 
       if (!weakest) {
-        speak('I do not have enough subject data to choose a weakest subject yet.');
+        speak(t('results_weakest_subject_unavailable'));
         return true;
       }
 
-      speak(`Opening practice for ${weakest}.`);
+      speak(tParams('results_opening_practice', { subject: weakest }));
       router.push(`/practice?subject=${encodeURIComponent(weakest)}`);
       return true;
     }
@@ -98,5 +99,5 @@ export function ResultsAnnouncer({ score, total, percentage, correct, incorrect,
     return false;
   });
 
-  return <h1 tabIndex={-1} ref={headingRef} className="sr-only">Exam Results</h1>;
+  return <h1 tabIndex={-1} ref={headingRef} className="sr-only">{t('results_page_heading')}</h1>;
 }

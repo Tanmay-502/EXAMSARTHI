@@ -1,0 +1,4987 @@
+{
+  "title": "ExamSaarthi Competitive Practice Bank",
+  "description": "120 original multilingual practice questions across six competitive-exam subjects. Content is original and follows a competitive-exam practice pattern; it is not an official previous-year paper.",
+  "duration_minutes": 0,
+  "kind": "practice_bank",
+  "questions": [
+    {
+      "order_index": 1,
+      "subject": "Mathematics",
+      "difficulty": "easy",
+      "content_text": "What is 48 + 37?",
+      "options": [
+        "75",
+        "85",
+        "95",
+        "105"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "48 + 37 = 85.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "48 + 37 का मान क्या है?",
+          "options": [
+            "75",
+            "85",
+            "95",
+            "105"
+          ]
+        },
+        "te-IN": {
+          "content_text": "48 + 37 విలువ ఎంత?",
+          "options": [
+            "75",
+            "85",
+            "95",
+            "105"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "48+37"
+      }
+    },
+    {
+      "order_index": 2,
+      "subject": "Mathematics",
+      "difficulty": "easy",
+      "content_text": "What is 7/8 of 64?",
+      "options": [
+        "48",
+        "54",
+        "56",
+        "60"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "64 ÷ 8 × 7 = 56.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "64 का 7/8 कितना है?",
+          "options": [
+            "48",
+            "54",
+            "56",
+            "60"
+          ]
+        },
+        "te-IN": {
+          "content_text": "64 లో 7/8 ఎంత?",
+          "options": [
+            "48",
+            "54",
+            "56",
+            "60"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "64/8*7"
+      }
+    },
+    {
+      "order_index": 3,
+      "subject": "Mathematics",
+      "difficulty": "easy",
+      "content_text": "What is 15% of 240?",
+      "options": [
+        "24",
+        "30",
+        "36",
+        "42"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "15% of 240 is 36.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "240 का 15% कितना है?",
+          "options": [
+            "24",
+            "30",
+            "36",
+            "42"
+          ]
+        },
+        "te-IN": {
+          "content_text": "240లో 15% ఎంత?",
+          "options": [
+            "24",
+            "30",
+            "36",
+            "42"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "15/100*240"
+      }
+    },
+    {
+      "order_index": 4,
+      "subject": "Mathematics",
+      "difficulty": "easy",
+      "content_text": "What is the highest common factor of 36 and 48?",
+      "options": [
+        "6",
+        "8",
+        "12",
+        "16"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The highest common factor is 12.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "36 और 48 का महत्तम समापवर्तक क्या है?",
+          "options": [
+            "6",
+            "8",
+            "12",
+            "16"
+          ]
+        },
+        "te-IN": {
+          "content_text": "36 మరియు 48 యొక్క గరిష్ఠ సామాన్య గుణకం ఎంత?",
+          "options": [
+            "6",
+            "8",
+            "12",
+            "16"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "12"
+      }
+    },
+    {
+      "order_index": 5,
+      "subject": "Mathematics",
+      "difficulty": "easy",
+      "content_text": "A quantity is divided in the ratio 3:5 and the total is 64. What is the smaller part?",
+      "options": [
+        "18",
+        "24",
+        "30",
+        "40"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "There are 8 equal parts, so the smaller part is 3 × 8 = 24.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "एक मात्रा को 3:5 के अनुपात में बाँटा गया है और कुल 64 है। छोटा भाग कितना है?",
+          "options": [
+            "18",
+            "24",
+            "30",
+            "40"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఒక పరిమాణాన్ని 3:5 నిష్పత్తిలో విభజించారు మరియు మొత్తం 64. చిన్న భాగం ఎంత?",
+          "options": [
+            "18",
+            "24",
+            "30",
+            "40"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "64*3/(3+5)"
+      }
+    },
+    {
+      "order_index": 6,
+      "subject": "Mathematics",
+      "difficulty": "easy",
+      "content_text": "What is the average of 18, 22, 26 and 34?",
+      "options": [
+        "24",
+        "25",
+        "26",
+        "27"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The sum is 100, so the average is 25.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "18, 22, 26 और 34 का औसत क्या है?",
+          "options": [
+            "24",
+            "25",
+            "26",
+            "27"
+          ]
+        },
+        "te-IN": {
+          "content_text": "18, 22, 26 మరియు 34 సగటు ఎంత?",
+          "options": [
+            "24",
+            "25",
+            "26",
+            "27"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "(18+22+26+34)/4"
+      }
+    },
+    {
+      "order_index": 7,
+      "subject": "Mathematics",
+      "difficulty": "easy",
+      "content_text": "A sum of ₹5,000 is invested at 8% simple interest for 2 years. What is the interest?",
+      "options": [
+        "₹600",
+        "₹700",
+        "₹800",
+        "₹900"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Simple interest = 5000 × 8 × 2 / 100 = 800.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "₹5,000 की राशि पर 8% वार्षिक साधारण ब्याज से 2 वर्षों का ब्याज कितना होगा?",
+          "options": [
+            "₹600",
+            "₹700",
+            "₹800",
+            "₹900"
+          ]
+        },
+        "te-IN": {
+          "content_text": "₹5,000పై 8% వార్షిక సరళ వడ్డీతో 2 సంవత్సరాలకు వడ్డీ ఎంత?",
+          "options": [
+            "₹600",
+            "₹700",
+            "₹800",
+            "₹900"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "5000*8*2/100"
+      }
+    },
+    {
+      "order_index": 8,
+      "subject": "Mathematics",
+      "difficulty": "medium",
+      "content_text": "A train travels at 72 km/h for 25 seconds. How far does it travel?",
+      "options": [
+        "400 m",
+        "450 m",
+        "500 m",
+        "550 m"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "72 km/h = 20 m/s, so distance = 20 × 25 = 500 m.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "एक ट्रेन 72 किमी/घंटा की गति से 25 सेकंड चलती है। वह कितनी दूरी तय करेगी?",
+          "options": [
+            "400 m",
+            "450 m",
+            "500 m",
+            "550 m"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఒక రైలు గంటకు 72 కిమీ వేగంతో 25 సెకన్లు ప్రయాణిస్తుంది. అది ఎంత దూరం వెళ్తుంది?",
+          "options": [
+            "400 m",
+            "450 m",
+            "500 m",
+            "550 m"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "72*1000/3600*25"
+      }
+    },
+    {
+      "order_index": 9,
+      "subject": "Mathematics",
+      "difficulty": "medium",
+      "content_text": "A shopkeeper buys an item for ₹800 and sells it for ₹920. What is the profit percentage?",
+      "options": [
+        "10%",
+        "12%",
+        "15%",
+        "18%"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Profit is ₹120, so profit percentage is 120/800 × 100 = 15%.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "एक दुकानदार वस्तु ₹800 में खरीदकर ₹920 में बेचता है। लाभ प्रतिशत कितना है?",
+          "options": [
+            "10%",
+            "12%",
+            "15%",
+            "18%"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఒక వ్యాపారి ఒక వస్తువును ₹800కు కొనుగోలు చేసి ₹920కు అమ్మాడు. లాభ శాతం ఎంత?",
+          "options": [
+            "10%",
+            "12%",
+            "15%",
+            "18%"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "(920-800)/800*100"
+      }
+    },
+    {
+      "order_index": 10,
+      "subject": "Mathematics",
+      "difficulty": "medium",
+      "content_text": "Solve 3x + 7 = 34.",
+      "options": [
+        "7",
+        "8",
+        "9",
+        "10"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Subtract 7 and divide by 3 to get x = 9.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "3x + 7 = 34 को हल कीजिए।",
+          "options": [
+            "7",
+            "8",
+            "9",
+            "10"
+          ]
+        },
+        "te-IN": {
+          "content_text": "3x + 7 = 34 ను పరిష్కరించండి.",
+          "options": [
+            "7",
+            "8",
+            "9",
+            "10"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "(34-7)/3"
+      }
+    },
+    {
+      "order_index": 11,
+      "subject": "Mathematics",
+      "difficulty": "medium",
+      "content_text": "A can complete a job in 12 days and B can complete it in 18 days. How many days will they take together?",
+      "options": [
+        "6 days",
+        "7.2 days",
+        "8 days",
+        "9 days"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Combined rate is 1/12 + 1/18 = 5/36, so time = 36/5 = 7.2 days.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "A एक काम 12 दिनों में और B 18 दिनों में करता है। दोनों मिलकर काम कितने दिनों में करेंगे?",
+          "options": [
+            "6 days",
+            "7.2 days",
+            "8 days",
+            "9 days"
+          ]
+        },
+        "te-IN": {
+          "content_text": "A ఒక పనిని 12 రోజుల్లో, B 18 రోజుల్లో పూర్తి చేస్తారు. ఇద్దరూ కలిసి ఎన్ని రోజుల్లో పూర్తి చేస్తారు?",
+          "options": [
+            "6 days",
+            "7.2 days",
+            "8 days",
+            "9 days"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "1/(1/12+1/18)"
+      }
+    },
+    {
+      "order_index": 12,
+      "subject": "Mathematics",
+      "difficulty": "medium",
+      "content_text": "Two successive discounts of 10% and 20% are equivalent to a single discount of what percentage?",
+      "options": [
+        "26%",
+        "28%",
+        "30%",
+        "32%"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The retained price is 0.9 × 0.8 = 0.72, so the equivalent discount is 28%.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "10% और 20% की क्रमिक छूट एकल छूट के रूप में कितने प्रतिशत के बराबर है?",
+          "options": [
+            "26%",
+            "28%",
+            "30%",
+            "32%"
+          ]
+        },
+        "te-IN": {
+          "content_text": "10% మరియు 20% వరుస డిస్కౌంట్లు ఒకే డిస్కౌంట్‌గా ఎంత శాతానికి సమానం?",
+          "options": [
+            "26%",
+            "28%",
+            "30%",
+            "32%"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "(1-0.9*0.8)*100"
+      }
+    },
+    {
+      "order_index": 13,
+      "subject": "Mathematics",
+      "difficulty": "medium",
+      "content_text": "A rectangle has perimeter 60 cm and length 18 cm. What is its breadth?",
+      "options": [
+        "10 cm",
+        "12 cm",
+        "14 cm",
+        "16 cm"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "2(l+b)=60, so b = 30 − 18 = 12 cm.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "एक आयत का परिमाप 60 सेमी और लंबाई 18 सेमी है। उसकी चौड़ाई कितनी है?",
+          "options": [
+            "10 cm",
+            "12 cm",
+            "14 cm",
+            "16 cm"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఒక దీర్ఘచతురస్రం పరిధి 60 సెం.మీ మరియు పొడవు 18 సెం.మీ. వెడల్పు ఎంత?",
+          "options": [
+            "10 cm",
+            "12 cm",
+            "14 cm",
+            "16 cm"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "60/2-18"
+      }
+    },
+    {
+      "order_index": 14,
+      "subject": "Mathematics",
+      "difficulty": "medium",
+      "content_text": "Using π = 22/7, what is the circumference of a circle with radius 7 cm?",
+      "options": [
+        "22 cm",
+        "44 cm",
+        "49 cm",
+        "88 cm"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Circumference = 2πr = 44 cm.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "π = 22/7 लेने पर, 7 सेमी त्रिज्या वाले वृत्त की परिधि कितनी है?",
+          "options": [
+            "22 cm",
+            "44 cm",
+            "49 cm",
+            "88 cm"
+          ]
+        },
+        "te-IN": {
+          "content_text": "π = 22/7 తీసుకుంటే, 7 సెం.మీ వ్యాసార్థం ఉన్న వృత్త పరిధి ఎంత?",
+          "options": [
+            "22 cm",
+            "44 cm",
+            "49 cm",
+            "88 cm"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "2*(22/7)*7"
+      }
+    },
+    {
+      "order_index": 15,
+      "subject": "Mathematics",
+      "difficulty": "hard",
+      "content_text": "A bag has 5 red balls and 7 blue balls. What is the probability of drawing a red ball?",
+      "options": [
+        "1/2",
+        "5/12",
+        "7/12",
+        "5/7"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "There are 12 balls in total and 5 are red, so probability = 5/12.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "एक थैले में 5 लाल और 7 नीली गेंदें हैं। लाल गेंद निकलने की प्रायिकता क्या है?",
+          "options": [
+            "1/2",
+            "5/12",
+            "7/12",
+            "5/7"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఒక సంచిలో 5 ఎరుపు బంతులు, 7 నీలం బంతులు ఉన్నాయి. ఎరుపు బంతి తీసే సంభావ్యత ఎంత?",
+          "options": [
+            "1/2",
+            "5/12",
+            "7/12",
+            "5/7"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "fraction",
+        "numerator": 5,
+        "denominator": 12
+      }
+    },
+    {
+      "order_index": 16,
+      "subject": "Mathematics",
+      "difficulty": "hard",
+      "content_text": "Two people have ages in the ratio 4:5 and their total age is 45 years. What is the younger person's age?",
+      "options": [
+        "18 years",
+        "20 years",
+        "22 years",
+        "25 years"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "There are 9 ratio parts, so one part is 5 and the younger age is 20.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "दो लोगों की आयु का अनुपात 4:5 है और उनकी कुल आयु 45 वर्ष है। छोटे व्यक्ति की आयु कितनी है?",
+          "options": [
+            "18 years",
+            "20 years",
+            "22 years",
+            "25 years"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఇద్దరి వయస్సుల నిష్పత్తి 4:5 మరియు మొత్తం వయస్సు 45 సంవత్సరాలు. చిన్నవారి వయస్సు ఎంత?",
+          "options": [
+            "18 years",
+            "20 years",
+            "22 years",
+            "25 years"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "45*4/9"
+      }
+    },
+    {
+      "order_index": 17,
+      "subject": "Mathematics",
+      "difficulty": "hard",
+      "content_text": "The average of five numbers is 18. If a sixth number 24 is included, what is the new average?",
+      "options": [
+        "18",
+        "19",
+        "20",
+        "21"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The original sum is 90; after adding 24 the sum is 114, and 114 ÷ 6 = 19.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "पाँच संख्याओं का औसत 18 है। यदि 24 को छठी संख्या के रूप में जोड़ा जाए, तो नया औसत क्या होगा?",
+          "options": [
+            "18",
+            "19",
+            "20",
+            "21"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఐదు సంఖ్యల సగటు 18. ఆరవ సంఖ్యగా 24ను చేరిస్తే కొత్త సగటు ఎంత?",
+          "options": [
+            "18",
+            "19",
+            "20",
+            "21"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "(5*18+24)/6"
+      }
+    },
+    {
+      "order_index": 18,
+      "subject": "Mathematics",
+      "difficulty": "hard",
+      "content_text": "The roots of x² − 7x + 12 = 0 are 3 and 4. What is the larger root?",
+      "options": [
+        "2",
+        "3",
+        "4",
+        "6"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Factorization gives (x−3)(x−4)=0, so the larger root is 4.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "x² − 7x + 12 = 0 के मूल 3 और 4 हैं। बड़ा मूल कौन सा है?",
+          "options": [
+            "2",
+            "3",
+            "4",
+            "6"
+          ]
+        },
+        "te-IN": {
+          "content_text": "x² − 7x + 12 = 0 యొక్క మూలాలు 3 మరియు 4. పెద్ద మూలం ఏది?",
+          "options": [
+            "2",
+            "3",
+            "4",
+            "6"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "4"
+      }
+    },
+    {
+      "order_index": 19,
+      "subject": "Mathematics",
+      "difficulty": "hard",
+      "content_text": "A shop sold 120 items on Monday and 180 on Wednesday. What was the percentage increase?",
+      "options": [
+        "25%",
+        "40%",
+        "50%",
+        "60%"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The increase is 60, and 60/120 × 100 = 50%.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "एक दुकान ने सोमवार को 120 और बुधवार को 180 वस्तुएँ बेचीं। प्रतिशत वृद्धि कितनी हुई?",
+          "options": [
+            "25%",
+            "40%",
+            "50%",
+            "60%"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఒక దుకాణం సోమవారం 120, బుధవారం 180 వస్తువులు అమ్మింది. శాతం పెరుగుదల ఎంత?",
+          "options": [
+            "25%",
+            "40%",
+            "50%",
+            "60%"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "(180-120)/120*100"
+      }
+    },
+    {
+      "order_index": 20,
+      "subject": "Mathematics",
+      "difficulty": "hard",
+      "content_text": "The diagram shows a rectangle 18 cm long and 12 cm wide. What is its area?",
+      "options": [
+        "180 cm²",
+        "200 cm²",
+        "216 cm²",
+        "240 cm²"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Area = 18 × 12 = 216 cm².",
+      "image_url": "/diagrams/rectangle-18x12.svg",
+      "image_alt_text": "A rectangle labelled 18 centimetres along the horizontal side and 12 centimetres along the vertical side.",
+      "translations": {
+        "hi-IN": {
+          "content_text": "दिए गए चित्र में आयत की लंबाई 18 सेमी और चौड़ाई 12 सेमी है। उसका क्षेत्रफल कितना है?",
+          "options": [
+            "180 cm²",
+            "200 cm²",
+            "216 cm²",
+            "240 cm²"
+          ]
+        },
+        "te-IN": {
+          "content_text": "చిత్రంలో దీర్ఘచతురస్రం పొడవు 18 సెం.మీ, వెడల్పు 12 సెం.మీగా చూపబడింది. దాని విస్తీర్ణం ఎంత?",
+          "options": [
+            "180 cm²",
+            "200 cm²",
+            "216 cm²",
+            "240 cm²"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "18*12"
+      }
+    },
+    {
+      "order_index": 21,
+      "subject": "Reasoning",
+      "difficulty": "easy",
+      "content_text": "Bird is to Nest as Lion is to ___.",
+      "options": [
+        "Den",
+        "Stable",
+        "Burrow",
+        "Hive"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "A lion's shelter is a den.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "पक्षी का संबंध घोंसले से है, उसी प्रकार शेर का संबंध किससे है?",
+          "options": [
+            "Den",
+            "Stable",
+            "Burrow",
+            "Hive"
+          ]
+        },
+        "te-IN": {
+          "content_text": "పక్షికి గూడు సంబంధమైనట్లే, సింహానికి దేనితో సంబంధం ఉంది?",
+          "options": [
+            "Den",
+            "Stable",
+            "Burrow",
+            "Hive"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 22,
+      "subject": "Reasoning",
+      "difficulty": "easy",
+      "content_text": "Which number is the odd one out: 2, 3, 5, 9?",
+      "options": [
+        "2",
+        "3",
+        "5",
+        "9"
+      ],
+      "correct_answer_index": 3,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "2, 3 and 5 are prime; 9 is composite.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "2, 3, 5, 9 में से विषम संख्या कौन सी है?",
+          "options": [
+            "2",
+            "3",
+            "5",
+            "9"
+          ]
+        },
+        "te-IN": {
+          "content_text": "2, 3, 5, 9లో భిన్నమైన సంఖ్య ఏది?",
+          "options": [
+            "2",
+            "3",
+            "5",
+            "9"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 23,
+      "subject": "Reasoning",
+      "difficulty": "easy",
+      "content_text": "Find the next number: 3, 6, 9, 12, ___.",
+      "options": [
+        "14",
+        "15",
+        "16",
+        "18"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The sequence increases by 3.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "अगली संख्या ज्ञात कीजिए: 3, 6, 9, 12, ___.",
+          "options": [
+            "14",
+            "15",
+            "16",
+            "18"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తదుపరి సంఖ్యను కనుగొనండి: 3, 6, 9, 12, ___.",
+          "options": [
+            "14",
+            "15",
+            "16",
+            "18"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "sequence",
+        "terms": [
+          3,
+          6,
+          9,
+          12
+        ],
+        "rule": "add",
+        "step": 3
+      }
+    },
+    {
+      "order_index": 24,
+      "subject": "Reasoning",
+      "difficulty": "easy",
+      "content_text": "A person walks 5 km north and then 3 km east. In which direction is the person from the starting point?",
+      "options": [
+        "North-West",
+        "North-East",
+        "South-East",
+        "South-West"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "North followed by east places the person north-east of the start.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "एक व्यक्ति 5 किमी उत्तर और फिर 3 किमी पूर्व चलता है। प्रारंभिक स्थान से वह किस दिशा में है?",
+          "options": [
+            "North-West",
+            "North-East",
+            "South-East",
+            "South-West"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఒక వ్యక్తి 5 కి.మీ ఉత్తరంగా, తరువాత 3 కి.మీ తూర్పుగా నడిచాడు. ప్రారంభ స్థానం నుంచి అతని దిశ ఏది?",
+          "options": [
+            "North-West",
+            "North-East",
+            "South-East",
+            "South-West"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "direction",
+        "moves": [
+          [
+            "N",
+            5
+          ],
+          [
+            "E",
+            3
+          ]
+        ],
+        "answer": "NE"
+      }
+    },
+    {
+      "order_index": 25,
+      "subject": "Reasoning",
+      "difficulty": "easy",
+      "content_text": "Riya is 12th from the top and 18th from the bottom in a class. How many students are there?",
+      "options": [
+        "28",
+        "29",
+        "30",
+        "31"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Total = 12 + 18 − 1 = 29.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "एक कक्षा में रिया ऊपर से 12वीं और नीचे से 18वीं है। कुल कितने विद्यार्थी हैं?",
+          "options": [
+            "28",
+            "29",
+            "30",
+            "31"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఒక తరగతిలో రియా పై నుంచి 12వది, కింద నుంచి 18వది. మొత్తం విద్యార్థులు ఎంతమంది?",
+          "options": [
+            "28",
+            "29",
+            "30",
+            "31"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "12+18-1"
+      }
+    },
+    {
+      "order_index": 26,
+      "subject": "Reasoning",
+      "difficulty": "easy",
+      "content_text": "What letter comes next: A, C, E, G, ___?",
+      "options": [
+        "H",
+        "I",
+        "J",
+        "K"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The sequence advances by two alphabet positions.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "अगला अक्षर कौन सा है: A, C, E, G, ___?",
+          "options": [
+            "H",
+            "I",
+            "J",
+            "K"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తదుపరి అక్షరం ఏది: A, C, E, G, ___?",
+          "options": [
+            "H",
+            "I",
+            "J",
+            "K"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "letter_sequence",
+        "letters": [
+          "A",
+          "C",
+          "E",
+          "G"
+        ],
+        "step": 2
+      }
+    },
+    {
+      "order_index": 27,
+      "subject": "Reasoning",
+      "difficulty": "medium",
+      "content_text": "If each letter is shifted two places forward, how is CAT coded?",
+      "options": [
+        "DBU",
+        "ECV",
+        "FDW",
+        "GBX"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "C→E, A→C, T→V.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "यदि प्रत्येक अक्षर को दो स्थान आगे बढ़ाया जाए, तो CAT का कूट क्या होगा?",
+          "options": [
+            "DBU",
+            "ECV",
+            "FDW",
+            "GBX"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ప్రతి అక్షరాన్ని రెండు స్థానాలు ముందుకు మార్చితే CAT ఎలా కోడ్ అవుతుంది?",
+          "options": [
+            "DBU",
+            "ECV",
+            "FDW",
+            "GBX"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "letter_shift",
+        "input": "CAT",
+        "shift": 2
+      }
+    },
+    {
+      "order_index": 28,
+      "subject": "Reasoning",
+      "difficulty": "medium",
+      "content_text": "P is the mother of Q. Q is the brother of R. How is P related to R?",
+      "options": [
+        "Aunt",
+        "Mother",
+        "Sister",
+        "Daughter"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Q and R are siblings, so Q's mother is also R's mother.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "P, Q की माँ है। Q, R का भाई है। P का R से क्या संबंध है?",
+          "options": [
+            "Aunt",
+            "Mother",
+            "Sister",
+            "Daughter"
+          ]
+        },
+        "te-IN": {
+          "content_text": "P, Qకి తల్లి. Q, Rకి సోదరుడు. Pకి Rతో సంబంధం ఏమిటి?",
+          "options": [
+            "Aunt",
+            "Mother",
+            "Sister",
+            "Daughter"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 29,
+      "subject": "Reasoning",
+      "difficulty": "medium",
+      "content_text": "Today is Wednesday. What day will it be after 45 days?",
+      "options": [
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "45 mod 7 = 3, and three days after Wednesday is Saturday.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "आज बुधवार है। 45 दिनों बाद कौन सा दिन होगा?",
+          "options": [
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఈరోజు బుధవారం. 45 రోజుల తర్వాత ఏ రోజు అవుతుంది?",
+          "options": [
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "weekday_offset",
+        "start": "Wednesday",
+        "days": 45
+      }
+    },
+    {
+      "order_index": 30,
+      "subject": "Reasoning",
+      "difficulty": "medium",
+      "content_text": "Five people A, B, C, D and E sit in a row. C is in the middle, B is immediately left of C, and E is at the right end. Who sits immediately right of C?",
+      "options": [
+        "A",
+        "B",
+        "D",
+        "E"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The arrangement is A-B-C-D-E.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "पाँच लोग A, B, C, D और E एक पंक्ति में बैठे हैं। C बीच में है, B उसके ठीक बाएँ है और E सबसे दाएँ है। C के ठीक दाएँ कौन बैठा है?",
+          "options": [
+            "A",
+            "B",
+            "D",
+            "E"
+          ]
+        },
+        "te-IN": {
+          "content_text": "A, B, C, D, E ఐదుగురు వరుసలో కూర్చున్నారు. C మధ్యలో, B Cకి వెంటనే ఎడమవైపు, E కుడి చివరలో ఉన్నాడు. Cకి వెంటనే కుడివైపు ఎవరు?",
+          "options": [
+            "A",
+            "B",
+            "D",
+            "E"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 31,
+      "subject": "Reasoning",
+      "difficulty": "medium",
+      "content_text": "Using A=1, B=2, ..., Z=26, what is the value of DOG?",
+      "options": [
+        "24",
+        "25",
+        "26",
+        "27"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "D=4, O=15 and G=7; total 26.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "A=1, B=2, ... Z=26 मानकर DOG का मान क्या होगा?",
+          "options": [
+            "24",
+            "25",
+            "26",
+            "27"
+          ]
+        },
+        "te-IN": {
+          "content_text": "A=1, B=2, ... Z=26 ప్రకారం DOG విలువ ఎంత?",
+          "options": [
+            "24",
+            "25",
+            "26",
+            "27"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "4+15+7"
+      }
+    },
+    {
+      "order_index": 32,
+      "subject": "Reasoning",
+      "difficulty": "medium",
+      "content_text": "All pens are stationery. Some stationery is expensive. Which conclusion definitely follows?",
+      "options": [
+        "All pens are expensive",
+        "Some pens are expensive",
+        "All expensive things are pens",
+        "No definite relation between pens and expensive stationery"
+      ],
+      "correct_answer_index": 3,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The expensive stationery need not include any pens.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "सभी पेन स्टेशनरी हैं। कुछ स्टेशनरी महँगी है। कौन सा निष्कर्ष निश्चित रूप से निकलता है?",
+          "options": [
+            "सभी पेन महँगे हैं",
+            "कुछ पेन महँगे हैं",
+            "सभी महँगी वस्तुएँ पेन हैं",
+            "पेन और महँगी स्टेशनरी के बीच कोई निश्चित संबंध नहीं है"
+          ]
+        },
+        "te-IN": {
+          "content_text": "అన్ని పెన్నులు స్టేషనరీ. కొంత స్టేషనరీ ఖరీదైనది. ఖచ్చితంగా ఏ నిర్ధారణ వస్తుంది?",
+          "options": [
+            "అన్ని పెన్నులు ఖరీదైనవి",
+            "కొన్ని పెన్నులు ఖరీదైనవి",
+            "అన్ని ఖరీదైన వస్తువులు పెన్నులే",
+            "పెన్నులు మరియు ఖరీదైన స్టేషనరీ మధ్య ఖచ్చితమైన సంబంధం లేదు"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 33,
+      "subject": "Reasoning",
+      "difficulty": "hard",
+      "content_text": "Find the next number: 2, 6, 12, 20, 30, ___.",
+      "options": [
+        "36",
+        "40",
+        "42",
+        "44"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Differences are 4, 6, 8, 10, 12.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "अगली संख्या ज्ञात कीजिए: 2, 6, 12, 20, 30, ___.",
+          "options": [
+            "36",
+            "40",
+            "42",
+            "44"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తదుపరి సంఖ్యను కనుగొనండి: 2, 6, 12, 20, 30, ___.",
+          "options": [
+            "36",
+            "40",
+            "42",
+            "44"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "sequence",
+        "terms": [
+          2,
+          6,
+          12,
+          20,
+          30
+        ],
+        "rule": "increasing_even_difference",
+        "nextDifference": 12
+      }
+    },
+    {
+      "order_index": 34,
+      "subject": "Reasoning",
+      "difficulty": "hard",
+      "content_text": "A person walks 6 km north, 4 km east and 6 km south. How far and in which direction is the person from the start?",
+      "options": [
+        "4 km west",
+        "4 km east",
+        "6 km south",
+        "10 km east"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The north and south movements cancel, leaving 4 km east.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "एक व्यक्ति 6 किमी उत्तर, 4 किमी पूर्व और 6 किमी दक्षिण चलता है। वह प्रारंभिक स्थान से कितनी दूर और किस दिशा में है?",
+          "options": [
+            "4 km west",
+            "4 km east",
+            "6 km south",
+            "10 km east"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఒక వ్యక్తి 6 కి.మీ ఉత్తరం, 4 కి.మీ తూర్పు, 6 కి.మీ దక్షిణం నడిచాడు. ప్రారంభ స్థానం నుంచి ఎంత దూరంలో, ఏ దిశలో ఉన్నాడు?",
+          "options": [
+            "4 km west",
+            "4 km east",
+            "6 km south",
+            "10 km east"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "direction_distance",
+        "moves": [
+          [
+            "N",
+            6
+          ],
+          [
+            "E",
+            4
+          ],
+          [
+            "S",
+            6
+          ]
+        ],
+        "distance": 4,
+        "direction": "E"
+      }
+    },
+    {
+      "order_index": 35,
+      "subject": "Reasoning",
+      "difficulty": "hard",
+      "content_text": "Five friends A, B, C, D and E sit in a row. D is immediately left of B, E is at the right end, A is not next to E, and C is not at an end. Who is in the middle?",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The only arrangement satisfying the conditions is D-B-C-A-E.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "पाँच मित्र A, B, C, D और E एक पंक्ति में बैठे हैं। D, B के ठीक बाएँ है; E सबसे दाएँ है; A, E के पास नहीं है और C किसी छोर पर नहीं है। बीच में कौन है?",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D"
+          ]
+        },
+        "te-IN": {
+          "content_text": "A, B, C, D, E ఐదుగురు వరుసలో కూర్చున్నారు. D, Bకి వెంటనే ఎడమవైపు; E కుడి చివర; A, E పక్కన ఉండదు; C ఏ చివరలోనూ ఉండదు. మధ్యలో ఎవరు?",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 36,
+      "subject": "Reasoning",
+      "difficulty": "hard",
+      "content_text": "If every pen is a book and every book is a bag, which statement must be true?",
+      "options": [
+        "Every bag is a pen",
+        "Every book is a pen",
+        "Every pen is a bag",
+        "Some bags are not books"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "By transitivity, every pen is a book and therefore a bag.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "यदि हर पेन एक किताब है और हर किताब एक बैग है, तो कौन सा कथन निश्चित रूप से सही है?",
+          "options": [
+            "Every bag is a pen",
+            "Every book is a pen",
+            "Every pen is a bag",
+            "Some bags are not books"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ప్రతి పెన్ ఒక పుస్తకం, ప్రతి పుస్తకం ఒక సంచి అయితే ఖచ్చితంగా ఏ ప్రకటన సరైనది?",
+          "options": [
+            "Every bag is a pen",
+            "Every book is a pen",
+            "Every pen is a bag",
+            "Some bags are not books"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 37,
+      "subject": "Reasoning",
+      "difficulty": "hard",
+      "content_text": "If each letter of TRAIN is shifted one place forward, what is the code?",
+      "options": [
+        "USBJO",
+        "USCJO",
+        "TSBHM",
+        "VTCKP"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "T→U, R→S, A→B, I→J, N→O.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "TRAIN के प्रत्येक अक्षर को एक स्थान आगे बढ़ाने पर कूट क्या होगा?",
+          "options": [
+            "USBJO",
+            "USCJO",
+            "TSBHM",
+            "VTCKP"
+          ]
+        },
+        "te-IN": {
+          "content_text": "TRAINలో ప్రతి అక్షరాన్ని ఒక స్థానం ముందుకు మార్చితే కోడ్ ఏమిటి?",
+          "options": [
+            "USBJO",
+            "USCJO",
+            "TSBHM",
+            "VTCKP"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "letter_shift",
+        "input": "TRAIN",
+        "shift": 1
+      }
+    },
+    {
+      "order_index": 38,
+      "subject": "Reasoning",
+      "difficulty": "hard",
+      "content_text": "Which number is the odd one out: 81, 64, 49, 36, 25, 17?",
+      "options": [
+        "81",
+        "49",
+        "25",
+        "17"
+      ],
+      "correct_answer_index": 3,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The first five are perfect squares; 17 is not.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "81, 64, 49, 36, 25, 17 में से विषम संख्या कौन सी है?",
+          "options": [
+            "81",
+            "49",
+            "25",
+            "17"
+          ]
+        },
+        "te-IN": {
+          "content_text": "81, 64, 49, 36, 25, 17లో భిన్నమైన సంఖ్య ఏది?",
+          "options": [
+            "81",
+            "49",
+            "25",
+            "17"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 39,
+      "subject": "Reasoning",
+      "difficulty": "hard",
+      "content_text": "In a group of 40 people, 25 like tea, 18 like coffee and 10 like both. How many like at least one of the two?",
+      "options": [
+        "30",
+        "31",
+        "33",
+        "35"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "By inclusion-exclusion, 25 + 18 − 10 = 33.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "40 लोगों के समूह में 25 को चाय, 18 को कॉफी और 10 को दोनों पसंद हैं। कम से कम एक पसंद करने वाले कितने हैं?",
+          "options": [
+            "30",
+            "31",
+            "33",
+            "35"
+          ]
+        },
+        "te-IN": {
+          "content_text": "40 మంది సమూహంలో 25 మందికి టీ, 18 మందికి కాఫీ, 10 మందికి రెండూ ఇష్టం. కనీసం ఒకదాన్ని ఇష్టపడేవారు ఎంతమంది?",
+          "options": [
+            "30",
+            "31",
+            "33",
+            "35"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "25+18-10"
+      }
+    },
+    {
+      "order_index": 40,
+      "subject": "Reasoning",
+      "difficulty": "hard",
+      "content_text": "What is the smaller angle between the hands of a clock at exactly 3:20?",
+      "options": [
+        "0°",
+        "10°",
+        "20°",
+        "30°"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Minute hand = 120°; hour hand = 100°; the difference is 20°.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "3:20 बजे घड़ी की दोनों सुइयों के बीच छोटा कोण कितना होगा?",
+          "options": [
+            "0°",
+            "10°",
+            "20°",
+            "30°"
+          ]
+        },
+        "te-IN": {
+          "content_text": "3:20కి గడియారం సూదుల మధ్య చిన్న కోణం ఎంత?",
+          "options": [
+            "0°",
+            "10°",
+            "20°",
+            "30°"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "clock_angle",
+        "hour": 3,
+        "minute": 20
+      }
+    },
+    {
+      "order_index": 41,
+      "subject": "General Knowledge",
+      "difficulty": "easy",
+      "content_text": "What is the capital of India?",
+      "options": [
+        "Mumbai",
+        "New Delhi",
+        "Kolkata",
+        "Chennai"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "New Delhi is the capital of India.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "भारत की राजधानी क्या है?",
+          "options": [
+            "Mumbai",
+            "New Delhi",
+            "Kolkata",
+            "Chennai"
+          ]
+        },
+        "te-IN": {
+          "content_text": "భారతదేశ రాజధాని ఏమిటి?",
+          "options": [
+            "Mumbai",
+            "New Delhi",
+            "Kolkata",
+            "Chennai"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 42,
+      "subject": "General Knowledge",
+      "difficulty": "easy",
+      "content_text": "Which Indian state has the largest area?",
+      "options": [
+        "Madhya Pradesh",
+        "Maharashtra",
+        "Rajasthan",
+        "Uttar Pradesh"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Rajasthan has the largest area among Indian states.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "क्षेत्रफल के आधार पर भारत का सबसे बड़ा राज्य कौन सा है?",
+          "options": [
+            "Madhya Pradesh",
+            "Maharashtra",
+            "Rajasthan",
+            "Uttar Pradesh"
+          ]
+        },
+        "te-IN": {
+          "content_text": "విస్తీర్ణం పరంగా భారతదేశంలో అతిపెద్ద రాష్ట్రం ఏది?",
+          "options": [
+            "Madhya Pradesh",
+            "Maharashtra",
+            "Rajasthan",
+            "Uttar Pradesh"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 43,
+      "subject": "General Knowledge",
+      "difficulty": "easy",
+      "content_text": "Who is the constitutional head of the Union of India?",
+      "options": [
+        "Prime Minister",
+        "President",
+        "Chief Justice of India",
+        "Home Minister"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The President is the constitutional head of the Union.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "भारत संघ का संवैधानिक प्रमुख कौन है?",
+          "options": [
+            "प्रधानमंत्री",
+            "राष्ट्रपति",
+            "भारत के मुख्य न्यायाधीश",
+            "गृह मंत्री"
+          ]
+        },
+        "te-IN": {
+          "content_text": "భారత సమాఖ్యకు రాజ్యాంగపరమైన అధిపతి ఎవరు?",
+          "options": [
+            "ప్రధాన మంత్రి",
+            "రాష్ట్రపతి",
+            "భారత ప్రధాన న్యాయమూర్తి",
+            "హోం మంత్రి"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 44,
+      "subject": "General Knowledge",
+      "difficulty": "easy",
+      "content_text": "Which institution is India's central bank and regulates monetary policy?",
+      "options": [
+        "SBI",
+        "SEBI",
+        "RBI",
+        "NITI Aayog"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The Reserve Bank of India is India's central bank.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "भारत का केंद्रीय बैंक और मौद्रिक नीति का नियामक कौन सा संस्थान है?",
+          "options": [
+            "SBI",
+            "SEBI",
+            "RBI",
+            "NITI Aayog"
+          ]
+        },
+        "te-IN": {
+          "content_text": "భారతదేశ కేంద్ర బ్యాంక్ మరియు ద్రవ్య విధానాన్ని నియంత్రించే సంస్థ ఏది?",
+          "options": [
+            "SBI",
+            "SEBI",
+            "RBI",
+            "NITI Aayog"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 45,
+      "subject": "General Knowledge",
+      "difficulty": "easy",
+      "content_text": "Which amendment added Fundamental Duties to the Constitution?",
+      "options": [
+        "42nd Amendment",
+        "44th Amendment",
+        "52nd Amendment",
+        "61st Amendment"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The 42nd Amendment added Fundamental Duties.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "किस संशोधन ने संविधान में मौलिक कर्तव्यों को जोड़ा?",
+          "options": [
+            "42वाँ संशोधन",
+            "44वाँ संशोधन",
+            "52वाँ संशोधन",
+            "61वाँ संशोधन"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఏ సవరణ రాజ్యాంగంలో మౌలిక కర్తవ్యాలను చేర్చింది?",
+          "options": [
+            "42వ సవరణ",
+            "44వ సవరణ",
+            "52వ సవరణ",
+            "61వ సవరణ"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 46,
+      "subject": "General Knowledge",
+      "difficulty": "easy",
+      "content_text": "Which Article protects the Right to Life and Personal Liberty?",
+      "options": [
+        "Article 14",
+        "Article 19",
+        "Article 21",
+        "Article 32"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Article 21 protects life and personal liberty.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "जीवन और व्यक्तिगत स्वतंत्रता के अधिकार की रक्षा कौन सा अनुच्छेद करता है?",
+          "options": [
+            "Article 14",
+            "Article 19",
+            "Article 21",
+            "Article 32"
+          ]
+        },
+        "te-IN": {
+          "content_text": "జీవనం మరియు వ్యక్తిగత స్వేచ్ఛ హక్కును ఏ అధికరణం రక్షిస్తుంది?",
+          "options": [
+            "Article 14",
+            "Article 19",
+            "Article 21",
+            "Article 32"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 47,
+      "subject": "General Knowledge",
+      "difficulty": "easy",
+      "content_text": "The Panchayati Raj system received constitutional status through which amendment?",
+      "options": [
+        "61st Amendment",
+        "73rd Amendment",
+        "74th Amendment",
+        "86th Amendment"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The 73rd Amendment gave constitutional status to Panchayats.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "पंचायती राज व्यवस्था को संवैधानिक दर्जा किस संशोधन से मिला?",
+          "options": [
+            "61वाँ संशोधन",
+            "73वाँ संशोधन",
+            "74वाँ संशोधन",
+            "86वाँ संशोधन"
+          ]
+        },
+        "te-IN": {
+          "content_text": "పంచాయతీ రాజ్ వ్యవస్థకు రాజ్యాంగ హోదా ఏ సవరణ ద్వారా లభించింది?",
+          "options": [
+            "61వ సవరణ",
+            "73వ సవరణ",
+            "74వ సవరణ",
+            "86వ సవరణ"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 48,
+      "subject": "General Knowledge",
+      "difficulty": "medium",
+      "content_text": "On which date was GST launched in India?",
+      "options": [
+        "1 April 2016",
+        "1 July 2017",
+        "15 August 2017",
+        "26 January 2018"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "GST was launched nationwide on 1 July 2017.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "भारत में GST किस तारीख को लागू हुआ?",
+          "options": [
+            "1 April 2016",
+            "1 July 2017",
+            "15 August 2017",
+            "26 January 2018"
+          ]
+        },
+        "te-IN": {
+          "content_text": "భారతదేశంలో GST ఏ తేదీన అమల్లోకి వచ్చింది?",
+          "options": [
+            "1 April 2016",
+            "1 July 2017",
+            "15 August 2017",
+            "26 January 2018"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 49,
+      "subject": "General Knowledge",
+      "difficulty": "medium",
+      "content_text": "What is the currency of Japan?",
+      "options": [
+        "Won",
+        "Yuan",
+        "Yen",
+        "Ringgit"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The currency of Japan is the yen.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "जापान की मुद्रा क्या है?",
+          "options": [
+            "Won",
+            "Yuan",
+            "Yen",
+            "Ringgit"
+          ]
+        },
+        "te-IN": {
+          "content_text": "జపాన్ కరెన్సీ ఏది?",
+          "options": [
+            "Won",
+            "Yuan",
+            "Yen",
+            "Ringgit"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 50,
+      "subject": "General Knowledge",
+      "difficulty": "medium",
+      "content_text": "Where is the headquarters of the World Health Organization?",
+      "options": [
+        "Paris",
+        "Geneva",
+        "New York",
+        "Rome"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "WHO is headquartered in Geneva.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "विश्व स्वास्थ्य संगठन का मुख्यालय कहाँ है?",
+          "options": [
+            "Paris",
+            "Geneva",
+            "New York",
+            "Rome"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ప్రపంచ ఆరోగ్య సంస్థ ప్రధాన కార్యాలయం ఎక్కడ ఉంది?",
+          "options": [
+            "Paris",
+            "Geneva",
+            "New York",
+            "Rome"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 51,
+      "subject": "General Knowledge",
+      "difficulty": "medium",
+      "content_text": "Which is the largest ocean on Earth?",
+      "options": [
+        "Atlantic Ocean",
+        "Indian Ocean",
+        "Pacific Ocean",
+        "Arctic Ocean"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The Pacific Ocean is the largest ocean.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "पृथ्वी का सबसे बड़ा महासागर कौन सा है?",
+          "options": [
+            "Atlantic Ocean",
+            "Indian Ocean",
+            "Pacific Ocean",
+            "Arctic Ocean"
+          ]
+        },
+        "te-IN": {
+          "content_text": "భూమిపై అతిపెద్ద మహాసముద్రం ఏది?",
+          "options": [
+            "Atlantic Ocean",
+            "Indian Ocean",
+            "Pacific Ocean",
+            "Arctic Ocean"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 52,
+      "subject": "General Knowledge",
+      "difficulty": "medium",
+      "content_text": "How many Indian states does the Tropic of Cancer pass through?",
+      "options": [
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The Tropic of Cancer crosses eight Indian states.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "कर्क रेखा भारत के कितने राज्यों से होकर गुजरती है?",
+          "options": [
+            "6",
+            "7",
+            "8",
+            "9"
+          ]
+        },
+        "te-IN": {
+          "content_text": "కర్కట రేఖ భారతదేశంలోని ఎన్ని రాష్ట్రాల గుండా వెళ్తుంది?",
+          "options": [
+            "6",
+            "7",
+            "8",
+            "9"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 53,
+      "subject": "General Knowledge",
+      "difficulty": "medium",
+      "content_text": "Who is widely credited with leading India's Green Revolution programme?",
+      "options": [
+        "M. S. Swaminathan",
+        "Homi Bhabha",
+        "Vikram Sarabhai",
+        "C. V. Raman"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "M. S. Swaminathan played a central role in India's Green Revolution efforts.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "भारत में हरित क्रांति कार्यक्रम के नेतृत्व से किसे व्यापक रूप से जोड़ा जाता है?",
+          "options": [
+            "एम. एस. स्वामीनाथन",
+            "होमी भाभा",
+            "विक्रम साराभाई",
+            "सी. वी. रमन"
+          ]
+        },
+        "te-IN": {
+          "content_text": "భారతదేశ హరిత విప్లవ కార్యక్రమానికి నాయకత్వం వహించిన వ్యక్తిగా ఎవరిని విస్తృతంగా గుర్తిస్తారు?",
+          "options": [
+            "ఎం. ఎస్. స్వామినాథన్",
+            "హోమీ భాభా",
+            "విక్రమ్ సారాభాయ్",
+            "సి. వి. రామన్"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 54,
+      "subject": "General Knowledge",
+      "difficulty": "medium",
+      "content_text": "The national motto 'Satyameva Jayate' comes from which Upanishad?",
+      "options": [
+        "Isha Upanishad",
+        "Mundaka Upanishad",
+        "Kena Upanishad",
+        "Katha Upanishad"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The phrase is from the Mundaka Upanishad.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "राष्ट्रीय आदर्श वाक्य 'सत्यमेव जयते' किस उपनिषद से लिया गया है?",
+          "options": [
+            "Isha Upanishad",
+            "Mundaka Upanishad",
+            "Kena Upanishad",
+            "Katha Upanishad"
+          ]
+        },
+        "te-IN": {
+          "content_text": "జాతీయ నినాదం 'సత్యమేవ జయతే' ఏ ఉపనిషత్తు నుంచి తీసుకున్నారు?",
+          "options": [
+            "Isha Upanishad",
+            "Mundaka Upanishad",
+            "Kena Upanishad",
+            "Katha Upanishad"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 55,
+      "subject": "General Knowledge",
+      "difficulty": "medium",
+      "content_text": "Which body replaced the Planning Commission in 2015?",
+      "options": [
+        "Finance Commission",
+        "NITI Aayog",
+        "SEBI",
+        "GST Council"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "NITI Aayog replaced the Planning Commission in 2015.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "2015 में योजना आयोग का स्थान किस संस्था ने लिया?",
+          "options": [
+            "Finance Commission",
+            "NITI Aayog",
+            "SEBI",
+            "GST Council"
+          ]
+        },
+        "te-IN": {
+          "content_text": "2015లో ప్రణాళిక సంఘాన్ని ఏ సంస్థ భర్తీ చేసింది?",
+          "options": [
+            "Finance Commission",
+            "NITI Aayog",
+            "SEBI",
+            "GST Council"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 56,
+      "subject": "General Knowledge",
+      "difficulty": "hard",
+      "content_text": "The voting age in India was reduced from 21 to 18 by which amendment?",
+      "options": [
+        "42nd Amendment",
+        "44th Amendment",
+        "61st Amendment",
+        "73rd Amendment"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The 61st Amendment lowered the voting age to 18.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "भारत में मतदान की आयु 21 से घटाकर 18 वर्ष किस संशोधन से की गई?",
+          "options": [
+            "42वाँ संशोधन",
+            "44वाँ संशोधन",
+            "61वाँ संशोधन",
+            "73वाँ संशोधन"
+          ]
+        },
+        "te-IN": {
+          "content_text": "భారతదేశంలో ఓటు వయస్సును 21 నుంచి 18కి ఏ సవరణ తగ్గించింది?",
+          "options": [
+            "42వ సవరణ",
+            "44వ సవరణ",
+            "61వ సవరణ",
+            "73వ సవరణ"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 57,
+      "subject": "General Knowledge",
+      "difficulty": "hard",
+      "content_text": "National Science Day in India is observed on which date?",
+      "options": [
+        "26 January",
+        "28 February",
+        "15 August",
+        "5 September"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "National Science Day is observed on 28 February.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "भारत में राष्ट्रीय विज्ञान दिवस किस तारीख को मनाया जाता है?",
+          "options": [
+            "26 January",
+            "28 February",
+            "15 August",
+            "5 September"
+          ]
+        },
+        "te-IN": {
+          "content_text": "భారతదేశంలో జాతీయ విజ్ఞాన దినోత్సవం ఏ తేదీన జరుపుతారు?",
+          "options": [
+            "26 January",
+            "28 February",
+            "15 August",
+            "5 September"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 58,
+      "subject": "General Knowledge",
+      "difficulty": "hard",
+      "content_text": "Where is the headquarters of the International Monetary Fund?",
+      "options": [
+        "London",
+        "Washington, D.C.",
+        "Geneva",
+        "Vienna"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The IMF is headquartered in Washington, D.C.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "अंतरराष्ट्रीय मुद्रा कोष का मुख्यालय कहाँ है?",
+          "options": [
+            "London",
+            "Washington, D.C.",
+            "Geneva",
+            "Vienna"
+          ]
+        },
+        "te-IN": {
+          "content_text": "అంతర్జాతీయ ద్రవ్య నిధి ప్రధాన కార్యాలయం ఎక్కడ ఉంది?",
+          "options": [
+            "London",
+            "Washington, D.C.",
+            "Geneva",
+            "Vienna"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 59,
+      "subject": "General Knowledge",
+      "difficulty": "hard",
+      "content_text": "Where is the headquarters of SAARC?",
+      "options": [
+        "Dhaka",
+        "Kathmandu",
+        "Colombo",
+        "New Delhi"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The SAARC Secretariat is located in Kathmandu.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "सार्क का मुख्यालय कहाँ है?",
+          "options": [
+            "Dhaka",
+            "Kathmandu",
+            "Colombo",
+            "New Delhi"
+          ]
+        },
+        "te-IN": {
+          "content_text": "సార్క్ ప్రధాన కార్యాలయం ఎక్కడ ఉంది?",
+          "options": [
+            "Dhaka",
+            "Kathmandu",
+            "Colombo",
+            "New Delhi"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 60,
+      "subject": "General Knowledge",
+      "difficulty": "hard",
+      "content_text": "Who chaired the Drafting Committee of the Constituent Assembly?",
+      "options": [
+        "B. R. Ambedkar",
+        "Jawaharlal Nehru",
+        "Sardar Patel",
+        "Rajendra Prasad"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "B. R. Ambedkar chaired the Drafting Committee.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "संविधान सभा की प्रारूप समिति के अध्यक्ष कौन थे?",
+          "options": [
+            "बी. आर. आंबेडकर",
+            "जवाहरलाल नेहरू",
+            "सरदार पटेल",
+            "राजेंद्र प्रसाद"
+          ]
+        },
+        "te-IN": {
+          "content_text": "రాజ్యాంగ సభ ముసాయిదా కమిటీకి అధ్యక్షుడు ఎవరు?",
+          "options": [
+            "బి. ఆర్. అంబేద్కర్",
+            "జవహర్‌లాల్ నెహ్రూ",
+            "సర్దార్ పటేల్",
+            "రాజేంద్ర ప్రసాద్"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 61,
+      "subject": "Science",
+      "difficulty": "easy",
+      "content_text": "At sea level, water boils at what temperature?",
+      "options": [
+        "90°C",
+        "95°C",
+        "100°C",
+        "110°C"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "At standard atmospheric pressure, water boils at 100°C.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "समुद्र तल पर पानी किस तापमान पर उबलता है?",
+          "options": [
+            "90°C",
+            "95°C",
+            "100°C",
+            "110°C"
+          ]
+        },
+        "te-IN": {
+          "content_text": "సముద్ర మట్టం వద్ద నీరు ఏ ఉష్ణోగ్రతలో మరిగుతుంది?",
+          "options": [
+            "90°C",
+            "95°C",
+            "100°C",
+            "110°C"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 62,
+      "subject": "Science",
+      "difficulty": "easy",
+      "content_text": "What is the SI unit of force?",
+      "options": [
+        "Joule",
+        "Newton",
+        "Watt",
+        "Pascal"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Force is measured in newtons in the SI system.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "बल की SI इकाई क्या है?",
+          "options": [
+            "Joule",
+            "Newton",
+            "Watt",
+            "Pascal"
+          ]
+        },
+        "te-IN": {
+          "content_text": "బలానికి SI ప్రమాణక ఏకకం ఏది?",
+          "options": [
+            "Joule",
+            "Newton",
+            "Watt",
+            "Pascal"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 63,
+      "subject": "Science",
+      "difficulty": "easy",
+      "content_text": "Which pigment is essential for photosynthesis in green plants?",
+      "options": [
+        "Melanin",
+        "Chlorophyll",
+        "Keratin",
+        "Hemoglobin"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Chlorophyll absorbs light energy for photosynthesis.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हरे पौधों में प्रकाश संश्लेषण के लिए कौन सा वर्णक आवश्यक है?",
+          "options": [
+            "Melanin",
+            "Chlorophyll",
+            "Keratin",
+            "Hemoglobin"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఆకుపచ్చ మొక్కల్లో కాంతి సంయోగానికి ఏ వర్ణద్రవ్యం అవసరం?",
+          "options": [
+            "Melanin",
+            "Chlorophyll",
+            "Keratin",
+            "Hemoglobin"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 64,
+      "subject": "Science",
+      "difficulty": "easy",
+      "content_text": "Which protein in red blood cells carries most oxygen?",
+      "options": [
+        "Insulin",
+        "Hemoglobin",
+        "Collagen",
+        "Keratin"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Hemoglobin binds and transports oxygen.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "लाल रक्त कोशिकाओं में कौन सा प्रोटीन अधिकांश ऑक्सीजन का वहन करता है?",
+          "options": [
+            "Insulin",
+            "Hemoglobin",
+            "Collagen",
+            "Keratin"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఎర్ర రక్తకణాల్లో ఎక్కువ ఆక్సిజన్‌ను మోసే ప్రోటీన్ ఏది?",
+          "options": [
+            "Insulin",
+            "Hemoglobin",
+            "Collagen",
+            "Keratin"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 65,
+      "subject": "Science",
+      "difficulty": "easy",
+      "content_text": "Deficiency of vitamin C causes which disease?",
+      "options": [
+        "Rickets",
+        "Scurvy",
+        "Beriberi",
+        "Night blindness"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Vitamin C deficiency causes scurvy.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "विटामिन C की कमी से कौन सा रोग होता है?",
+          "options": [
+            "Rickets",
+            "Scurvy",
+            "Beriberi",
+            "Night blindness"
+          ]
+        },
+        "te-IN": {
+          "content_text": "విటమిన్ C లోపం వల్ల ఏ వ్యాధి వస్తుంది?",
+          "options": [
+            "Rickets",
+            "Scurvy",
+            "Beriberi",
+            "Night blindness"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 66,
+      "subject": "Science",
+      "difficulty": "easy",
+      "content_text": "What is the pH of a neutral solution at 25°C?",
+      "options": [
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "A neutral aqueous solution at 25°C has pH 7.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "25°C पर उदासीन विलयन का pH कितना होता है?",
+          "options": [
+            "5",
+            "6",
+            "7",
+            "8"
+          ]
+        },
+        "te-IN": {
+          "content_text": "25°C వద్ద తటస్థ ద్రావణం pH ఎంత?",
+          "options": [
+            "5",
+            "6",
+            "7",
+            "8"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 67,
+      "subject": "Science",
+      "difficulty": "easy",
+      "content_text": "Which law is represented by V = IR?",
+      "options": [
+        "Newton's law",
+        "Ohm's law",
+        "Boyle's law",
+        "Faraday's law"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Ohm's law relates voltage, current and resistance.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "V = IR किस नियम को दर्शाता है?",
+          "options": [
+            "न्यूटन का नियम",
+            "ओम का नियम",
+            "बॉयल का नियम",
+            "फैराडे का नियम"
+          ]
+        },
+        "te-IN": {
+          "content_text": "V = IR ఏ నియమాన్ని సూచిస్తుంది?",
+          "options": [
+            "న్యూటన్ నియమం",
+            "ఓమ్ నియమం",
+            "బాయిల్ నియమం",
+            "ఫారడే నియమం"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 68,
+      "subject": "Science",
+      "difficulty": "medium",
+      "content_text": "Sound cannot travel through which medium?",
+      "options": [
+        "Air",
+        "Water",
+        "Steel",
+        "Vacuum"
+      ],
+      "correct_answer_index": 3,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Sound needs matter to propagate and cannot travel through a vacuum.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "ध्वनि किस माध्यम में यात्रा नहीं कर सकती?",
+          "options": [
+            "Air",
+            "Water",
+            "Steel",
+            "Vacuum"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ధ్వని ఏ మాధ్యమంలో ప్రయాణించదు?",
+          "options": [
+            "Air",
+            "Water",
+            "Steel",
+            "Vacuum"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 69,
+      "subject": "Science",
+      "difficulty": "medium",
+      "content_text": "What is the basic shape of the DNA molecule?",
+      "options": [
+        "Single spiral",
+        "Double helix",
+        "Flat sheet",
+        "Triple helix"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "DNA has a double-helix structure.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "DNA अणु का मूल आकार क्या है?",
+          "options": [
+            "Single spiral",
+            "Double helix",
+            "Flat sheet",
+            "Triple helix"
+          ]
+        },
+        "te-IN": {
+          "content_text": "DNA అణువు యొక్క ప్రాథమిక ఆకారం ఏమిటి?",
+          "options": [
+            "Single spiral",
+            "Double helix",
+            "Flat sheet",
+            "Triple helix"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 70,
+      "subject": "Science",
+      "difficulty": "medium",
+      "content_text": "What happens to blue litmus paper in an acidic solution?",
+      "options": [
+        "Turns green",
+        "Turns red",
+        "Turns black",
+        "Shows no change"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Acids turn blue litmus red.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "अम्लीय विलयन में नीला लिटमस कागज़ क्या हो जाता है?",
+          "options": [
+            "हरा हो जाता है",
+            "लाल हो जाता है",
+            "काला हो जाता है",
+            "कोई परिवर्तन नहीं"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఆమ్ల ద్రావణంలో నీలి లిట్మస్ కాగితం ఏమవుతుంది?",
+          "options": [
+            "ఆకుపచ్చగా మారుతుంది",
+            "ఎరుపుగా మారుతుంది",
+            "నల్లగా మారుతుంది",
+            "మార్పు ఉండదు"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 71,
+      "subject": "Science",
+      "difficulty": "medium",
+      "content_text": "Which organelle is known as the powerhouse of the cell?",
+      "options": [
+        "Nucleus",
+        "Mitochondrion",
+        "Ribosome",
+        "Golgi body"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Mitochondria generate much of the cell's usable energy.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "कौन सा कोशिकांग कोशिका का पावरहाउस कहलाता है?",
+          "options": [
+            "केंद्रक",
+            "माइटोकॉन्ड्रिया",
+            "राइबोसोम",
+            "गॉल्जी तंत्र"
+          ]
+        },
+        "te-IN": {
+          "content_text": "కణంలోని శక్తి కేంద్రంగా ఏ కణాంగాన్ని పిలుస్తారు?",
+          "options": [
+            "కణకేంద్రకం",
+            "మైటోకాండ్రియా",
+            "రైబోసోమ్",
+            "గోల్జీ వ్యవస్థ"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 72,
+      "subject": "Science",
+      "difficulty": "medium",
+      "content_text": "In the circuit diagram, what is needed for current to flow continuously?",
+      "options": [
+        "An open switch",
+        "A closed circuit",
+        "Only a resistor",
+        "Only a wire"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Current requires a complete conducting path.",
+      "image_url": "/diagrams/simple-circuit.svg",
+      "image_alt_text": "A battery, closed switch and lamp connected in a complete loop.",
+      "translations": {
+        "hi-IN": {
+          "content_text": "परिपथ चित्र में धारा के निरंतर प्रवाह के लिए क्या आवश्यक है?",
+          "options": [
+            "An open switch",
+            "A closed circuit",
+            "Only a resistor",
+            "Only a wire"
+          ]
+        },
+        "te-IN": {
+          "content_text": "విద్యుత్ వలయ చిత్రంలో నిరంతర విద్యుత్ ప్రవాహానికి ఏమి అవసరం?",
+          "options": [
+            "An open switch",
+            "A closed circuit",
+            "Only a resistor",
+            "Only a wire"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 73,
+      "subject": "Science",
+      "difficulty": "medium",
+      "content_text": "In the food-chain diagram, which organism is the producer?",
+      "options": [
+        "Grass",
+        "Grasshopper",
+        "Frog",
+        "Snake"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Grass makes its own food by photosynthesis and is the producer.",
+      "image_url": "/diagrams/food-chain.svg",
+      "image_alt_text": "A food chain showing grass, grasshopper, frog and snake, with arrows from food to eater.",
+      "translations": {
+        "hi-IN": {
+          "content_text": "आहार श्रृंखला के चित्र में उत्पादक कौन है?",
+          "options": [
+            "Grass",
+            "Grasshopper",
+            "Frog",
+            "Snake"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఆహార గొలుసు చిత్రంలో ఉత్పత్తిదారు ఏ జీవి?",
+          "options": [
+            "Grass",
+            "Grasshopper",
+            "Frog",
+            "Snake"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 74,
+      "subject": "Science",
+      "difficulty": "medium",
+      "content_text": "Which type of lens converges parallel rays of light?",
+      "options": [
+        "Concave lens",
+        "Convex lens",
+        "Plane mirror",
+        "Prism"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "A convex lens converges parallel incoming rays toward a focus.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "समानांतर प्रकाश किरणों को अभिसारित करने वाला लेंस कौन सा है?",
+          "options": [
+            "अवतल लेंस",
+            "उत्तल लेंस",
+            "समतल दर्पण",
+            "प्रिज़्म"
+          ]
+        },
+        "te-IN": {
+          "content_text": "సమాంతర కాంతి కిరణాలను ఏకాగ్రం చేసే లెన్స్ ఏది?",
+          "options": [
+            "అవతల లెన్స్",
+            "కుంభాకార లెన్స్",
+            "సమతల అద్దం",
+            "ప్రిజమ్"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 75,
+      "subject": "Science",
+      "difficulty": "medium",
+      "content_text": "What is the SI unit of acceleration?",
+      "options": [
+        "m/s",
+        "m/s²",
+        "N/s",
+        "kg/m"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Acceleration is measured in metres per second squared.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "त्वरण की SI इकाई क्या है?",
+          "options": [
+            "m/s",
+            "m/s²",
+            "N/s",
+            "kg/m"
+          ]
+        },
+        "te-IN": {
+          "content_text": "త్వరణానికి SI ప్రమాణక ఏకకం ఏది?",
+          "options": [
+            "m/s",
+            "m/s²",
+            "N/s",
+            "kg/m"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 76,
+      "subject": "Science",
+      "difficulty": "hard",
+      "content_text": "Which gas is a major greenhouse gas released by human activities?",
+      "options": [
+        "Oxygen",
+        "Carbon dioxide",
+        "Helium",
+        "Neon"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Carbon dioxide is a major anthropogenic greenhouse gas.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "मानवीय गतिविधियों से निकलने वाली प्रमुख ग्रीनहाउस गैस कौन सी है?",
+          "options": [
+            "ऑक्सीजन",
+            "कार्बन डाइऑक्साइड",
+            "हीलियम",
+            "निऑन"
+          ]
+        },
+        "te-IN": {
+          "content_text": "మానవ కార్యకలాపాల వల్ల విడుదలయ్యే ప్రధాన హరితగృహ వాయువు ఏది?",
+          "options": [
+            "ఆక్సిజన్",
+            "కార్బన్ డయాక్సైడ్",
+            "హీలియం",
+            "నియాన్"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 77,
+      "subject": "Science",
+      "difficulty": "hard",
+      "content_text": "Which group in the modern periodic table contains the noble gases?",
+      "options": [
+        "Group 1",
+        "Group 2",
+        "Group 17",
+        "Group 18"
+      ],
+      "correct_answer_index": 3,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Noble gases occupy Group 18.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "आधुनिक आवर्त सारणी में अक्रिय गैसें किस समूह में हैं?",
+          "options": [
+            "Group 1",
+            "Group 2",
+            "Group 17",
+            "Group 18"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఆధునిక ఆవర్తన పట్టికలో నోబుల్ వాయువులు ఏ సమూహంలో ఉన్నాయి?",
+          "options": [
+            "Group 1",
+            "Group 2",
+            "Group 17",
+            "Group 18"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 78,
+      "subject": "Science",
+      "difficulty": "hard",
+      "content_text": "What is the SI unit of electric power?",
+      "options": [
+        "Volt",
+        "Ampere",
+        "Watt",
+        "Ohm"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Electrical power is measured in watts.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "विद्युत शक्ति की SI इकाई क्या है?",
+          "options": [
+            "Volt",
+            "Ampere",
+            "Watt",
+            "Ohm"
+          ]
+        },
+        "te-IN": {
+          "content_text": "విద్యుత్ శక్తి యొక్క SI ఏకకం ఏది?",
+          "options": [
+            "Volt",
+            "Ampere",
+            "Watt",
+            "Ohm"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 79,
+      "subject": "Science",
+      "difficulty": "hard",
+      "content_text": "How many chambers does the human heart have?",
+      "options": [
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The human heart has two atria and two ventricles.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "मानव हृदय में कितने कक्ष होते हैं?",
+          "options": [
+            "2",
+            "3",
+            "4",
+            "5"
+          ]
+        },
+        "te-IN": {
+          "content_text": "మానవ గుండెలో ఎన్ని గదులు ఉంటాయి?",
+          "options": [
+            "2",
+            "3",
+            "4",
+            "5"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 80,
+      "subject": "Science",
+      "difficulty": "hard",
+      "content_text": "Which statement about antibiotics is correct?",
+      "options": [
+        "They kill all viruses",
+        "They are primarily used against bacteria",
+        "They replace vaccines",
+        "They cure every infection"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Antibiotics target bacteria; they do not treat viral infections.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "एंटीबायोटिक के बारे में कौन सा कथन सही है?",
+          "options": [
+            "वे सभी वायरस को मारते हैं",
+            "वे मुख्यतः बैक्टीरिया के विरुद्ध उपयोग किए जाते हैं",
+            "वे टीकों का स्थान लेते हैं",
+            "वे हर संक्रमण को ठीक करते हैं"
+          ]
+        },
+        "te-IN": {
+          "content_text": "యాంటీబయాటిక్స్ గురించి సరైన ప్రకటన ఏది?",
+          "options": [
+            "అవి అన్ని వైరస్లను చంపుతాయి",
+            "అవి ప్రధానంగా బ్యాక్టీరియాపై ఉపయోగిస్తారు",
+            "అవి టీకాలకు బదులవుతాయి",
+            "అవి ప్రతి సంక్రమణాన్ని నయం చేస్తాయి"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 81,
+      "subject": "Computer Science/DBMS",
+      "difficulty": "easy",
+      "content_text": "Which key uniquely identifies a row in a relational table?",
+      "options": [
+        "Foreign key",
+        "Primary key",
+        "Candidate table",
+        "Index page"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "A primary key uniquely identifies each row.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "रिलेशनल तालिका की प्रत्येक पंक्ति की विशिष्ट पहचान कौन सी कुंजी करती है?",
+          "options": [
+            "फॉरेन कुंजी",
+            "प्राथमिक कुंजी",
+            "कैंडिडेट तालिका",
+            "इंडेक्स पृष्ठ"
+          ]
+        },
+        "te-IN": {
+          "content_text": "రిలేషనల్ పట్టికలో ప్రతి వరుసను ప్రత్యేకంగా గుర్తించే కీ ఏది?",
+          "options": [
+            "ఫారెన్ కీ",
+            "ప్రైమరీ కీ",
+            "క్యాండిడేట్ పట్టిక",
+            "ఇండెక్స్ పేజీ"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 82,
+      "subject": "Computer Science/DBMS",
+      "difficulty": "easy",
+      "content_text": "What is the main purpose of normalization in DBMS?",
+      "options": [
+        "Increase redundancy",
+        "Reduce redundancy",
+        "Remove all indexes",
+        "Increase file size"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Normalization reduces unnecessary redundancy and update anomalies.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "DBMS में normalization का मुख्य उद्देश्य क्या है?",
+          "options": [
+            "अनावश्यक पुनरावृत्ति बढ़ाना",
+            "अनावश्यक पुनरावृत्ति घटाना",
+            "सभी index हटाना",
+            "फ़ाइल का आकार बढ़ाना"
+          ]
+        },
+        "te-IN": {
+          "content_text": "DBMSలో normalization యొక్క ప్రధాన ఉద్దేశ్యం ఏమిటి?",
+          "options": [
+            "అవసరంలేని పునరావృతిని పెంచడం",
+            "అవసరంలేని పునరావృతిని తగ్గించడం",
+            "అన్ని indexలను తొలగించడం",
+            "ఫైల్ పరిమాణాన్ని పెంచడం"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 83,
+      "subject": "Computer Science/DBMS",
+      "difficulty": "easy",
+      "content_text": "Which SQL command is primarily used to retrieve rows?",
+      "options": [
+        "INSERT",
+        "UPDATE",
+        "SELECT",
+        "DELETE"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "SELECT retrieves data from one or more tables.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "पंक्तियाँ प्राप्त करने के लिए मुख्य SQL कमांड कौन सा है?",
+          "options": [
+            "INSERT",
+            "UPDATE",
+            "SELECT",
+            "DELETE"
+          ]
+        },
+        "te-IN": {
+          "content_text": "వరుసలను పొందేందుకు ప్రధానంగా ఉపయోగించే SQL కమాండ్ ఏది?",
+          "options": [
+            "INSERT",
+            "UPDATE",
+            "SELECT",
+            "DELETE"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 84,
+      "subject": "Computer Science/DBMS",
+      "difficulty": "easy",
+      "content_text": "What does a foreign key mainly enforce?",
+      "options": [
+        "Referential integrity",
+        "Image compression",
+        "CPU scheduling",
+        "File encryption"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "A foreign key links related tables and supports referential integrity.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "Foreign key मुख्यतः किस चीज़ को लागू करती है?",
+          "options": [
+            "संदर्भात्मक अखंडता",
+            "चित्र संपीड़न",
+            "CPU शेड्यूलिंग",
+            "फ़ाइल एन्क्रिप्शन"
+          ]
+        },
+        "te-IN": {
+          "content_text": "Foreign key ప్రధానంగా దేనిని నిర్ధారిస్తుంది?",
+          "options": [
+            "సూచనాత్మక సమగ్రత",
+            "చిత్ర సంకోచం",
+            "CPU షెడ్యూలింగ్",
+            "ఫైల్ ఎన్క్రిప్షన్"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 85,
+      "subject": "Computer Science/DBMS",
+      "difficulty": "easy",
+      "content_text": "What is a common benefit of an index on a table?",
+      "options": [
+        "Faster data lookup",
+        "Larger screen size",
+        "More RAM",
+        "Automatic backups"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "An index can provide a faster access path for lookups.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "तालिका पर index का एक सामान्य लाभ क्या है?",
+          "options": [
+            "तेज़ डेटा खोज",
+            "बड़ी स्क्रीन",
+            "अधिक RAM",
+            "स्वचालित बैकअप"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఒక పట్టికపై index యొక్క సాధారణ ప్రయోజనం ఏమిటి?",
+          "options": [
+            "వేగవంతమైన డేటా శోధన",
+            "పెద్ద స్క్రీన్ పరిమాణం",
+            "ఎక్కువ RAM",
+            "ఆటోమేటిక్ బ్యాకప్"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 86,
+      "subject": "Computer Science/DBMS",
+      "difficulty": "easy",
+      "content_text": "Which normal form requires atomic values in each field?",
+      "options": [
+        "1NF",
+        "2NF",
+        "3NF",
+        "BCNF"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "First Normal Form requires atomic values.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "किस normal form में प्रत्येक field में atomic values आवश्यक होती हैं?",
+          "options": [
+            "1NF",
+            "2NF",
+            "3NF",
+            "BCNF"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ప్రతి fieldలో atomic values అవసరమైన normal form ఏది?",
+          "options": [
+            "1NF",
+            "2NF",
+            "3NF",
+            "BCNF"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 87,
+      "subject": "Computer Science/DBMS",
+      "difficulty": "medium",
+      "content_text": "Which normal form removes partial dependency on a composite key?",
+      "options": [
+        "1NF",
+        "2NF",
+        "3NF",
+        "4NF"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Second Normal Form removes partial dependency on part of a composite key.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "Composite key पर partial dependency को कौन सा normal form हटाता है?",
+          "options": [
+            "1NF",
+            "2NF",
+            "3NF",
+            "4NF"
+          ]
+        },
+        "te-IN": {
+          "content_text": "Composite keyపై partial dependencyని ఏ normal form తొలగిస్తుంది?",
+          "options": [
+            "1NF",
+            "2NF",
+            "3NF",
+            "4NF"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 88,
+      "subject": "Computer Science/DBMS",
+      "difficulty": "medium",
+      "content_text": "Which normal form aims to remove transitive dependency?",
+      "options": [
+        "1NF",
+        "2NF",
+        "3NF",
+        "5NF"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Third Normal Form addresses transitive dependencies among non-key attributes.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "Transitive dependency को हटाने का लक्ष्य किस normal form का है?",
+          "options": [
+            "1NF",
+            "2NF",
+            "3NF",
+            "5NF"
+          ]
+        },
+        "te-IN": {
+          "content_text": "Transitive dependencyని తొలగించడమే ఏ normal form లక్ష్యం?",
+          "options": [
+            "1NF",
+            "2NF",
+            "3NF",
+            "5NF"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 89,
+      "subject": "Computer Science/DBMS",
+      "difficulty": "medium",
+      "content_text": "In ACID transactions, what does A stand for?",
+      "options": [
+        "Availability",
+        "Atomicity",
+        "Authorization",
+        "Aggregation"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Atomicity means all-or-nothing execution of a transaction.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "ACID transaction में A का क्या अर्थ है?",
+          "options": [
+            "उपलब्धता",
+            "परमाणुता",
+            "प्राधिकरण",
+            "समुच्चयीकरण"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ACID transactionలో A దేనిని సూచిస్తుంది?",
+          "options": [
+            "లభ్యత",
+            "ఆటామిసిటీ",
+            "అధికారీకరణ",
+            "సమీకరణ"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 90,
+      "subject": "Computer Science/DBMS",
+      "difficulty": "medium",
+      "content_text": "Which SQL command permanently saves a completed transaction?",
+      "options": [
+        "ROLLBACK",
+        "COMMIT",
+        "SAVEPOINT",
+        "TRUNCATE"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "COMMIT makes transaction changes durable.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "पूरा हो चुका transaction स्थायी रूप से सहेजने के लिए कौन सा SQL command है?",
+          "options": [
+            "ROLLBACK",
+            "COMMIT",
+            "SAVEPOINT",
+            "TRUNCATE"
+          ]
+        },
+        "te-IN": {
+          "content_text": "పూర్తయిన transactionను శాశ్వతంగా సేవ్ చేయడానికి ఏ SQL command ఉపయోగిస్తారు?",
+          "options": [
+            "ROLLBACK",
+            "COMMIT",
+            "SAVEPOINT",
+            "TRUNCATE"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 91,
+      "subject": "Computer Science/DBMS",
+      "difficulty": "medium",
+      "content_text": "Which SQL clause filters rows before grouping?",
+      "options": [
+        "WHERE",
+        "ORDER BY",
+        "GROUP BY",
+        "HAVING"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "WHERE filters rows before grouping and aggregation.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "Grouping से पहले rows को filter करने के लिए कौन सा SQL clause है?",
+          "options": [
+            "WHERE",
+            "ORDER BY",
+            "GROUP BY",
+            "HAVING"
+          ]
+        },
+        "te-IN": {
+          "content_text": "Groupingకు ముందు rowsను filter చేయడానికి ఏ SQL clause ఉపయోగిస్తారు?",
+          "options": [
+            "WHERE",
+            "ORDER BY",
+            "GROUP BY",
+            "HAVING"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 92,
+      "subject": "Computer Science/DBMS",
+      "difficulty": "medium",
+      "content_text": "Which SQL clause groups rows with the same values for aggregate calculations?",
+      "options": [
+        "JOIN",
+        "GROUP BY",
+        "WHERE",
+        "DISTINCT"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "GROUP BY forms groups for aggregate functions such as COUNT and SUM.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "Aggregate गणनाओं के लिए समान values वाली rows को कौन सा SQL clause group करता है?",
+          "options": [
+            "JOIN",
+            "GROUP BY",
+            "WHERE",
+            "DISTINCT"
+          ]
+        },
+        "te-IN": {
+          "content_text": "Aggregate calculations కోసం ఒకే విలువలున్న rowsను ఏ SQL clause group చేస్తుంది?",
+          "options": [
+            "JOIN",
+            "GROUP BY",
+            "WHERE",
+            "DISTINCT"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 93,
+      "subject": "Computer Science/DBMS",
+      "difficulty": "medium",
+      "content_text": "Which JOIN returns only rows with matching values in both tables?",
+      "options": [
+        "LEFT JOIN",
+        "RIGHT JOIN",
+        "FULL JOIN",
+        "INNER JOIN"
+      ],
+      "correct_answer_index": 3,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "INNER JOIN returns rows satisfying the join condition in both tables.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "कौन सा JOIN दोनों tables में matching values वाली rows ही लौटाता है?",
+          "options": [
+            "LEFT JOIN",
+            "RIGHT JOIN",
+            "FULL JOIN",
+            "INNER JOIN"
+          ]
+        },
+        "te-IN": {
+          "content_text": "రెండు tablesలో matching values ఉన్న rowsనే ఏ JOIN ఇస్తుంది?",
+          "options": [
+            "LEFT JOIN",
+            "RIGHT JOIN",
+            "FULL JOIN",
+            "INNER JOIN"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 94,
+      "subject": "Computer Science/DBMS",
+      "difficulty": "medium",
+      "content_text": "The diagram shows each workstation connected to one central switch. What topology is this?",
+      "options": [
+        "Bus topology",
+        "Ring topology",
+        "Star topology",
+        "Mesh topology"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "A star topology uses a central connection point.",
+      "image_url": "/diagrams/network-star.svg",
+      "image_alt_text": "A central switch connected by separate lines to five workstations in a star-shaped network.",
+      "translations": {
+        "hi-IN": {
+          "content_text": "चित्र में हर workstation एक केंद्रीय switch से जुड़ा है। यह कौन सी topology है?",
+          "options": [
+            "Bus topology",
+            "Ring topology",
+            "Star topology",
+            "Mesh topology"
+          ]
+        },
+        "te-IN": {
+          "content_text": "చిత్రంలో ప్రతి workstation ఒక కేంద్ర switchకు అనుసంధానమై ఉంది. ఇది ఏ topology?",
+          "options": [
+            "Bus topology",
+            "Ring topology",
+            "Star topology",
+            "Mesh topology"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 95,
+      "subject": "Computer Science/DBMS",
+      "difficulty": "medium",
+      "content_text": "Which data structure follows LIFO order?",
+      "options": [
+        "Queue",
+        "Stack",
+        "Heap",
+        "Graph"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "A stack removes the most recently inserted item first.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "कौन सी data structure LIFO क्रम का पालन करती है?",
+          "options": [
+            "क्यू",
+            "स्टैक",
+            "हीप",
+            "ग्राफ"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఏ data structure LIFO క్రమాన్ని అనుసరిస్తుంది?",
+          "options": [
+            "క్యూ",
+            "స్టాక్",
+            "హీప్",
+            "గ్రాఫ్"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 96,
+      "subject": "Computer Science/DBMS",
+      "difficulty": "hard",
+      "content_text": "Which data structure follows FIFO order?",
+      "options": [
+        "Stack",
+        "Queue",
+        "Tree",
+        "Set"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "A queue removes the earliest inserted item first.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "कौन सी data structure FIFO क्रम का पालन करती है?",
+          "options": [
+            "स्टैक",
+            "क्यू",
+            "ट्री",
+            "सेट"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఏ data structure FIFO క్రమాన్ని అనుసరిస్తుంది?",
+          "options": [
+            "స్టాక్",
+            "క్యూ",
+            "ట్రీ",
+            "సెట్"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 97,
+      "subject": "Computer Science/DBMS",
+      "difficulty": "hard",
+      "content_text": "Which protocol provides reliable, connection-oriented transport?",
+      "options": [
+        "UDP",
+        "TCP",
+        "ARP",
+        "DNS"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "TCP provides reliable, ordered transport over a connection.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "कौन सा protocol reliable और connection-oriented transport प्रदान करता है?",
+          "options": [
+            "UDP",
+            "TCP",
+            "ARP",
+            "DNS"
+          ]
+        },
+        "te-IN": {
+          "content_text": "నమ్మకమైన connection-oriented transportను ఏ protocol అందిస్తుంది?",
+          "options": [
+            "UDP",
+            "TCP",
+            "ARP",
+            "DNS"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 98,
+      "subject": "Computer Science/DBMS",
+      "difficulty": "hard",
+      "content_text": "What is the main purpose of DNS?",
+      "options": [
+        "Map domain names to IP addresses",
+        "Encrypt hard disks",
+        "Schedule CPU tasks",
+        "Compress images"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "DNS resolves domain names to IP addresses.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "DNS का मुख्य उद्देश्य क्या है?",
+          "options": [
+            "डोमेन नामों को IP पतों में बदलना",
+            "हार्ड डिस्क को एन्क्रिप्ट करना",
+            "CPU कार्यों को शेड्यूल करना",
+            "चित्रों को संपीड़ित करना"
+          ]
+        },
+        "te-IN": {
+          "content_text": "DNS ప్రధాన ఉద్దేశ్యం ఏమిటి?",
+          "options": [
+            "డొమైన్ పేర్లను IP చిరునామాలకు మార్చడం",
+            "హార్డ్ డిస్క్‌లను ఎన్క్రిప్ట్ చేయడం",
+            "CPU పనులను షెడ్యూల్ చేయడం",
+            "చిత్రాలను సంకోచించడం"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 99,
+      "subject": "Computer Science/DBMS",
+      "difficulty": "hard",
+      "content_text": "Which condition is necessary for deadlock?",
+      "options": [
+        "Circular wait",
+        "Infinite memory",
+        "High bandwidth",
+        "Read-only access"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Circular wait is one of the necessary Coffman conditions.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "Deadlock के लिए कौन सी स्थिति आवश्यक होती है?",
+          "options": [
+            "चक्रीय प्रतीक्षा",
+            "अनंत मेमोरी",
+            "उच्च बैंडविड्थ",
+            "केवल-पठन पहुँच"
+          ]
+        },
+        "te-IN": {
+          "content_text": "Deadlockకు అవసరమైన పరిస్థితి ఏది?",
+          "options": [
+            "చక్రీయ నిరీక్షణ",
+            "అపరిమిత మెమరీ",
+            "అధిక బ్యాండ్విడ్త్",
+            "చదవడానికి మాత్రమే ప్రాప్యత"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 100,
+      "subject": "Computer Science/DBMS",
+      "difficulty": "hard",
+      "content_text": "In a relational database, what does a transaction rollback do?",
+      "options": [
+        "Makes changes permanent",
+        "Undoes uncommitted changes",
+        "Creates a new table",
+        "Adds an index"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "ROLLBACK cancels changes made in the current uncommitted transaction.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "रिलेशनल डेटाबेस में transaction rollback क्या करता है?",
+          "options": [
+            "परिवर्तनों को स्थायी करता है",
+            "अस्थायी परिवर्तनों को वापस करता है",
+            "नई तालिका बनाता है",
+            "index जोड़ता है"
+          ]
+        },
+        "te-IN": {
+          "content_text": "రిలేషనల్ డేటాబేస్‌లో transaction rollback ఏమి చేస్తుంది?",
+          "options": [
+            "మార్పులను శాశ్వతం చేస్తుంది",
+            "commit కాని మార్పులను వెనక్కి తీసుకుంటుంది",
+            "కొత్త పట్టికను సృష్టిస్తుంది",
+            "indexను జోడిస్తుంది"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 101,
+      "subject": "History & Polity",
+      "difficulty": "easy",
+      "content_text": "Who was the major Mauryan ruler associated with spreading Buddhism?",
+      "options": [
+        "Chandragupta Maurya",
+        "Ashoka",
+        "Bindusara",
+        "Samudragupta"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Ashoka is strongly associated with the spread of Buddhism after the Kalinga war.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "बौद्ध धर्म के प्रसार से जुड़े प्रमुख मौर्य शासक कौन थे?",
+          "options": [
+            "Chandragupta Maurya",
+            "Ashoka",
+            "Bindusara",
+            "Samudragupta"
+          ]
+        },
+        "te-IN": {
+          "content_text": "బౌద్ధమత వ్యాప్తితో సంబంధం ఉన్న ప్రముఖ మౌర్య పాలకుడు ఎవరు?",
+          "options": [
+            "Chandragupta Maurya",
+            "Ashoka",
+            "Bindusara",
+            "Samudragupta"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 102,
+      "subject": "History & Polity",
+      "difficulty": "easy",
+      "content_text": "In which year was the Quit India Movement launched?",
+      "options": [
+        "1930",
+        "1935",
+        "1942",
+        "1947"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The Quit India Movement was launched in 1942.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "भारत छोड़ो आंदोलन किस वर्ष शुरू किया गया था?",
+          "options": [
+            "1930",
+            "1935",
+            "1942",
+            "1947"
+          ]
+        },
+        "te-IN": {
+          "content_text": "క్విట్ ఇండియా ఉద్యమం ఏ సంవత్సరంలో ప్రారంభమైంది?",
+          "options": [
+            "1930",
+            "1935",
+            "1942",
+            "1947"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 103,
+      "subject": "History & Polity",
+      "difficulty": "easy",
+      "content_text": "The Dandi March was associated with which movement?",
+      "options": [
+        "Non-Cooperation Movement",
+        "Civil Disobedience Movement",
+        "Quit India Movement",
+        "Swadeshi Movement"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The 1930 Salt March was a major action of the Civil Disobedience Movement.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "दांडी मार्च किस आंदोलन से जुड़ा था?",
+          "options": [
+            "असहयोग आंदोलन",
+            "सविनय अवज्ञा आंदोलन",
+            "भारत छोड़ो आंदोलन",
+            "स्वदेशी आंदोलन"
+          ]
+        },
+        "te-IN": {
+          "content_text": "దాండీ మార్చ్ ఏ ఉద్యమంతో సంబంధం కలిగి ఉంది?",
+          "options": [
+            "సహాయ నిరాకరణ ఉద్యమం",
+            "శాసనోల్లంఘన ఉద్యమం",
+            "క్విట్ ఇండియా ఉద్యమం",
+            "స్వదేశీ ఉద్యమం"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 104,
+      "subject": "History & Polity",
+      "difficulty": "easy",
+      "content_text": "In which year was the Indian National Congress founded?",
+      "options": [
+        "1885",
+        "1890",
+        "1905",
+        "1919"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The Indian National Congress was founded in 1885.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "भारतीय राष्ट्रीय कांग्रेस की स्थापना किस वर्ष हुई थी?",
+          "options": [
+            "1885",
+            "1890",
+            "1905",
+            "1919"
+          ]
+        },
+        "te-IN": {
+          "content_text": "భారత జాతీయ కాంగ్రెస్ ఏ సంవత్సరంలో స్థాపించబడింది?",
+          "options": [
+            "1885",
+            "1890",
+            "1905",
+            "1919"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 105,
+      "subject": "History & Polity",
+      "difficulty": "easy",
+      "content_text": "The Revolt of 1857 began in which city?",
+      "options": [
+        "Delhi",
+        "Meerut",
+        "Kanpur",
+        "Lucknow"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The uprising began at Meerut in May 1857.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "1857 का विद्रोह किस शहर से शुरू हुआ था?",
+          "options": [
+            "दिल्ली",
+            "मेरठ",
+            "कानपुर",
+            "लखनऊ"
+          ]
+        },
+        "te-IN": {
+          "content_text": "1857 తిరుగుబాటు ఏ నగరం నుంచి ప్రారంభమైంది?",
+          "options": [
+            "ఢిల్లీ",
+            "మీరట్",
+            "కాన్పూర్",
+            "లక్నో"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 106,
+      "subject": "History & Polity",
+      "difficulty": "easy",
+      "content_text": "On which date was the Constitution of India adopted?",
+      "options": [
+        "15 August 1947",
+        "26 November 1949",
+        "26 January 1950",
+        "2 October 1950"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The Constituent Assembly adopted the Constitution on 26 November 1949.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "भारत का संविधान किस तारीख को अपनाया गया था?",
+          "options": [
+            "15 August 1947",
+            "26 November 1949",
+            "26 January 1950",
+            "2 October 1950"
+          ]
+        },
+        "te-IN": {
+          "content_text": "భారత రాజ్యాంగాన్ని ఏ తేదీన ఆమోదించారు?",
+          "options": [
+            "15 August 1947",
+            "26 November 1949",
+            "26 January 1950",
+            "2 October 1950"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 107,
+      "subject": "History & Polity",
+      "difficulty": "easy",
+      "content_text": "On which date did the Constitution of India come into force?",
+      "options": [
+        "15 August 1947",
+        "26 November 1949",
+        "26 January 1950",
+        "14 April 1950"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The Constitution came into force on 26 January 1950.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "भारत का संविधान किस तारीख को लागू हुआ?",
+          "options": [
+            "15 August 1947",
+            "26 November 1949",
+            "26 January 1950",
+            "14 April 1950"
+          ]
+        },
+        "te-IN": {
+          "content_text": "భారత రాజ్యాంగం ఏ తేదీన అమల్లోకి వచ్చింది?",
+          "options": [
+            "15 August 1947",
+            "26 November 1949",
+            "26 January 1950",
+            "14 April 1950"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 108,
+      "subject": "History & Polity",
+      "difficulty": "medium",
+      "content_text": "Which Article deals with impeachment of the President?",
+      "options": [
+        "Article 52",
+        "Article 61",
+        "Article 72",
+        "Article 123"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Article 61 lays down the impeachment procedure for the President.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "राष्ट्रपति के महाभियोग से संबंधित अनुच्छेद कौन सा है?",
+          "options": [
+            "Article 52",
+            "Article 61",
+            "Article 72",
+            "Article 123"
+          ]
+        },
+        "te-IN": {
+          "content_text": "రాష్ట్రపతి అభిశంసనకు సంబంధించిన అధికరణం ఏది?",
+          "options": [
+            "Article 52",
+            "Article 61",
+            "Article 72",
+            "Article 123"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 109,
+      "subject": "History & Polity",
+      "difficulty": "medium",
+      "content_text": "Which Article defines a Money Bill?",
+      "options": [
+        "Article 110",
+        "Article 112",
+        "Article 123",
+        "Article 148"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Article 110 defines a Money Bill.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "Money Bill को परिभाषित करने वाला अनुच्छेद कौन सा है?",
+          "options": [
+            "Article 110",
+            "Article 112",
+            "Article 123",
+            "Article 148"
+          ]
+        },
+        "te-IN": {
+          "content_text": "Money Billను నిర్వచించే అధికరణం ఏది?",
+          "options": [
+            "Article 110",
+            "Article 112",
+            "Article 123",
+            "Article 148"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 110,
+      "subject": "History & Polity",
+      "difficulty": "medium",
+      "content_text": "Which house of Parliament is a permanent house?",
+      "options": [
+        "Lok Sabha",
+        "Rajya Sabha",
+        "Both",
+        "Neither"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Rajya Sabha is not subject to dissolution.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "संसद का कौन सा सदन स्थायी सदन है?",
+          "options": [
+            "लोकसभा",
+            "राज्यसभा",
+            "दोनों",
+            "कोई नहीं"
+          ]
+        },
+        "te-IN": {
+          "content_text": "పార్లమెంట్‌లో శాశ్వత సభ ఏది?",
+          "options": [
+            "లోక్‌సభ",
+            "రాజ్యసభ",
+            "రెండూ",
+            "ఏదీ కాదు"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 111,
+      "subject": "History & Polity",
+      "difficulty": "medium",
+      "content_text": "What is the normal term of the Lok Sabha?",
+      "options": [
+        "3 years",
+        "4 years",
+        "5 years",
+        "6 years"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The normal term is five years unless the House is dissolved earlier.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "लोकसभा का सामान्य कार्यकाल कितना होता है?",
+          "options": [
+            "3 years",
+            "4 years",
+            "5 years",
+            "6 years"
+          ]
+        },
+        "te-IN": {
+          "content_text": "లోక్‌సభ సాధారణ పదవీకాలం ఎంత?",
+          "options": [
+            "3 years",
+            "4 years",
+            "5 years",
+            "6 years"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 112,
+      "subject": "History & Polity",
+      "difficulty": "medium",
+      "content_text": "Fundamental Rights are contained in which Part of the Constitution?",
+      "options": [
+        "Part I",
+        "Part II",
+        "Part III",
+        "Part IV"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Fundamental Rights are in Part III.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "मौलिक अधिकार संविधान के किस भाग में हैं?",
+          "options": [
+            "Part I",
+            "Part II",
+            "Part III",
+            "Part IV"
+          ]
+        },
+        "te-IN": {
+          "content_text": "మౌలిక హక్కులు రాజ్యాంగంలోని ఏ భాగంలో ఉన్నాయి?",
+          "options": [
+            "Part I",
+            "Part II",
+            "Part III",
+            "Part IV"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 113,
+      "subject": "History & Polity",
+      "difficulty": "medium",
+      "content_text": "Directive Principles of State Policy are in which Part?",
+      "options": [
+        "Part II",
+        "Part III",
+        "Part IV",
+        "Part V"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Directive Principles of State Policy are in Part IV.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "राज्य के नीति-निर्देशक तत्व संविधान के किस भाग में हैं?",
+          "options": [
+            "Part II",
+            "Part III",
+            "Part IV",
+            "Part V"
+          ]
+        },
+        "te-IN": {
+          "content_text": "రాష్ట్ర విధాన మార్గదర్శక సూత్రాలు రాజ్యాంగంలోని ఏ భాగంలో ఉన్నాయి?",
+          "options": [
+            "Part II",
+            "Part III",
+            "Part IV",
+            "Part V"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 114,
+      "subject": "History & Polity",
+      "difficulty": "medium",
+      "content_text": "Which amendment added Fundamental Duties?",
+      "options": [
+        "42nd Amendment",
+        "44th Amendment",
+        "52nd Amendment",
+        "86th Amendment"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The 42nd Amendment added Fundamental Duties.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "मौलिक कर्तव्यों को किस संशोधन ने जोड़ा?",
+          "options": [
+            "42वाँ संशोधन",
+            "44वाँ संशोधन",
+            "52वाँ संशोधन",
+            "86वाँ संशोधन"
+          ]
+        },
+        "te-IN": {
+          "content_text": "మౌలిక కర్తవ్యాలను ఏ సవరణ చేర్చింది?",
+          "options": [
+            "42వ సవరణ",
+            "44వ సవరణ",
+            "52వ సవరణ",
+            "86వ సవరణ"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 115,
+      "subject": "History & Polity",
+      "difficulty": "medium",
+      "content_text": "The Supreme Court of India was inaugurated in which year?",
+      "options": [
+        "1947",
+        "1949",
+        "1950",
+        "1952"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The Supreme Court was inaugurated on 28 January 1950.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "भारत के सर्वोच्च न्यायालय का उद्घाटन किस वर्ष हुआ?",
+          "options": [
+            "1947",
+            "1949",
+            "1950",
+            "1952"
+          ]
+        },
+        "te-IN": {
+          "content_text": "భారత సుప్రీంకోర్టు ఏ సంవత్సరంలో ప్రారంభమైంది?",
+          "options": [
+            "1947",
+            "1949",
+            "1950",
+            "1952"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 116,
+      "subject": "History & Polity",
+      "difficulty": "hard",
+      "content_text": "The Battle of Plassey was fought in which year?",
+      "options": [
+        "1757",
+        "1761",
+        "1764",
+        "1772"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The Battle of Plassey took place in 1757.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "प्लासी का युद्ध किस वर्ष लड़ा गया था?",
+          "options": [
+            "1757",
+            "1761",
+            "1764",
+            "1772"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ప్లాసీ యుద్ధం ఏ సంవత్సరంలో జరిగింది?",
+          "options": [
+            "1757",
+            "1761",
+            "1764",
+            "1772"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 117,
+      "subject": "History & Polity",
+      "difficulty": "hard",
+      "content_text": "Who introduced the Permanent Settlement in Bengal?",
+      "options": [
+        "Lord Wellesley",
+        "Lord Cornwallis",
+        "Lord Curzon",
+        "Lord Dalhousie"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The Permanent Settlement was introduced under Lord Cornwallis in 1793.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "बंगाल में स्थायी बंदोबस्त किसने लागू किया?",
+          "options": [
+            "लॉर्ड वेलेजली",
+            "लॉर्ड कॉर्नवालिस",
+            "लॉर्ड कर्जन",
+            "लॉर्ड डलहौजी"
+          ]
+        },
+        "te-IN": {
+          "content_text": "బెంగాల్‌లో శాశ్వత బందోబస్తును ఎవరు ప్రవేశపెట్టారు?",
+          "options": [
+            "లార్డ్ వెల్లెస్లీ",
+            "లార్డ్ కార్న్వాలిస్",
+            "లార్డ్ కర్జన్",
+            "లార్డ్ డల్హౌసీ"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 118,
+      "subject": "History & Polity",
+      "difficulty": "hard",
+      "content_text": "The script of the Harappan civilization is generally regarded as what?",
+      "options": [
+        "Fully deciphered",
+        "Partially translated",
+        "Undeciphered",
+        "Latin alphabet"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The Harappan script has not been conclusively deciphered.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "हड़प्पा सभ्यता की लिपि को सामान्यतः किस रूप में माना जाता है?",
+          "options": [
+            "पूरी तरह पढ़ी जा चुकी",
+            "आंशिक रूप से अनूदित",
+            "अभी तक अपठित",
+            "लैटिन वर्णमाला"
+          ]
+        },
+        "te-IN": {
+          "content_text": "హరప్పా నాగరికత లిపిని సాధారణంగా ఎలా పరిగణిస్తారు?",
+          "options": [
+            "పూర్తిగా వివరించబడింది",
+            "పాక్షికంగా అనువదించబడింది",
+            "ఇప్పటికీ అవ్యాఖ్యాత",
+            "లాటిన్ వర్ణమాల"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 119,
+      "subject": "History & Polity",
+      "difficulty": "hard",
+      "content_text": "Where was the First Buddhist Council held?",
+      "options": [
+        "Rajgir",
+        "Vaishali",
+        "Pataliputra",
+        "Kashmir"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The First Buddhist Council is traditionally associated with Rajgir.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "पहली बौद्ध संगीति कहाँ आयोजित हुई थी?",
+          "options": [
+            "Rajgir",
+            "Vaishali",
+            "Pataliputra",
+            "Kashmir"
+          ]
+        },
+        "te-IN": {
+          "content_text": "మొదటి బౌద్ధ సంఘీతి ఎక్కడ జరిగింది?",
+          "options": [
+            "Rajgir",
+            "Vaishali",
+            "Pataliputra",
+            "Kashmir"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 120,
+      "subject": "History & Polity",
+      "difficulty": "hard",
+      "content_text": "The Government of India Act, 1935 is notable for which feature?",
+      "options": [
+        "Introducing universal adult franchise",
+        "Providing provincial autonomy",
+        "Creating the Constitution of India",
+        "Ending British rule"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The Act introduced provincial autonomy among several constitutional arrangements.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "भारत शासन अधिनियम, 1935 की प्रमुख विशेषता क्या थी?",
+          "options": [
+            "सार्वभौमिक वयस्क मताधिकार शुरू करना",
+            "प्रांतीय स्वायत्तता प्रदान करना",
+            "भारत का संविधान बनाना",
+            "ब्रिटिश शासन समाप्त करना"
+          ]
+        },
+        "te-IN": {
+          "content_text": "భారత ప్రభుత్వ చట్టం, 1935 యొక్క ముఖ్య లక్షణం ఏమిటి?",
+          "options": [
+            "సార్వత్రిక వయోజన ఓటుహక్కు ప్రవేశపెట్టడం",
+            "ప్రాంతీయ స్వయంప్రతిపత్తి ఇవ్వడం",
+            "భారత రాజ్యాంగాన్ని రూపొందించడం",
+            "బ్రిటిష్ పాలన ముగించడం"
+          ]
+        }
+      }
+    }
+  ]
+}

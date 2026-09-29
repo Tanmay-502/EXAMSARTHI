@@ -13,6 +13,7 @@ import { useI18n } from '@/lib/i18n/I18nProvider'
 import { useVoice } from '@/lib/voice/VoiceProvider'
 import { createClient as createSupabaseBrowserClient } from '@/lib/supabase/client'
 
+/** Renders localized sign-in options with voice-guided email entry in voice-first mode. */
 function LoginForm() {
   const { t, lang } = useI18n()
   const searchParams = useSearchParams()
@@ -32,12 +33,11 @@ function LoginForm() {
   useEffect(() => {
     emailRef.current?.focus()
     if (!modeLoaded || preferredMode !== 'voice-first') return
-    const orientation = code === 'unauthenticated'
-      ? (lang === 'hi-IN' ? 'आगे बढ़ने से पहले आपको साइन इन करना होगा। अपना ईमेल बताएं।' : lang === 'te-IN' ? 'కొనసాగడానికి ముందు మీరు సైన్ ఇన్ చేయాలి. మీ ఈమెయిల్ చెప్పండి.' : 'You need to sign in before continuing. Tell me your email address.')
-      : (lang === 'hi-IN' ? 'साइन इन करने के लिए अपना ईमेल पता बताएं। मैं उसे पढ़कर पुष्टि करूँगा और फिर मैजिक लिंक भेजूँगा।' : lang === 'te-IN' ? 'సైన్ ఇన్ చేయడానికి మీ ఈమెయిల్ చిరునామా చెప్పండి. నేను దాన్ని చదివి నిర్ధారించుకుని, తర్వాత మ్యాజిక్ లింక్ పంపుతాను.' : 'Tell me your email address. I will read it back for confirmation before sending the Magic Link.')
+    const orientation = t(code === 'unauthenticated' ? 'login_voice_unauthenticated' : 'login_voice_email_prompt')
     speak(orientation)
-  }, [code, lang, modeLoaded, preferredMode, speak])
+  }, [code, modeLoaded, preferredMode, speak, t])
 
+  /** Starts Google OAuth through the auth callback and displays a localized error if it fails. */
   const signInWithGoogle = async () => {
     setGoogleLoading(true)
     setGoogleError('')
@@ -54,7 +54,7 @@ function LoginForm() {
       if (error) throw error
     } catch (error) {
       console.error('Google sign-in error:', error)
-      setGoogleError(lang === 'hi-IN' ? 'Google से साइन इन शुरू नहीं हो सका।' : lang === 'te-IN' ? 'Google సైన్-ఇన్ ప్రారంభం కాలేదు.' : 'Google sign-in could not be started. Please try again.')
+      setGoogleError(t('google_signin_error'))
       setGoogleLoading(false)
     }
   }
@@ -66,8 +66,8 @@ function LoginForm() {
       <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 pb-24 pt-10 md:px-12 md:pt-12">
         <header className="mb-16 flex items-center justify-between border-b border-zinc-900 pb-8">
           <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">EXAMSAARTHI</p>
-            <h1 className="text-5xl font-light tracking-tighter md:text-7xl">Log in</h1>
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">{t('brand_name')}</p>
+            <h1 className="text-5xl font-light tracking-tighter md:text-7xl">{t('login_heading')}</h1>
           </div>
           <div className="flex items-center gap-4">
             <LanguageSwitcher />
@@ -76,26 +76,26 @@ function LoginForm() {
         </header>
 
         <div className="space-y-10">
-          <p className="max-w-xl text-2xl font-light text-zinc-400 md:text-3xl">Sign in to continue to ExamSaarthi.</p>
+          <p className="max-w-xl text-2xl font-light text-zinc-400 md:text-3xl">{t('login_helper')}</p>
 
           {authMessage ? <div data-testid="auth-message" role="status" aria-live="polite" className="border-y border-zinc-900 py-5 text-zinc-300">{authMessage}</div> : null}
-          {code === 'no_account' ? <p className="text-sm text-zinc-400">{lang === 'hi-IN' ? 'नया अकाउंट बनाने के लिए ' : lang === 'te-IN' ? 'కొత్త ఖాతా కోసం ' : 'New to ExamSaarthi? '}<Link href="/auth/signup" className="inline-flex min-h-11 items-center font-semibold text-white underline underline-offset-4">{t('signup')}</Link></p> : null}
+          {code === 'no_account' ? <p className="text-sm text-zinc-400">{t('new_to_examsaarthi')} <Link href="/auth/signup" className="inline-flex min-h-11 items-center font-semibold text-white underline underline-offset-4">{t('signup')}</Link></p> : null}
 
           <section aria-labelledby="google-login-title" className="space-y-3">
-            <h2 id="google-login-title" className="text-sm font-bold uppercase tracking-[0.18em] text-zinc-200">Fast sign in</h2>
+            <h2 id="google-login-title" className="text-sm font-bold uppercase tracking-[0.18em] text-zinc-200">{t('fast_sign_in')}</h2>
             <button data-testid="google-auth-button" type="button" onClick={signInWithGoogle} disabled={googleLoading} className="inline-flex h-16 w-full items-center justify-center gap-3 rounded-full border border-zinc-600 bg-white px-8 text-sm font-bold text-black shadow-[0_10px_30px_rgba(255,255,255,0.08)] transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--brand-accent)] disabled:opacity-60">
               <span aria-hidden="true" className="text-xl font-semibold">G</span>
-              <span>{googleLoading ? 'Opening Google...' : 'Continue with Google'}</span>
+              <span>{googleLoading ? t('opening_google') : t('continue_with_google')}</span>
             </button>
-            <p className="text-sm text-zinc-400">Choose your Google account to continue without waiting for a Magic Link email.</p>
+            <p className="text-sm text-zinc-400">{t('login_google_desc')}</p>
             {googleError ? <p role="alert" className="text-sm text-zinc-300">{googleError}</p> : null}
           </section>
 
-          <div className="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-zinc-400" aria-hidden="true"><span className="h-px flex-1 bg-zinc-900" /><span>or use email</span><span className="h-px flex-1 bg-zinc-900" /></div>
+          <div className="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-zinc-400" aria-hidden="true"><span className="h-px flex-1 bg-zinc-900" /><span>{t('or_use_email')}</span><span className="h-px flex-1 bg-zinc-900" /></div>
 
           <section aria-labelledby="magic-link-title" className="space-y-4">
-            <h2 id="magic-link-title" className="text-sm font-bold uppercase tracking-[0.18em] text-zinc-200">Magic Link</h2>
-            <form ref={formRef} action={loginWithMagicLink} onSubmit={() => { setVoiceStep('sending'); setVoiceStatus('Sending Magic Link...') }} className="space-y-8">
+            <h2 id="magic-link-title" className="text-sm font-bold uppercase tracking-[0.18em] text-zinc-200">{t('magic_link')}</h2>
+            <form ref={formRef} action={loginWithMagicLink} onSubmit={() => { setVoiceStep('sending'); setVoiceStatus(t('sending_magic_link')) }} className="space-y-8">
               <div className="space-y-3">
                 <label htmlFor="email" className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">{t('email')}</label>
                 <input ref={emailRef} id="email" name="email" type="email" inputMode="email" autoComplete="email" required value={voiceEmail} onChange={(event) => setVoiceEmail(event.target.value)} className="h-14 w-full border-b border-zinc-800 bg-transparent text-xl text-white focus-visible:outline-none focus-visible:border-zinc-400" aria-describedby="voice-status" />
@@ -105,7 +105,7 @@ function LoginForm() {
             </form>
           </section>
 
-          <p className="text-sm text-zinc-400">{lang === 'hi-IN' ? 'अकाउंट नया है? ' : lang === 'te-IN' ? 'కొత్త ఖాతా కావాలా? ' : 'Need a new account? '}<Link href="/auth/signup" className="inline-flex min-h-11 items-center text-zinc-100 underline underline-offset-4">{t('signup')}</Link></p>
+          <p className="text-sm text-zinc-400">{t('need_new_account')} <Link href="/auth/signup" className="inline-flex min-h-11 items-center text-zinc-100 underline underline-offset-4">{t('signup')}</Link></p>
         </div>
       </div>
     </main>

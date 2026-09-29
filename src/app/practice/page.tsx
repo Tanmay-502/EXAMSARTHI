@@ -10,7 +10,7 @@ import { VoiceCore } from '@/components/voice/VoiceCore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchPracticeQuestions, fetchAvailablePracticeSubjects, startPracticeSession, verifyActiveSession } from '@/app/exam/actions';
 import { usePreferredMode } from '@/lib/hooks/usePreferredMode';
-import { resolveSubject } from '@/lib/catalog/examCatalog';
+import { resolveSubject } from '@/app/exam/actions';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 import { parseCommand } from '@/lib/voice/commandParser';
 import { SafeAction } from '@/lib/voice/safeActionRegistry';
@@ -18,6 +18,7 @@ import { shouldEscapeToGlobal } from '@/lib/voice/navigationEscape';
 import { useVoiceAppContext } from '@/lib/store/voiceContextStore';
 import { clearExamStorage } from '@/lib/store/clearExamStorage';
 
+/** Configures or resumes a practice session and renders the exam engine, starting automatic listening only in voice-first mode. */
 function PracticeContent() {
   const initializeExam = useExamStore(state => state.initializeExam);
   const persistedUserId = useExamStore(state => state.userId);
@@ -95,11 +96,10 @@ function PracticeContent() {
   }, [setVoiceContext]);
 
   useEffect(() => {
-    if (!isContinuous && !hasStartedRef.current) {
-      hasStartedRef.current = true;
-      startContinuousListening();
-    }
-  }, [isContinuous, startContinuousListening]);
+    if (!isLoaded || interactionMode !== 'voice-first' || isContinuous || hasStartedRef.current) return;
+    hasStartedRef.current = true;
+    startContinuousListening();
+  }, [interactionMode, isContinuous, isLoaded, startContinuousListening]);
 
   useEffect(() => {
     fetchAvailablePracticeSubjects()

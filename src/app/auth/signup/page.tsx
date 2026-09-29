@@ -13,6 +13,7 @@ import { useI18n } from '@/lib/i18n/I18nProvider'
 import { useVoice } from '@/lib/voice/VoiceProvider'
 import { createClient as createSupabaseBrowserClient } from '@/lib/supabase/client'
 
+/** Renders localized account creation options with voice-guided email entry in voice-first mode. */
 function SignupForm() {
   const { t, lang } = useI18n()
   const searchParams = useSearchParams()
@@ -33,9 +34,10 @@ function SignupForm() {
   useEffect(() => {
     nameRef.current?.focus()
     if (!modeLoaded || preferredMode !== 'voice-first') return
-    speak(lang === 'hi-IN' ? 'अपना नाम कीबोर्ड से भरें। फिर अपना ईमेल बताएं।' : lang === 'te-IN' ? 'మీ పేరును కీబోర్డ్‌తో నమోదు చేయండి. తర్వాత మీ ఈమెయిల్ చెప్పండి.' : 'Enter your full name with the keyboard. Then tell me your email address.')
-  }, [lang, modeLoaded, preferredMode, speak])
+    speak(t('signup_voice_intro'))
+  }, [lang, modeLoaded, preferredMode, speak, t])
 
+  /** Starts Google OAuth for account creation and displays a localized error if it fails. */
   const signInWithGoogle = async () => {
     setGoogleLoading(true)
     setGoogleError('')
@@ -52,7 +54,7 @@ function SignupForm() {
       if (error) throw error
     } catch (error) {
       console.error('Google sign-in error:', error)
-      setGoogleError(lang === 'hi-IN' ? 'Google से अकाउंट शुरू नहीं हो सका।' : lang === 'te-IN' ? 'Googleతో ఖాతా ప్రారంభించలేకపోయాము.' : 'Google sign-in could not be started. Please try again.')
+      setGoogleError(t('google_signup_error'))
       setGoogleLoading(false)
     }
   }
@@ -64,7 +66,7 @@ function SignupForm() {
       <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 pb-24 pt-10 md:px-12 md:pt-12">
         <header className="mb-16 flex items-center justify-between border-b border-zinc-900 pb-8">
           <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">EXAMSAARTHI</p>
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">{t('brand_name')}</p>
             <h1 className="text-5xl font-light tracking-tighter md:text-7xl">{t('signup')}</h1>
           </div>
           <div className="flex items-center gap-4">
@@ -74,29 +76,29 @@ function SignupForm() {
         </header>
 
         <div className="space-y-10">
-          <p className="max-w-xl text-2xl font-light text-zinc-400 md:text-3xl">Create your ExamSaarthi account with Google or a Magic Link.</p>
+          <p className="max-w-xl text-2xl font-light text-zinc-400 md:text-3xl">{t('signup_helper')}</p>
           {authMessage ? <div data-testid="auth-message" role="status" aria-live="polite" className="border-y border-zinc-900 py-5 text-zinc-300">{authMessage}</div> : null}
 
           <section aria-labelledby="google-signup-title" className="space-y-3">
-            <h2 id="google-signup-title" className="text-sm font-bold uppercase tracking-[0.18em] text-zinc-200">Fast account creation</h2>
-            <button data-testid="google-auth-button" type="button" onClick={signInWithGoogle} disabled={googleLoading} className="inline-flex h-16 w-full items-center justify-center gap-3 rounded-full border border-zinc-600 bg-white px-8 text-sm font-bold text-black shadow-[0_10px_30px_rgba(255,255,255,0.08)] transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--brand-accent)] disabled:opacity-60"><span aria-hidden="true" className="text-xl font-semibold">G</span><span>{googleLoading ? 'Opening Google...' : 'Continue with Google'}</span></button>
-            <p className="text-sm text-zinc-400">Choose your Google account to create or continue with your ExamSaarthi account.</p>
+            <h2 id="google-signup-title" className="text-sm font-bold uppercase tracking-[0.18em] text-zinc-200">{t('fast_account_creation')}</h2>
+            <button data-testid="google-auth-button" type="button" onClick={signInWithGoogle} disabled={googleLoading} className="inline-flex h-16 w-full items-center justify-center gap-3 rounded-full border border-zinc-600 bg-white px-8 text-sm font-bold text-black shadow-[0_10px_30px_rgba(255,255,255,0.08)] transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--brand-accent)] disabled:opacity-60"><span aria-hidden="true" className="text-xl font-semibold">G</span><span>{googleLoading ? t('opening_google') : t('continue_with_google')}</span></button>
+            <p className="text-sm text-zinc-400">{t('signup_google_desc')}</p>
             {googleError ? <p role="alert" className="text-sm text-zinc-300">{googleError}</p> : null}
           </section>
 
-          <div className="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-zinc-400" aria-hidden="true"><span className="h-px flex-1 bg-zinc-900" /><span>or use email</span><span className="h-px flex-1 bg-zinc-400" /></div>
+          <div className="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-zinc-400" aria-hidden="true"><span className="h-px flex-1 bg-zinc-900" /><span>{t('or_use_email')}</span><span className="h-px flex-1 bg-zinc-900" /></div>
 
           <section aria-labelledby="magic-link-signup-title" className="space-y-4">
-            <h2 id="magic-link-signup-title" className="text-sm font-bold uppercase tracking-[0.18em] text-zinc-200">Magic Link</h2>
-            <form ref={formRef} action={signUpWithMagicLink} onSubmit={() => { setVoiceStep('sending'); setVoiceStatus('Sending Magic Link...') }} className="space-y-8">
-              <div className="space-y-3"><label htmlFor="full_name" className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">Full name</label><input ref={nameRef} id="full_name" name="full_name" type="text" minLength={2} maxLength={80} autoComplete="name" required className="h-14 w-full border-b border-zinc-800 bg-transparent text-xl text-white focus-visible:outline-none focus-visible:border-zinc-400" /></div>
+            <h2 id="magic-link-signup-title" className="text-sm font-bold uppercase tracking-[0.18em] text-zinc-200">{t('magic_link')}</h2>
+            <form ref={formRef} action={signUpWithMagicLink} onSubmit={() => { setVoiceStep('sending'); setVoiceStatus(t('sending_magic_link')) }} className="space-y-8">
+              <div className="space-y-3"><label htmlFor="full_name" className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">{t('full_name')}</label><input ref={nameRef} id="full_name" name="full_name" type="text" minLength={2} maxLength={80} autoComplete="name" required className="h-14 w-full border-b border-zinc-800 bg-transparent text-xl text-white focus-visible:outline-none focus-visible:border-zinc-400" /></div>
               <div className="space-y-3"><label htmlFor="email" className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">{t('email')}</label><input ref={emailRef} id="email" name="email" type="email" inputMode="email" autoComplete="email" required value={voiceEmail} onChange={(event) => setVoiceEmail(event.target.value)} className="h-14 w-full border-b border-zinc-800 bg-transparent text-xl text-white focus-visible:outline-none focus-visible:border-zinc-400" aria-describedby="voice-status" /></div>
               <p id="voice-status" className="min-h-6 text-sm text-zinc-400" aria-live="polite">{voiceStatus}</p>
-              <button type="submit" className="inline-flex h-14 w-full items-center justify-center rounded-full bg-white px-8 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)]">Create account ↗</button>
+              <button type="submit" className="inline-flex h-14 w-full items-center justify-center rounded-full bg-white px-8 text-xs font-bold uppercase tracking-widest text-black transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)]">{t('create_account')} ↗</button>
             </form>
           </section>
 
-          <p className="text-sm text-zinc-400">{lang === 'hi-IN' ? 'पहले से अकाउंट है? ' : lang === 'te-IN' ? 'ఇప్పటికే ఖాతా ఉందా? ' : 'Already have an account? '}<Link href="/auth/login" className="inline-flex min-h-11 items-center text-zinc-100 underline underline-offset-4">{t('login')}</Link></p>
+          <p className="text-sm text-zinc-400">{t('already_have_account')} <Link href="/auth/login" className="inline-flex min-h-11 items-center text-zinc-100 underline underline-offset-4">{t('login')}</Link></p>
         </div>
       </div>
     </main>
