@@ -15,7 +15,7 @@ Snapshot: 2026-09-27
 
 ## Current release work
 - Validate Magic Link delivery and callback against the target Supabase project.
-- Apply migrations through 00013.
+- Apply migrations through 00014.
 - Run manual NVDA/VoiceOver accessibility verification.
 - Run a real network interruption/reconnect exercise.
 - Complete the voice-only end-to-end rehearsal.

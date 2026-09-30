@@ -503,6 +503,39 @@ export function ExamEngine({ mode, examTitle, durationMinutes, interactionMode =
 
       case 'CONFIRM':
         if (engineState === 'CONFIRM_ANSWER' && pendingAnswer !== null) {
+          if (mode === 'practice' && sessionId && currentQuestion) {
+            const selectedIndex = pendingAnswer;
+            import('@/app/exam/actions').then(({ checkPracticeAnswer }) =>
+              checkPracticeAnswer(sessionId, currentQuestion.id, selectedIndex)
+                .then((feedback) => {
+                  handleOptionSelect(selectedIndex);
+                  setPendingAnswer(null);
+                  spokenStateKey.current = `EXAM-${currentQuestionIndex}`;
+                  setEngineState('EXAM');
+
+                  const optionLetter = String.fromCharCode(65 + feedback.correctIndex);
+                  let msg = feedback.correct
+                    ? t('practice_feedback_correct')
+                    : tParams('practice_feedback_incorrect', {
+                        option: optionLetter,
+                        text: currentQuestion.options?.[feedback.correctIndex] ?? '',
+                      });
+                  if (feedback.explanation) {
+                    msg += ' ' + tParams('practice_feedback_explanation', { explanation: feedback.explanation });
+                  }
+                  msg += ' ' + t('say_next_continue');
+                  sayMessage(msg, 'assertive');
+                })
+                .catch((error) => {
+                  console.error('Practice answer feedback failed:', error);
+                  setPendingAnswer(null);
+                  setEngineState('EXAM');
+                  sayMessage(t('practice_feedback_error'), 'assertive');
+                })
+            );
+            return true;
+          }
+
           handleOptionSelect(pendingAnswer);
           setPendingAnswer(null);
           spokenStateKey.current = `EXAM-${currentQuestionIndex}`;

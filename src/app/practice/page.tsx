@@ -30,7 +30,7 @@ function PracticeContent() {
   const { t, tParams, lang } = useI18n();
   const setVoiceContext = useVoiceAppContext(state => state.setContext);
   const searchParams = useSearchParams();
-  const { speak, startContinuousListening, isContinuous } = useVoice();
+  const { speak, startContinuousListening, pauseListening, isContinuous } = useVoice();
   const { useVoiceAction } = useGlobalVoice();
   
   const initialSubject = searchParams.get('subject') || '';
@@ -96,10 +96,15 @@ function PracticeContent() {
   }, [setVoiceContext]);
 
   useEffect(() => {
-    if (!isLoaded || interactionMode !== 'voice-first' || isContinuous || hasStartedRef.current) return;
+    if (!isLoaded) return;
+    if (interactionMode === 'standard') {
+      pauseListening();
+      return;
+    }
+    if (interactionMode !== 'voice-first' || isContinuous || hasStartedRef.current) return;
     hasStartedRef.current = true;
     startContinuousListening();
-  }, [interactionMode, isContinuous, isLoaded, startContinuousListening]);
+  }, [interactionMode, isContinuous, isLoaded, pauseListening, startContinuousListening]);
 
   useEffect(() => {
     fetchAvailablePracticeSubjects()
@@ -312,6 +317,9 @@ function PracticeContent() {
           } else {
             setSetupState('ASK_COUNT');
           }
+        }).catch((error) => {
+          console.error('Failed to resolve practice subject', error);
+          handleVoiceFallback(t('practice_load_error'), t('practice_subject_prompt'));
         });
         return true;
       }

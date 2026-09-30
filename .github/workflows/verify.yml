@@ -31,3 +31,5 @@ jobs:
         run: npx tsx --test src/lib/i18n/__tests__/registry.test.ts
       - name: Run data verification gate
         run: npm run verify:data
+      - name: Run practice feedback unit gate
+        run: npx tsx --test src/lib/practice/__tests__/feedback.test.ts

@@ -113,4 +113,14 @@ test.describe('Task B core regression invariants', () => {
     expect(dashboard).not.toContain('.or(filters.join')
     expect(analysis).not.toContain('.or(filters.join')
   })
+  test('practice feedback stays server-enforced and never applies to exam sessions', () => {
+    const actions = read('src/app/exam/actions.ts')
+    expect(actions).toContain('export async function checkPracticeAnswer(')
+    expect(actions).toContain('question_answers(correct_answer_index, explanation)')
+    expect(actions).toContain('assertPracticeFeedbackAccess')
+    expect(actions).toContain('isPractice: session.is_practice')
+    expect(actions).toContain('questionIds: rosterIds')
+    expect(actions).toContain('return buildPracticeAnswerFeedback(')
+  })
+
 })

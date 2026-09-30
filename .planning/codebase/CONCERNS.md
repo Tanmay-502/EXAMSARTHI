@@ -20,7 +20,7 @@ Resolved audit items are recorded in docs/AUDIT_RESOLUTION_2026-09-27.md.
 
 ### Production gates
 - Verify Magic Link delivery with the target Supabase project.
-- Apply migrations through 00012_practice_subjects.sql to the target database.
+- Apply migrations through 00014_questions_roster_rls.sql to the target database.
 - Run NVDA/VoiceOver accessibility checks.
 - Run a real network interruption/reconnect test.
 - Verify PWA installability and update behavior in the target browser.

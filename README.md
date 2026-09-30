@@ -68,6 +68,7 @@ ORDER BY q.subject, q.difficulty;
 ```
 
 Real Magic Link delivery, Google OAuth configuration, screen-reader behavior, target-environment PWA installation, and applying migrations through `00014_questions_roster_rls.sql` still require manual verification.
+
 ## Known production limits
 
-The current API rate limiter uses in-memory state, so its window is scoped to an individual serverless function instance rather than shared globally across all instances. A distributed rate-limit store is required for strict cross-instance quotas.
+The current API rate limiter uses in-memory state, so its window is scoped to an individual serverless function instance rather than shared globally across all instances; strict cross-instance quotas require a distributed store. A distributed rate-limit store is required for strict cross-instance quotas.

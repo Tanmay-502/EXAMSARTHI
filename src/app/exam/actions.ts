@@ -5,6 +5,7 @@ import { Question } from '@/lib/store/examStore'
 import { SupabaseClient, User } from '@supabase/supabase-js'
 import { writeAudit } from '@/lib/audit/writeAudit'
 import { chunk } from '@/lib/db/chunk'
+import { assertPracticeFeedbackAccess, buildPracticeAnswerFeedback } from '@/lib/practice/feedback'
 
 type ServerAnalyticsQuestion = {
   id: string;
@@ -685,6 +686,77 @@ export async function fetchPracticeQuestions(subject: string, difficulty: string
     }) as Question[],
     totalFound: availableCount
   };
+}
+
+
+export async function checkPracticeAnswer(
+  sessionId: string,
+  questionId: string,
+  selectedIndex: number
+) {
+  const supabase = await createClient()
+  const adminClient = await createAdminClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  if (!Number.isInteger(selectedIndex) || selectedIndex < 0 || selectedIndex > 3) {
+    throw new Error('Invalid option index')
+  }
+
+  const { data: session, error: sessionError } = await supabase
+    .from('exam_sessions')
+    .select('id, candidate_id, is_practice, status, question_ids')
+    .eq('id', sessionId)
+    .eq('candidate_id', user.id)
+    .single()
+
+  if (sessionError || !session) {
+    throw new Error('Practice session not found or unauthorized')
+  }
+
+  const rosterIds = Array.isArray(session.question_ids)
+    ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+    : []
+
+  assertPracticeFeedbackAccess(
+    {
+      isPractice: session.is_practice,
+      status: session.status,
+      questionIds: rosterIds,
+    },
+    questionId,
+  )
+
+  const { data: question, error: questionError } = await adminClient
+    .from('questions')
+    .select('id, options, question_answers(correct_answer_index, explanation)')
+    .eq('id', questionId)
+    .single()
+
+  if (questionError || !question) {
+    throw new Error('Practice question not found')
+  }
+
+  const options = Array.isArray(question.options) ? question.options : []
+  if (selectedIndex >= options.length) {
+    throw new Error('Invalid option index')
+  }
+
+  const questionAnswer = Array.isArray(question.question_answers)
+    ? question.question_answers[0]
+    : question.question_answers
+
+  const correctIndex = questionAnswer?.correct_answer_index
+  if (!Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex > 3) {
+    throw new Error('Practice answer key is invalid')
+  }
+
+  return buildPracticeAnswerFeedback(
+    correctIndex,
+    selectedIndex,
+    typeof questionAnswer?.explanation === 'string' ? questionAnswer.explanation : null,
+  )
 }
 
 export async function saveAnswer(
