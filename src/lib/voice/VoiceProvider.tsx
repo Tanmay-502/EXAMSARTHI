@@ -64,6 +64,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const finalResultCursorRef = useRef(0);
   const pendingTranscriptRef = useRef('');
   const transcriptDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const resultOwnerRef = useRef<'global' | 'secure' | 'none'>('none');
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -105,6 +106,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       }
       mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
       mediaStreamRef.current = null;
+      resultOwnerRef.current = 'none';
       if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.cancel();
       }
@@ -609,6 +611,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const startContinuousListening = useCallback((onResult?: (text: string) => void | Promise<void>) => {
     sensitiveInputRef.current = false;
     lastAudioSensitiveRef.current = false;
+    resultOwnerRef.current = 'global';
     isContinuousRef.current = true;
     setIsContinuous(true);
     if (onResult) onResultRef.current = onResult;
@@ -618,6 +621,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const startSecureContinuousListening = useCallback((onResult: (text: string) => void | Promise<void>) => {
     sensitiveInputRef.current = true;
     lastAudioSensitiveRef.current = true;
+    resultOwnerRef.current = 'secure';
     isContinuousRef.current = true;
     setIsContinuous(true);
     onResultRef.current = onResult;
@@ -625,6 +629,10 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   }, [startListening]);
 
   const setOnResult = useCallback((onResult: (text: string) => void | Promise<void>) => {
+    // Secure flows (voice login) own the microphone until they unmount or explicitly pause.
+    // The global command router must not overwrite a sensitive callback during that window.
+    if (resultOwnerRef.current === 'secure') return;
+    resultOwnerRef.current = 'global';
     onResultRef.current = onResult;
   }, []);
 
@@ -640,6 +648,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       transcriptDebounceRef.current = null;
     }
     setIsContinuous(false);
+    resultOwnerRef.current = 'none';
     onResultRef.current = null;
     stopListening();
     updateVoiceState('PAUSED');
