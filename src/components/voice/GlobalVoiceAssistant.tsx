@@ -304,7 +304,9 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
         context: getContextName(),
         conversationState: conversationStateRef.current,
         pendingIntent: pendingIntentRef.current,
-        collectedParams: collectedParamsRef.current
+        collectedParams: collectedParamsRef.current,
+        lastAction: lastActionRef.current?.action ?? null,
+        lastActionAt: lastActionRef.current?.at ?? null
       });
       
       if (capturedVersion !== contextVersionRef.current) {
