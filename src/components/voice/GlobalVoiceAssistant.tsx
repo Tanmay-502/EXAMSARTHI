@@ -26,7 +26,7 @@ interface GlobalVoiceContextType {
 const GlobalVoiceContext = createContext<GlobalVoiceContextType | undefined>(undefined);
 
 export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
-  const { setOnResult, speak, retranscribeLastUtterance } = useVoice();
+  const { setOnResult, speak, retranscribeLastUtterance, getRecognitionConfidence } = useVoice();
   const { lang, setLang, t } = useI18n();
   const pathname = usePathname();
   const voiceContext = useVoiceAppContext((state) => state.context);
@@ -313,10 +313,13 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
       let bestTranscript = transcript.trim();
       let command = await deterministicIntentProvider.parse(bestTranscript, lang, intentContext);
 
-      // Browser speech is fast, but a noisy microphone can produce the wrong words.
-      // Only pay for cloud transcription when the fast deterministic path cannot identify
-      // an action. The audio is captured transiently in memory and is never persisted.
-      if (command.type === 'UNKNOWN') {
+      // Browser speech is fast, but a noisy microphone can produce a low-confidence
+      // or incorrect transcript that still looks like a valid phrase. Escalate low-
+      // confidence and unrecognized speech to the cloud transcription fallback before
+      // any action is authorized. The captured audio is transient and never persisted.
+      const confidence = getRecognitionConfidence();
+      const shouldRecoverAudio = command.type === 'UNKNOWN' || (confidence !== null && confidence < 0.72);
+      if (shouldRecoverAudio) {
         const recoveredTranscript = await retranscribeLastUtterance();
         if (recoveredTranscript && recoveredTranscript.toLowerCase() !== bestTranscript.toLowerCase()) {
           bestTranscript = recoveredTranscript;
@@ -390,7 +393,7 @@ authorization: ${registry.isActionAllowed(action, getContextName()) ? 'ALLOWED' 
         dispatchAction('UNKNOWN_COMMAND', { transcript: bestTranscript }, bestTranscript);
       }
     });
-  }, [lang, setOnResult, deterministicIntentProvider, intentProvider, getContextName, registry, dispatchAction, pathname, retranscribeLastUtterance]);
+  }, [lang, setOnResult, deterministicIntentProvider, intentProvider, getContextName, registry, dispatchAction, pathname, retranscribeLastUtterance, getRecognitionConfidence]);
 
   return (
     <GlobalVoiceContext.Provider value={{
