@@ -13,6 +13,8 @@ test.describe('Voice Security Boundary (Phase 10)', () => {
     expect(registry.isActionAllowed('OPEN_DASHBOARD', 'exam_active')).toBe(false);
     expect(registry.isActionAllowed('OPEN_PRACTICE', 'exam_active')).toBe(false);
     expect(registry.isActionAllowed('LOGOUT', 'exam_active')).toBe(false);
+    expect(registry.isActionAllowed('READ_CONTEXT', 'exam_active')).toBe(true);
+    expect(registry.isActionAllowed('REPEAT', 'exam_active')).toBe(true);
   });
 
   test('dashboard mode allows open exam', () => {
@@ -30,6 +32,8 @@ test.describe('Voice Security Boundary (Phase 10)', () => {
     expect(registry.isActionAllowed('OPEN_PRACTICE', 'history')).toBe(true);
     expect(registry.isActionAllowed('START_PRACTICE', 'history')).toBe(true);
     expect(registry.isActionAllowed('OPEN_ANALYSIS', 'analysis')).toBe(true);
+    expect(registry.isActionAllowed('READ_CONTEXT', 'analysis')).toBe(true);
+    expect(registry.isActionAllowed('REPEAT', 'analysis')).toBe(true);
   });
 
 });
