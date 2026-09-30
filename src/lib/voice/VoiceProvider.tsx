@@ -73,6 +73,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const lastAudioBlobRef = useRef<{ blob: Blob; at: number } | null>(null);
   const lastAudioSensitiveRef = useRef(false);
   const audioMimeTypeRef = useRef<string>('audio/webm');
+  const recordingRequestIdRef = useRef(0);
 
   const updateVoiceState = useCallback((state: VoiceState) => {
     setVoiceState(state);
@@ -272,11 +273,14 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     if (typeof window === 'undefined' || typeof navigator === 'undefined') return;
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') return;
 
+    const requestId = ++recordingRequestIdRef.current;
+    const recordingSensitive = sensitiveInputRef.current;
+
     try {
       const existingStream = mediaStreamRef.current;
       const hasLiveTrack = existingStream?.getTracks().some((track) => track.readyState === 'live');
       if (!hasLiveTrack) {
-        mediaStreamRef.current = await navigator.mediaDevices.getUserMedia({
+        const stream = await navigator.mediaDevices.getUserMedia({
           audio: {
             channelCount: 1,
             echoCancellation: true,
@@ -284,10 +288,15 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
             autoGainControl: true,
           },
         });
+        if (requestId !== recordingRequestIdRef.current) {
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+        mediaStreamRef.current = stream;
       }
 
       const mimeType = getAudioMimeType();
-      if (!mimeType || !mediaStreamRef.current) return;
+      if (requestId !== recordingRequestIdRef.current || !mimeType || !mediaStreamRef.current) return;
 
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         try { mediaRecorderRef.current.stop(); } catch { /* ignore */ }
@@ -310,7 +319,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
           : null;
         if (blob && blob.size > 0) {
           lastAudioBlobRef.current = { blob, at: Date.now() };
-          lastAudioSensitiveRef.current = sensitiveInputRef.current;
+          lastAudioSensitiveRef.current = recordingSensitive;
         }
         audioReadyResolveRef.current?.(blob);
         audioReadyResolveRef.current = null;
@@ -330,6 +339,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   }, [getAudioMimeType]);
 
   const stopUtteranceRecording = useCallback(() => {
+    recordingRequestIdRef.current += 1;
     const recorder = mediaRecorderRef.current;
     if (!recorder || recorder.state === 'inactive') return;
     try {
