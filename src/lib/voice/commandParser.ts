@@ -35,6 +35,13 @@ export type VoiceCommand =
   | { type: 'SELECT_MODE_VOICE' }
   | { type: 'OPEN_ANALYSIS' }
   | { type: 'DISMISS_GUIDE' }
+  | { type: 'SET_SPEECH_RATE'; rate: number }
+  | { type: 'SET_FONT_SCALE'; scale: number }
+  | { type: 'SET_HIGH_CONTRAST'; enabled: boolean }
+  | { type: 'SET_LEARNING_PROFILE_CONSENT'; enabled: boolean }
+  | { type: 'SET_VOICE_DEFAULT' }
+  | { type: 'SET_VOICE_LANGUAGE'; lang: Locale }
+  | { type: 'TEST_VOICE' }
   | { type: 'UNKNOWN' };
 
 export function parseCommand(transcript: string, lang: Locale, context?: string): VoiceCommand {
@@ -50,6 +57,25 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
     const regex = new RegExp(`(^|\\s)${escaped}(?=\\s|$)`, 'i');
     return regex.test(text);
   };
+
+  if (context === 'settings') {
+    const rateMatch = normalized.match(/(?:speech rate|speaking speed|speed)\s*(?:to|at|is)?\s*(0?\.\d+|1(?:\.\d+)?)/i);
+    if (rateMatch) {
+      const rate = Number(rateMatch[1]);
+      if (rate >= 0.75 && rate <= 1.5) return { type: 'SET_SPEECH_RATE', rate };
+    }
+    const scaleMatch = normalized.match(/(?:font size|font scale|text size)\s*(?:to|at|is)?\s*(100|110|125|150)\s*(?:percent|%)/i);
+    if (scaleMatch) return { type: 'SET_FONT_SCALE', scale: Number(scaleMatch[1]) / 100 };
+    if (/\b(?:turn|switch|enable)\s+(?:on\s+)?(?:high contrast|high-contrast)\b/i.test(normalized)) return { type: 'SET_HIGH_CONTRAST', enabled: true };
+    if (/\b(?:turn|switch|disable)\s+(?:off\s+)?(?:high contrast|high-contrast)\b/i.test(normalized)) return { type: 'SET_HIGH_CONTRAST', enabled: false };
+    if (/\b(?:turn|switch|enable)\s+(?:on\s+)?(?:ai insights|ai learning profile|learning profile)\b/i.test(normalized)) return { type: 'SET_LEARNING_PROFILE_CONSENT', enabled: true };
+    if (/\b(?:turn|switch|disable)\s+(?:off\s+)?(?:ai insights|ai learning profile|learning profile)\b/i.test(normalized)) return { type: 'SET_LEARNING_PROFILE_CONSENT', enabled: false };
+    if (/\b(?:use|select|set)\s+(?:the\s+)?(?:browser default|default)\s+(?:voice|speaker)\b/i.test(normalized)) return { type: 'SET_VOICE_DEFAULT' };
+    if (/\b(?:use|select|set)\s+(?:the\s+)?english\s+(?:voice|speaker)\b/i.test(normalized)) return { type: 'SET_VOICE_LANGUAGE', lang: 'en-IN' };
+    if (/\b(?:use|select|set)\s+(?:the\s+)?hindi\s+(?:voice|speaker)\b/i.test(normalized)) return { type: 'SET_VOICE_LANGUAGE', lang: 'hi-IN' };
+    if (/\b(?:use|select|set)\s+(?:the\s+)?telugu\s+(?:voice|speaker)\b/i.test(normalized)) return { type: 'SET_VOICE_LANGUAGE', lang: 'te-IN' };
+    if (/\b(?:test|check)\s+(?:the\s+)?voice\b/i.test(normalized)) return { type: 'TEST_VOICE' };
+  }
 
   const helpPhrases = [
     'help', 'what can i say', 'what can you do', 'how do i use this', 'how can you help',
