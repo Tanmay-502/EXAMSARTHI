@@ -38,6 +38,8 @@ export async function updateSession(request: NextRequest) {
     url.pathname = '/auth/login'
     url.search = ''
     url.searchParams.set('code', 'unauthenticated')
+    const nextPath = request.nextUrl.pathname + request.nextUrl.search
+    if (nextPath !== '/auth/login') url.searchParams.set('next', nextPath)
     return NextResponse.redirect(url)
   }
 
