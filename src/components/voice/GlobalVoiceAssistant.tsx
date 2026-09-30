@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useVoice } from '@/lib/voice/VoiceProvider';
 import { useI18n } from '@/lib/i18n/I18nProvider';
 import { Locale } from '@/lib/i18n/registry';
-import { OptionalLLMIntentProvider } from '@/lib/voice/intentRouter';
+import { DeterministicIntentProvider, OptionalLLMIntentProvider } from '@/lib/voice/intentRouter';
 import { SafeAction, SafeActionRegistry } from '@/lib/voice/safeActionRegistry';
 import { createClient } from '@/lib/supabase/client';
 import { useVoiceAppContext, type VoiceAppContext } from '@/lib/store/voiceContextStore';
@@ -26,7 +26,7 @@ interface GlobalVoiceContextType {
 const GlobalVoiceContext = createContext<GlobalVoiceContextType | undefined>(undefined);
 
 export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
-  const { setOnResult, speak } = useVoice();
+  const { setOnResult, speak, retranscribeLastUtterance } = useVoice();
   const { lang, setLang, t } = useI18n();
   const pathname = usePathname();
   const voiceContext = useVoiceAppContext((state) => state.context);
@@ -37,6 +37,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
   const pendingIntentRef = React.useRef<SafeAction | null>(null);
   const collectedParamsRef = React.useRef<Record<string, unknown>>({});
   const lastActionRef = React.useRef<{ action: SafeAction; at: number } | null>(null);
+  const deterministicIntentProvider = React.useMemo(() => new DeterministicIntentProvider(), []);
   const intentProvider = React.useMemo(() => new OptionalLLMIntentProvider(), []);
   const registry = React.useMemo(() => new SafeActionRegistry(), []);
 
@@ -300,17 +301,35 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
 
       conversationStateRef.current = 'AWAITING_INTENT';
       const capturedVersion = contextVersionRef.current;
-      const command = await intentProvider.parse(transcript, lang, { 
+      const intentContext = {
         context: getContextName(),
         conversationState: conversationStateRef.current,
         pendingIntent: pendingIntentRef.current,
         collectedParams: collectedParamsRef.current,
         lastAction: lastActionRef.current?.action ?? null,
-        lastActionAt: lastActionRef.current?.at ?? null
-      });
-      
+        lastActionAt: lastActionRef.current?.at ?? null,
+      };
+
+      let bestTranscript = transcript.trim();
+      let command = await deterministicIntentProvider.parse(bestTranscript, lang, intentContext);
+
+      // Browser speech is fast, but a noisy microphone can produce the wrong words.
+      // Only pay for cloud transcription when the fast deterministic path cannot identify
+      // an action. The audio is captured transiently in memory and is never persisted.
+      if (command.type === 'UNKNOWN') {
+        const recoveredTranscript = await retranscribeLastUtterance();
+        if (recoveredTranscript && recoveredTranscript.toLowerCase() !== bestTranscript.toLowerCase()) {
+          bestTranscript = recoveredTranscript;
+          command = await deterministicIntentProvider.parse(bestTranscript, lang, intentContext);
+        }
+      }
+
+      if (command.type === 'UNKNOWN') {
+        command = await intentProvider.parse(bestTranscript, lang, intentContext);
+      }
+
       if (capturedVersion !== contextVersionRef.current) {
-        console.log(`[VOICE] Dropping stale command "${transcript}". Context changed during processing.`);
+        console.log(`[VOICE] Dropping stale command "${bestTranscript}". Context changed during processing.`);
         return;
       }
 
@@ -357,7 +376,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
         lastActionRef.current = { action, at: Date.now() };
         console.log(`[VOICE]
 raw transcript: ${transcript}
-normalized transcript: ${transcript.trim().toLowerCase()}
+normalized transcript: ${bestTranscript.trim().toLowerCase()}
 current route: ${pathname}
 current voice state: ${conversationStateRef.current}
 current context: ${getContextName()}
@@ -365,13 +384,13 @@ deterministic intent: ${command.type}
 LLM intent (if used): ${command.type === 'NATURAL_INTENT' ? command.intent : 'N/A'}
 final intent: ${action}
 authorization: ${registry.isActionAllowed(action, getContextName()) ? 'ALLOWED' : 'REJECTED'}`);
-        dispatchAction(action, payload, transcript);
+        dispatchAction(action, payload, bestTranscript);
       } else if (command.type === 'UNKNOWN') {
         conversationStateRef.current = 'ERROR_RECOVERY';
-        dispatchAction('UNKNOWN_COMMAND', { transcript }, transcript);
+        dispatchAction('UNKNOWN_COMMAND', { transcript: bestTranscript }, bestTranscript);
       }
     });
-  }, [lang, setOnResult, intentProvider, getContextName, registry, dispatchAction, pathname]);
+  }, [lang, setOnResult, deterministicIntentProvider, intentProvider, getContextName, registry, dispatchAction, pathname, retranscribeLastUtterance]);
 
   return (
     <GlobalVoiceContext.Provider value={{
