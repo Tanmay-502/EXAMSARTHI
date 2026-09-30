@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect, useRef } from 'react';
 import { useI18n } from '../i18n/I18nProvider';
 import { useAccessibility } from '../accessibility/AccessibilityProvider';
+import { extractFinalSpeechTranscript } from './extractFinalSpeechTranscript';
 
 type VoiceState = 'IDLE' | 'REQUESTING_PERMISSION' | 'LISTENING' | 'PROCESSING' | 'SPEAKING' | 'PAUSED' | 'ERROR';
 
@@ -61,7 +62,6 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const lastTranscriptRef = useRef<{ text: string; at: number }>({ text: '', at: 0 });
   const recognitionConfidenceRef = useRef<number | null>(null);
   const sensitiveInputRef = useRef(false);
-  const finalResultCursorRef = useRef(0);
   const pendingTranscriptRef = useRef('');
   const transcriptDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const resultOwnerRef = useRef<'global' | 'secure' | 'none'>('none');
@@ -426,7 +426,6 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     
     recognition.onstart = () => {
       void startUtteranceRecording();
-      finalResultCursorRef.current = 0;
       pendingTranscriptRef.current = '';
       recognitionConfidenceRef.current = null;
       if (transcriptDebounceRef.current) {
@@ -440,18 +439,14 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onresult = (event: any) => {
-      let finalText = '';
-      const startIndex = Math.max(Number(event.resultIndex ?? 0), finalResultCursorRef.current);
-      for (let i = startIndex; i < event.results.length; i += 1) {
-        const result = event.results[i];
-        if (result?.isFinal) {
-          finalText += String(result[0]?.transcript || '');
-          const confidence = Number(result[0]?.confidence);
-          recognitionConfidenceRef.current = Number.isFinite(confidence) ? confidence : null;
-        }
+      // Use the browser-provided resultIndex as the earliest result that changed.
+      // Do not advance a separate cursor on interim results: Chrome can emit an
+      // interim result first and later finalize that same result at index 0.
+      const { text: finalText, confidence } = extractFinalSpeechTranscript(event);
+      if (confidence !== null) {
+        recognitionConfidenceRef.current = confidence;
       }
-      finalResultCursorRef.current = event.results.length;
-      if (!finalText.trim()) return;
+      if (!finalText) return;
 
       const processTranscript = (text: string) => {
         const resultTranscript = text.trim();
