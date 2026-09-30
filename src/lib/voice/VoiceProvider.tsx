@@ -517,7 +517,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     <VoiceContext.Provider value={{ 
       speak, stopSpeaking, isSpeaking: voiceState === 'SPEAKING', 
       startListening, stopListening, isListening: voiceState === 'LISTENING' || voiceState === 'REQUESTING_PERMISSION', 
-      startContinuousListening, pauseListening, isContinuous,
+      startContinuousListening, startSecureContinuousListening, pauseListening, isContinuous,
       setOnResult,
       micError,
       voiceState,
