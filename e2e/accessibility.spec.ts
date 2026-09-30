@@ -8,23 +8,16 @@ test.describe('Accessibility & Keyboard Navigation', () => {
     expect(accessibilityScanResults.violations).toEqual([]);
   });
 
-  test('login page should be keyboard navigable', async ({ page }) => {
+  test('voice login page is keyboard navigable', async ({ page }) => {
+    await installAccessibilityVoiceStubs(page);
     await page.goto('/auth/login');
-    
-    // Email input is auto-focused on load
-    await expect(page.locator('input[type="email"]')).toBeFocused();
-    await page.keyboard.insertText('test@example.com');
-    
-    // Focus submit button directly instead of relying on brittle tab counting
-    const submitButton = page.locator('button[type="submit"]');
-    await submitButton.focus();
-    await expect(submitButton).toBeFocused();
-    
-    // Press Enter to submit
-    await page.keyboard.press('Enter');
-    
-    // The auth action should return an accessible success/error message.
-    await expect(page.getByTestId('auth-message')).toBeVisible();
+    await expect(page.locator('#voice-user-id')).toBeFocused();
+    await page.keyboard.insertText('tanmay09');
+    await page.locator('#voice-password').fill('12345');
+    await expect(page.getByRole('button', { name: /Log in|लॉग इन|లాగిన్/i })).toBeVisible();
+    await expect(page.locator('#voice-password')).toHaveAttribute('type', 'password');
+    const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+    expect(accessibilityScanResults.violations).toEqual([]);
   });
 
   /* 
@@ -60,8 +53,7 @@ type PublicRoute = {
 
 const publicRoutes: PublicRoute[] = [
   { path: '/', name: 'gateway' },
-  { path: '/auth/login', name: 'login' },
-  { path: '/auth/signup', name: 'signup' },
+  { path: '/auth/login', name: 'voice login' },
 ];
 
 async function installAccessibilityVoiceStubs(page: Page) {
@@ -75,7 +67,8 @@ async function installAccessibilityVoiceStubs(page: Page) {
   await page.addInitScript(() => {
     class MockSpeechRecognition {
       continuous = false;
-      interimResults = false;
+      interimResults = true;
+      maxAlternatives = 3;
       lang = 'en-IN';
       onstart: (() => void) | null = null;
       onresult: ((event: unknown) => void) | null = null;
