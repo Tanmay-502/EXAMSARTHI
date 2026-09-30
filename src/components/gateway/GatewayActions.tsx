@@ -22,7 +22,14 @@ export function GatewayActions() {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target
-      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement || (target instanceof HTMLElement && target.isContentEditable)) return
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        target instanceof HTMLButtonElement ||
+        target instanceof HTMLAnchorElement ||
+        (target instanceof HTMLElement && target.isContentEditable)
+      ) return
       if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || event.defaultPrevented) return
       if (event.key.toLowerCase() === 'enter' || event.key === ' ') {
         event.preventDefault()
