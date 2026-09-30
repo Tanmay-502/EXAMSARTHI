@@ -3,17 +3,23 @@
 ExamSaarthi V2 is an accessible, voice-first, multilingual examination and practice platform designed primarily for visually impaired candidates.
 
 ## Current implementation
-- Public gateway: `/` presents only Log in and Sign up actions; it has no automatic speech or 3D hero.
-- Authentication: dedicated Supabase passwordless Magic Link login and signup pages, plus Google OAuth.
-- Magic Link callback: `/auth/confirm` verifies the token and lands on `/welcome`.
-- Welcome: the voice-first product description and demonstration experience lives at `/welcome`; it starts voice guidance there.
-- Onboarding: authenticated users choose interaction mode at `/onboarding/mode`, language at `/onboarding/language`, then continue to `/dashboard`.
-- Returning users with saved mode and language preferences see “Continue to dashboard” on `/welcome`.
-- Voice: Browser Web Speech API, deterministic English/Hindi/Telugu commands, contextual SafeActionRegistry, optional Gemini intent fallback.
-- Persistence: Zustand + IndexedDB plus incremental server-backed answer persistence and reconnect replay. Onboarding mode/language are persisted to both localStorage and the authenticated profile.
-- Exam integrity: each newly created exam and practice session stores a server-defined question roster; grading uses that roster.
-- Security: RLS, server-side grading, session-bound question rosters, and secret answer-key isolation remain unchanged.
+- Public gateway: `/` has one primary voice entry point with keyboard/screen-reader fallback.
+- Voice authentication: stateful user ID + numeric PIN/password flow; `tanmay09` / `12345` is the built-in demo credential.
+- Signup: retired from the product UX; `/auth/signup` redirects to voice login.
+- Voice resilience: browser speech recognition uses interim buffering, multiple alternatives, noise suppression, echo cancellation and automatic gain control. Low-confidence or unrecognized speech can be re-transcribed by Gemini 3.5 Transcribe before action routing.
+- Voice orientation: deterministic `help`, `repeat`, and `where am I` commands work across contexts without depending on an LLM.
+- Voice security: secure login callbacks own the microphone and are not overwritten by the global command router. Sensitive login speech is excluded from transcript/audio-recovery paths.
+- Intent reliability: deterministic parsing is first; constrained Gemini intent fallback uses model fallbacks instead of repeatedly retrying one unavailable model.
+- Persistence: Zustand + IndexedDB plus incremental server-backed answer persistence and reconnect replay.
+- Exam integrity: each exam/practice session uses a server-defined question roster; grading and answer-key access remain server-side.
+- Security: RLS, session-bound question rosters and private answer-key isolation remain unchanged.
 - PWA: manifest and service worker are public static assets; authenticated pages and APIs are not cached.
+
+## Voice demo
+Say:
+`login` → `tanmay zero nine` → `yes` → `one two three four five`.
+
+After login, the agent can guide navigation and exam operation. Say `help` to hear available commands, `repeat that` to replay the last spoken response, or `where am I` for the current screen.
 
 ## Getting started
 1. Create `.env.local` and keep it out of Git.
@@ -30,6 +36,7 @@ npm run build
 npx playwright install chromium
 npm test
 node --test src/lib/voice/__tests__/commandParser.test.ts
+npx tsx --test src/lib/auth/__tests__/voiceCredentials.test.ts
 npx tsx --test src/lib/i18n/__tests__/registry.test.ts
 npm run verify:data
 ```
@@ -67,8 +74,8 @@ GROUP BY q.subject, q.difficulty
 ORDER BY q.subject, q.difficulty;
 ```
 
-Real Magic Link delivery, Google OAuth configuration, screen-reader behavior, target-environment PWA installation, and applying migrations through `00014_questions_roster_rls.sql` still require manual verification.
+Target Supabase migration/data application, real microphone and screen-reader rehearsal, PWA installation/update behavior, and production environment configuration still require target-environment verification.
 
 ## Known production limits
 
-The current API rate limiter uses in-memory state, so its window is scoped to an individual serverless function instance rather than shared globally across all instances; strict cross-instance quotas require a distributed store. A distributed rate-limit store is required for strict cross-instance quotas.
+The current API rate limiter uses in-memory state, so its window is scoped to an individual serverless function instance rather than shared globally across all instances. Strict cross-instance quotas require a distributed rate-limit store.
