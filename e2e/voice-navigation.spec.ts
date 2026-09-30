@@ -15,7 +15,7 @@ const rows: Array<{
   { screen: 'settings', context: 'settings', language: 'en-IN' },
   { screen: 'exam_lobby', context: 'exam_lobby', language: 'en-IN' },
   { screen: 'practice_setup', context: 'practice_setup', language: 'en-IN' },
-  { screen: 'practice_active', context: 'practice', language: 'en-IN' },
+  { screen: 'practice_active', context: 'practice_active', language: 'en-IN' },
   { screen: 'exam_active', context: 'exam_active', language: 'en-IN' },
 ];
 
