@@ -221,6 +221,7 @@ function findExamFromSpeech(exams: AvailableExam[], spoken: string): AvailableEx
   return best?.exam || null;
 }
 
+/** Loads available exams and lets the candidate select one, enabling automatic listening only after voice-first mode loads. */
 function ExamSelection({ 
   onSelect 
 }: { 
@@ -232,10 +233,11 @@ function ExamSelection({
   const [selectedExam, setSelectedExam] = useState<AvailableExam | null>(null);
   const { speak, isContinuous, startContinuousListening } = useVoice();
   const { lang, t, tParams } = useI18n();
-  const { mode: voiceMode } = usePreferredMode();
+  const { mode: voiceMode, isLoaded: modeLoaded } = usePreferredMode();
   const setVoiceContext = useVoiceAppContext(state => state.setContext);
   const { announce } = useAccessibility();
   const hasSpokenWelcome = useRef(false);
+  const hasStartedVoiceRef = useRef(false);
   const lastHandledTranscriptRef = useRef<string>('');
   const router = useRouter();
   const { useVoiceAction } = useGlobalVoice();
@@ -260,19 +262,20 @@ function ExamSelection({
   }, []);
 
   useEffect(() => {
-    if (loading || error || exams.length === 0) return;
-    
-    if (!hasSpokenWelcome.current && !selectedExam) {
+    if (loading || error || exams.length === 0 || !modeLoaded) return;
+
+    if (!selectedExam && !hasSpokenWelcome.current) {
       hasSpokenWelcome.current = true;
       const examNames = exams.map(e => e.title).join(', ');
       const msg = tParams('exam_available_prompt', { details: examNames });
       say(msg, voiceMode, speak, announce);
-      
-      if (!isContinuous) {
-        startContinuousListening();
-      }
     }
-  }, [loading, error, exams, speak, announce, isContinuous, startContinuousListening, selectedExam]);
+
+    if (voiceMode === 'voice-first' && !isContinuous && !hasStartedVoiceRef.current) {
+      hasStartedVoiceRef.current = true;
+      startContinuousListening();
+    }
+  }, [loading, error, exams, speak, announce, isContinuous, startContinuousListening, selectedExam, modeLoaded, voiceMode]);
 
   useVoiceAction((action: SafeAction, _payload?: Record<string, unknown> | null, transcript?: string) => {
     const raw = transcript?.trim() || '';

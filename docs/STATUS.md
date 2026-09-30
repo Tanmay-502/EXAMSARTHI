@@ -1,6 +1,6 @@
 # EXAMSAARTHI V2 — Status
 
-Snapshot: 2026-09-27
+Snapshot: 2026-09-30
 
 ## Implemented
 
@@ -15,6 +15,7 @@ Snapshot: 2026-09-27
 - Voice-first auth email capture with read-back confirmation.
 - PWA manifest and static-asset service worker.
 - Automated Playwright + axe coverage.
+- Practice confirmation supports server-enforced correctness and explanation feedback.
 
 ## Not yet a verified PASS
 
@@ -23,7 +24,7 @@ These require real target-environment evidence:
 - Magic Link email delivery/callback.
 - NVDA/VoiceOver screen-reader walkthrough.
 - Network interruption/reconnect during an active session.
-- Supabase migrations through 00012 applied to the target project.
+- Supabase migrations through 00014_questions_roster_rls.sql applied to the target project.
 - PWA installation/update behavior on the target deployment.
 - Full voice-only rehearsal across all major routes.
 

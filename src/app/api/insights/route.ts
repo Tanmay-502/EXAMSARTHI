@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 import { buildLearningProfile } from '@/app/exam/actions';
 import { checkRateLimit } from '@/lib/security/rateLimit';
 
+// This in-memory cache is per function instance in serverless deployments; it is not shared across instances.
 const insightCache = new Map<string, { sessionId: string; insight: string }>();
 
 export async function POST() {

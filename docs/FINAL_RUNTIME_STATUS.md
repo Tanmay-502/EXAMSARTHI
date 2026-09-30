@@ -23,7 +23,7 @@ These require target-environment evidence:
 1. Magic Link email delivery and callback.
 2. NVDA/VoiceOver walkthrough.
 3. Network interruption/reconnect during an active session.
-4. Applying migrations through 00009_practice_question_roster.sql.
+4. Applying migrations through 00014_questions_roster_rls.sql.
 5. PWA installation/update behavior.
 6. Full voice-only rehearsal across landing → onboarding → auth → dashboard → practice/exam → results → analysis/history/settings.
 

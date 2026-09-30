@@ -14,9 +14,11 @@
 --   supabase/migrations/00007_preferences_and_consent.sql
 --   supabase/migrations/00008_lock_exam_session_inserts.sql
 --   supabase/migrations/00009_practice_question_roster.sql
---   supabase/migrations/00010_<historical_migration>.sql
+--   supabase/migrations/00010_session_integrity.sql
 --   supabase/migrations/00011_harden_audit_logs.sql
 --   supabase/migrations/00012_practice_subjects.sql
+--   supabase/migrations/00013_content_metadata.sql
+--   supabase/migrations/00014_questions_roster_rls.sql
 --
 -- This file previously contained the pre-security schema and could recreate
 -- the removed public questions.correct_answer_index column. It is intentionally

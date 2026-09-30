@@ -10,6 +10,7 @@ import { hasSavedPreferences } from '@/lib/preferences';
 
 const HeroScene = dynamic(() => import('@/components/experience/HeroScene').then(mod => mod.HeroScene), { ssr: false });
 
+/** Renders the localized welcome experience with voice activation and navigation to onboarding or the dashboard. */
 export default function WelcomePage() {
   const router = useRouter();
   const { speak, startContinuousListening } = useVoice();
@@ -71,12 +72,12 @@ export default function WelcomePage() {
   return (
     <main id="main-content" className="min-h-[300vh] bg-black text-zinc-100" ref={containerRef}>
       <nav className="fixed left-0 right-0 top-0 z-50 flex items-center justify-between px-6 py-5 md:px-12 md:py-6 mix-blend-difference">
-        <div className="text-sm font-bold uppercase tracking-widest">EXAMSAARTHI</div>
+        <div className="text-sm font-bold uppercase tracking-widest">{t('brand_name')}</div>
         <button
           onClick={navigateFromHero}
           className="inline-flex min-h-11 items-center rounded-full px-2 py-2 text-sm font-medium tracking-wide transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-black"
         >
-          {hasPrefs ? 'Continue to dashboard ↗' : 'Get started ↗'}
+          {hasPrefs ? t('welcome_continue_dashboard') : t('welcome_get_started')} ↗
         </button>
       </nav>
 
@@ -90,15 +91,15 @@ export default function WelcomePage() {
 
         <div className="relative z-10 flex w-full flex-col justify-center md:w-1/2">
           <p className="mb-6 text-xs uppercase tracking-[0.2em] text-zinc-400 md:mb-8 md:text-sm">
-            Accessible Intelligence for every exam
+            {t('welcome_tagline')}
           </p>
 
           <h1 className="mb-7 text-[clamp(3rem,min(8vw,10svh),10rem)] font-light leading-[0.9] tracking-tighter text-white md:mb-8">
-            Exams,<br />without<br />barriers.
+            {t('welcome_hero_exams')}<br />{t('welcome_hero_without')}<br />{t('welcome_hero_barriers')}
           </h1>
 
           <p className="mb-8 max-w-md text-lg font-light leading-relaxed text-zinc-400 md:mb-10 md:text-2xl">
-            An intelligent examination platform designed around accessibility, voice interaction and independent learning.
+            {t('welcome_hero_desc')}
           </p>
 
           {showVoicePrompt && (
@@ -108,7 +109,7 @@ export default function WelcomePage() {
               onClick={activateVoice}
               className="mb-5 inline-flex min-h-12 w-fit max-w-full items-center rounded-full border border-zinc-600 bg-zinc-950 px-5 py-3 text-left text-sm font-semibold text-zinc-100 transition-colors hover:border-zinc-400 hover:bg-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-black md:text-base"
             >
-              Press Space, Enter or click to start voice guidance
+              {t('welcome_start_voice_prompt')}
             </button>
           )}
 
@@ -118,10 +119,10 @@ export default function WelcomePage() {
               onClick={navigateFromHero}
               className="group relative inline-flex h-14 items-center justify-center rounded-full bg-white px-8 text-base font-medium text-black transition-all hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] focus-visible:ring-offset-4 focus-visible:ring-offset-black active:scale-[0.98]"
             >
-              {hasPrefs ? 'Continue to dashboard ↗' : 'Get started ↗'}
+              {hasPrefs ? t('welcome_continue_dashboard') : t('welcome_get_started')} ↗
             </button>
             <span className="hidden text-sm tracking-wide text-zinc-400 md:block">
-              How it works ↓
+              {t('welcome_how_it_works')}
             </span>
           </div>
         </div>
@@ -130,37 +131,37 @@ export default function WelcomePage() {
       <section className="relative z-20 min-h-screen border-t border-zinc-900 bg-black px-6 py-32 md:px-12">
         <div className="mx-auto max-w-7xl">
           <h2 className="mb-32 text-[clamp(3rem,6vw,7rem)] font-light leading-[0.9] tracking-tighter">
-            Your goal.<br />
-            Our guidance.<br />
-            Your exam.
+            {t('welcome_goal')}<br />
+            {t('welcome_guidance')}<br />
+            {t('welcome_exam')}
           </h2>
 
           <div className="grid grid-cols-1 gap-24 md:grid-cols-2">
             <div className="sticky top-32 h-fit">
-              <h3 className="mb-4 text-sm uppercase tracking-[0.2em] text-zinc-400">Process</h3>
-              <p className="text-2xl font-light text-zinc-300">Tell ExamSaarthi what you&apos;re preparing for and let voice guide you.</p>
+              <h3 className="mb-4 text-sm uppercase tracking-[0.2em] text-zinc-400">{t('welcome_process')}</h3>
+              <p className="text-2xl font-light text-zinc-300">{t('welcome_process_desc')}</p>
             </div>
 
             <div className="space-y-48 pb-32">
               <div className="space-y-8">
                 <div className="text-8xl font-light text-zinc-400">01</div>
-                <h4 className="text-4xl font-medium tracking-tight">CHOOSE</h4>
-                <p className="text-xl font-light leading-relaxed text-zinc-400">Select your exam, subject or preparation mode with simple voice commands or keyboard navigation.</p>
+                <h4 className="text-4xl font-medium tracking-tight">{t('welcome_choose')}</h4>
+                <p className="text-xl font-light leading-relaxed text-zinc-400">{t('welcome_choose_desc')}</p>
               </div>
               <div className="space-y-8">
                 <div className="text-8xl font-light text-zinc-400">02</div>
-                <h4 className="text-4xl font-medium tracking-tight">PREPARE</h4>
-                <p className="text-xl font-light leading-relaxed text-zinc-400">Practice using adaptive questions and voice interaction that listens to your needs.</p>
+                <h4 className="text-4xl font-medium tracking-tight">{t('welcome_prepare')}</h4>
+                <p className="text-xl font-light leading-relaxed text-zinc-400">{t('welcome_prepare_desc')}</p>
               </div>
               <div className="space-y-8">
                 <div className="text-8xl font-light text-zinc-400">03</div>
-                <h4 className="text-4xl font-medium tracking-tight">ATTEMPT</h4>
-                <p className="text-xl font-light leading-relaxed text-zinc-400">Take an accessible examination with real-time assistance and zero visual distractions.</p>
+                <h4 className="text-4xl font-medium tracking-tight">{t('welcome_attempt')}</h4>
+                <p className="text-xl font-light leading-relaxed text-zinc-400">{t('welcome_attempt_desc')}</p>
               </div>
               <div className="space-y-8">
                 <div className="text-8xl font-light text-zinc-400">04</div>
-                <h4 className="text-4xl font-medium tracking-tight">UNDERSTAND</h4>
-                <p className="text-xl font-light leading-relaxed text-zinc-400">Review your performance and learning insights through editorial, easy-to-read feedback.</p>
+                <h4 className="text-4xl font-medium tracking-tight">{t('welcome_understand')}</h4>
+                <p className="text-xl font-light leading-relaxed text-zinc-400">{t('welcome_understand_desc')}</p>
               </div>
             </div>
           </div>
@@ -168,8 +169,8 @@ export default function WelcomePage() {
       </section>
 
       <section className="relative z-20 flex min-h-screen flex-col items-center justify-center border-t border-zinc-900 bg-black px-6 py-32">
-        <h2 className="mb-4 text-center text-[clamp(4rem,9vw,10rem)] font-light leading-[0.9] tracking-tighter">Just speak.</h2>
-        <p className="mb-24 text-2xl font-light text-zinc-400 md:text-3xl">Your voice is enough.</p>
+        <h2 className="mb-4 text-center text-[clamp(4rem,9vw,10rem)] font-light leading-[0.9] tracking-tighter">{t('welcome_just_speak')}</h2>
+        <p className="mb-24 text-2xl font-light text-zinc-400 md:text-3xl">{t('welcome_voice_enough')}</p>
 
         <div className="relative flex h-64 w-64 items-center justify-center">
           <motion.div
@@ -188,8 +189,8 @@ export default function WelcomePage() {
         </div>
 
         <div className="mt-24 text-center">
-          <div className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">LISTENING</div>
-          <div className="text-2xl font-light text-white">&quot;Say: Start a practice session.&quot;</div>
+          <div className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">{t('welcome_listening')}</div>
+          <div className="text-2xl font-light text-white">&quot;{t('welcome_say_start_practice')}&quot;</div>
         </div>
       </section>
     </main>

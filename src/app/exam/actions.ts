@@ -5,6 +5,7 @@ import { Question } from '@/lib/store/examStore'
 import { SupabaseClient, User } from '@supabase/supabase-js'
 import { writeAudit } from '@/lib/audit/writeAudit'
 import { chunk } from '@/lib/db/chunk'
+import { assertPracticeFeedbackAccess, buildPracticeAnswerFeedback } from '@/lib/practice/feedback'
 
 type ServerAnalyticsQuestion = {
   id: string;
@@ -18,15 +19,17 @@ type ServerAnalyticsQuestion = {
 
 export async function fetchAvailableExams() {
   const supabase = await createClient()
+  const adminClient = await createAdminClient()
   
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     throw new Error('Unauthorized')
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await adminClient
     .from('exams')
-    .select('id, title, description, duration_minutes, questions(count)');
+    .select('id, title, description, duration_minutes, questions(count)')
+    .eq('kind', 'exam');
 
   if (error) {
     throw new Error(`Failed to fetch exams: ${error.message}`)
@@ -219,6 +222,17 @@ export async function startExamSession(examId: string) {
   // Provision profile if it doesn't exist
   await ensureCandidateProfile(supabase, user)
 
+  const { data: examConfig, error: examConfigError } = await adminClient
+    .from('exams')
+    .select('id, kind')
+    .eq('id', examId)
+    .eq('kind', 'exam')
+    .single();
+
+  if (examConfigError || !examConfig) {
+    throw new Error('Requested exam is not an exam-mode assessment');
+  }
+
   const { data: rosterQuestions, error: rosterError } = await adminClient
     .from('questions')
     .select('id')
@@ -321,6 +335,14 @@ export async function startExamSession(examId: string) {
   return { id: insertedSession.id, startedAt: insertedSession.started_at, serverNow: Date.now(), userId: user.id }
 }
 
+/**
+ * Validates a practice roster and creates a session or reuses one with matching questions and subject.
+ * @param questionIds - Question IDs to deduplicate and cap at 100 before validation.
+ * @param practiceSubject - Subject that every roster question must match.
+ * @param practiceDifficulty - Difficulty that every roster question must match.
+ * @returns The session ID and authenticated user ID for both new and reused sessions.
+ * @throws If authentication, roster validation, or session creation fails.
+ */
 export async function startPracticeSession(questionIds: string[] = [], practiceSubject = '', practiceDifficulty = '') {
   const supabase = await createClient()
   const adminClient = await createAdminClient()
@@ -346,18 +368,22 @@ export async function startPracticeSession(questionIds: string[] = [], practiceS
 
   const { data: rosterQuestions, error: rosterError } = await adminClient
     .from('questions')
-    .select('id, subject, difficulty')
+    .select('id, exam_id, subject, difficulty, exams!inner(kind)')
     .in('id', uniqueQuestionIds)
 
   if (rosterError || !rosterQuestions || rosterQuestions.length !== uniqueQuestionIds.length) {
     throw new Error('Practice question roster is invalid')
   }
 
-  const rosterIsValid = rosterQuestions.every(
-    question =>
+  const rosterIsValid = rosterQuestions.every(question => {
+    const relation = question.exams as { kind?: string } | { kind?: string }[] | null;
+    const kind = Array.isArray(relation) ? relation[0]?.kind : relation?.kind;
+    return (
       question.subject === normalizedSubject &&
-      question.difficulty === normalizedDifficulty
-  )
+      question.difficulty === normalizedDifficulty &&
+      kind === 'practice_bank'
+    );
+  })
 
   if (!rosterIsValid) {
     throw new Error('Practice question roster does not match the selected parameters')
@@ -385,7 +411,7 @@ export async function startPracticeSession(questionIds: string[] = [], practiceS
       uniqueQuestionIds.every(id => existingSet.has(id)) &&
       existing.practice_subject === normalizedSubject;
 
-    if (sameRoster) return existing.id;
+    if (sameRoster) return { id: existing.id, userId: user.id };
 
     await adminClient
       .from('exam_sessions')
@@ -433,7 +459,7 @@ export async function startPracticeSession(questionIds: string[] = [], practiceS
         racedQuestionIds.length === uniqueQuestionIds.length &&
         uniqueQuestionIds.every(id => racedQuestionIds.includes(id));
 
-      if (raced && sameRacedRoster) return raced.id;
+      if (raced && sameRacedRoster) return { id: raced.id, userId: user.id };
 
       throw new Error('A different practice session is already active. Please finish it before starting another.');
     }
@@ -451,15 +477,96 @@ export async function startPracticeSession(questionIds: string[] = [], practiceS
   return { id: data.id, userId: user.id }
 }
 
+export async function resolveSubject(spokenText: string): Promise<string | null> {
+  const supabase = await createClient()
+  const adminClient = await createAdminClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const normalized = spokenText.trim()
+  if (!normalized) return null
+
+  const normalize = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/&/g, ' and ')
+      .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+
+  const matchesPhrase = (value: string, phrase: string) => {
+    const text = normalize(value)
+    const wanted = normalize(phrase)
+    if (!text || !wanted) return false
+    if (text === wanted) return true
+    const textTokens = text.split(' ').filter(Boolean)
+    const wantedTokens = wanted.split(' ').filter(
+      token => !['the', 'a', 'an', 'and', 'of', 'to', 'for', 'my', 'me'].includes(token)
+    )
+    let lastIndex = -1
+    for (const token of wantedTokens) {
+      const index = textTokens.findIndex((candidate, i) => i > lastIndex && candidate === token)
+      if (index === -1) return false
+      lastIndex = index
+    }
+    return true
+  }
+
+  const aliases: Array<{ keys: string[]; candidates: string[] }> = [
+    { keys: ['database management systems', 'dbms', 'डेटाबेस', 'डीबीएमएस', 'డీబీఎంఎస్'], candidates: ['Computer Science/DBMS', 'DBMS'] },
+    { keys: ['computer science', 'computer', 'कंप्यूटर साइंस', 'कंप्यूटर विज्ञान', 'కంప్యూటర్ సైన్స్'], candidates: ['Computer Science/DBMS', 'Computer Science'] },
+    { keys: ['mathematics', 'maths', 'math', 'गणित', 'గణితం', 'మాథ్స్'], candidates: ['Mathematics'] },
+    { keys: ['reasoning', 'तर्क', 'रीजनिंग', 'రీజనింగ్'], candidates: ['Reasoning'] },
+    { keys: ['science', 'विज्ञान', 'సైన్స్', 'విజ్ఞానం'], candidates: ['Science'] },
+    { keys: ['general knowledge', 'gk', 'सामान्य ज्ञान', 'सामान्य जानकारी', 'జనరల్ నాలెడ్జ్', 'సాధారణ జ్ఞానం'], candidates: ['General Knowledge'] },
+    { keys: ['history and polity', 'history', 'polity', 'इतिहास', 'राजव्यवस्था', 'इतिहास और राजव्यवस्था', 'చరిత్ర', 'రాజకీయాలు', 'చరిత్ర మరియు రాజకీయాలు'], candidates: ['History & Polity', 'History', 'Polity'] }
+  ]
+
+  const { data, error } = await adminClient
+    .from('questions')
+    .select('subject, exams!inner(kind)')
+    .eq('exams.kind', 'practice_bank')
+    .not('subject', 'is', null)
+
+  if (error) {
+    console.error('Failed to resolve practice subject:', error)
+    return null
+  }
+
+  const subjects = [...new Set(
+    (data ?? [])
+      .map(row => row.subject?.trim())
+      .filter((subject): subject is string => Boolean(subject))
+  )]
+
+  for (const alias of aliases) {
+    if (!alias.keys.some(key => matchesPhrase(normalized, key))) continue
+    const match = subjects.find(subject =>
+      alias.candidates.some(candidate => subject.toLowerCase() === candidate.toLowerCase())
+    )
+    if (match) return match
+  }
+
+  return [...subjects]
+    .sort((a, b) => b.length - a.length)
+    .find(subject => matchesPhrase(normalized, subject)) ?? null
+}
+
 export async function fetchAvailablePracticeSubjects() {
   const supabase = await createClient()
+  const adminClient = await createAdminClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     throw new Error('Unauthorized')
   }
 
-  const { data, error } = await supabase.rpc('practice_subjects')
+  const { data, error } = await adminClient
+    .from('questions')
+    .select('subject, exams!inner(kind)')
+    .eq('exams.kind', 'practice_bank')
+    .not('subject', 'is', null)
 
   if (error) {
     throw new Error(`Failed to fetch practice subjects: ${error.message}`)
@@ -475,6 +582,7 @@ export async function fetchAvailablePracticeSubjects() {
 
 export async function fetchPracticeQuestions(subject: string, difficulty: string, count: number, lang: string = 'en-IN') {
   const supabase = await createClient()
+  const adminClient = await createAdminClient()
   
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
@@ -497,11 +605,12 @@ export async function fetchPracticeQuestions(subject: string, difficulty: string
     throw new Error('Invalid practice question count')
   }
 
-  const countQuery = await supabase
+  const countQuery = await adminClient
     .from('questions')
-    .select('id', { count: 'exact', head: true })
+    .select('id, exams!inner(kind)', { count: 'exact', head: true })
     .eq('subject', normalizedSubject)
     .eq('difficulty', normalizedDifficulty)
+    .eq('exams.kind', 'practice_bank')
 
   if (countQuery.error) {
     throw new Error(`Failed to count practice questions: ${countQuery.error.message}`)
@@ -516,11 +625,12 @@ export async function fetchPracticeQuestions(subject: string, difficulty: string
   const maxOffset = Math.max(0, availableCount - fetchCount)
   const offset = maxOffset > 0 ? Math.floor(Math.random() * (maxOffset + 1)) : 0
 
-  const questionsQuery = await supabase
+  const questionsQuery = await adminClient
     .from('questions')
-    .select('id, exam_id, order_index, content_text, options, content_translations, options_translations, subject, difficulty, image_url, image_alt_text')
+    .select('id, exam_id, order_index, content_text, options, content_translations, options_translations, subject, difficulty, image_url, image_alt_text, exams!inner(kind)')
     .eq('subject', normalizedSubject)
     .eq('difficulty', normalizedDifficulty)
+    .eq('exams.kind', 'practice_bank')
     .order('order_index', { ascending: true })
     .range(offset, Math.max(offset - 1, offset + fetchCount - 1))
 
@@ -576,6 +686,77 @@ export async function fetchPracticeQuestions(subject: string, difficulty: string
     }) as Question[],
     totalFound: availableCount
   };
+}
+
+
+export async function checkPracticeAnswer(
+  sessionId: string,
+  questionId: string,
+  selectedIndex: number
+) {
+  const supabase = await createClient()
+  const adminClient = await createAdminClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  if (!Number.isInteger(selectedIndex) || selectedIndex < 0 || selectedIndex > 3) {
+    throw new Error('Invalid option index')
+  }
+
+  const { data: session, error: sessionError } = await supabase
+    .from('exam_sessions')
+    .select('id, candidate_id, is_practice, status, question_ids')
+    .eq('id', sessionId)
+    .eq('candidate_id', user.id)
+    .single()
+
+  if (sessionError || !session) {
+    throw new Error('Practice session not found or unauthorized')
+  }
+
+  const rosterIds = Array.isArray(session.question_ids)
+    ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
+    : []
+
+  assertPracticeFeedbackAccess(
+    {
+      isPractice: session.is_practice,
+      status: session.status,
+      questionIds: rosterIds,
+    },
+    questionId,
+  )
+
+  const { data: question, error: questionError } = await adminClient
+    .from('questions')
+    .select('id, options, question_answers(correct_answer_index, explanation)')
+    .eq('id', questionId)
+    .single()
+
+  if (questionError || !question) {
+    throw new Error('Practice question not found')
+  }
+
+  const options = Array.isArray(question.options) ? question.options : []
+  if (selectedIndex >= options.length) {
+    throw new Error('Invalid option index')
+  }
+
+  const questionAnswer = Array.isArray(question.question_answers)
+    ? question.question_answers[0]
+    : question.question_answers
+
+  const correctIndex = questionAnswer?.correct_answer_index
+  if (!Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex > 3) {
+    throw new Error('Practice answer key is invalid')
+  }
+
+  return buildPracticeAnswerFeedback(
+    correctIndex,
+    selectedIndex,
+    typeof questionAnswer?.explanation === 'string' ? questionAnswer.explanation : null,
+  )
 }
 
 export async function saveAnswer(
@@ -668,6 +849,15 @@ export async function saveAnswer(
   return { success: true };
 }
 
+/**
+ * Saves eligible answers and grades the authenticated candidate's active session from persisted answers.
+ * Client answers received after the exam deadline are ignored; grading uses the frozen session roster.
+ * @param sessionId - Active session owned by the authenticated candidate.
+ * @param answers - Client answers keyed by question ID.
+ * @param questionIds - Unused legacy argument; the stored session roster determines grading.
+ * @returns A success flag and the number of correct answers.
+ * @throws If authorization, validation, persistence, or session completion fails.
+ */
 export async function submitExamAnswers(sessionId: string, answers: Record<string, unknown>, questionIds?: string[]) {
   const supabase = await createClient()
   const adminClient = await createAdminClient()
@@ -776,7 +966,7 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
   if (acceptingNewClientAnswers && answersToInsert.length > 0) {
     const { error: ansError } = await adminClient
       .from('answers')
-      .upsert(answersToInsert, { onConflict: 'session_id, question_id' });
+      .upsert(answersToInsert, { onConflict: 'session_id,question_id' });
 
     if (ansError) {
       throw new Error(`Failed to save answers: ${ansError.message}`);

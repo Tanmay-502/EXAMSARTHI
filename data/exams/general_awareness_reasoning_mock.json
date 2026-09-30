@@ -1,0 +1,1008 @@
+{
+  "title": "General Awareness & Reasoning Mock",
+  "description": "25-question original mock following an SSC/banking-style mix of general awareness, reasoning and basic science. Not an official previous-year paper.",
+  "duration_minutes": 35,
+  "kind": "exam",
+  "questions": [
+    {
+      "order_index": 1,
+      "subject": "General Knowledge",
+      "difficulty": "easy",
+      "content_text": "Which city serves as India's national capital?",
+      "options": [
+        "Mumbai",
+        "New Delhi",
+        "Jaipur",
+        "Lucknow"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "New Delhi is India's capital.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "भारत की राष्ट्रीय राजधानी कौन सा शहर है?",
+          "options": [
+            "Mumbai",
+            "New Delhi",
+            "Jaipur",
+            "Lucknow"
+          ]
+        },
+        "te-IN": {
+          "content_text": "భారత జాతీయ రాజధానిగా ఏ నగరం ఉంది?",
+          "options": [
+            "Mumbai",
+            "New Delhi",
+            "Jaipur",
+            "Lucknow"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 2,
+      "subject": "General Knowledge",
+      "difficulty": "easy",
+      "content_text": "Which amendment gave constitutional status to Panchayats?",
+      "options": [
+        "61st",
+        "73rd",
+        "74th",
+        "86th"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The 73rd Amendment constitutionalized Panchayats.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "पंचायती राज को संवैधानिक दर्जा किस संशोधन से मिला?",
+          "options": [
+            "61st",
+            "73rd",
+            "74th",
+            "86th"
+          ]
+        },
+        "te-IN": {
+          "content_text": "పంచాయతీలకు రాజ్యాంగ హోదా ఏ సవరణ ద్వారా వచ్చింది?",
+          "options": [
+            "61st",
+            "73rd",
+            "74th",
+            "86th"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 3,
+      "subject": "Reasoning",
+      "difficulty": "easy",
+      "content_text": "What comes next in 5, 10, 15, 20, ___?",
+      "options": [
+        "22",
+        "24",
+        "25",
+        "30"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The pattern adds 5 each time.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "5, 10, 15, 20, ___ में अगली संख्या क्या है?",
+          "options": [
+            "22",
+            "24",
+            "25",
+            "30"
+          ]
+        },
+        "te-IN": {
+          "content_text": "5, 10, 15, 20, ___లో తదుపరి సంఖ్య ఏది?",
+          "options": [
+            "22",
+            "24",
+            "25",
+            "30"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 4,
+      "subject": "General Knowledge",
+      "difficulty": "easy",
+      "content_text": "Which institution is the central bank of India?",
+      "options": [
+        "SBI",
+        "RBI",
+        "SEBI",
+        "NABARD"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The Reserve Bank of India is India's central bank.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "भारत का केंद्रीय बैंक कौन सा संस्थान है?",
+          "options": [
+            "SBI",
+            "RBI",
+            "SEBI",
+            "NABARD"
+          ]
+        },
+        "te-IN": {
+          "content_text": "భారతదేశ కేంద్ర బ్యాంక్ ఏ సంస్థ?",
+          "options": [
+            "SBI",
+            "RBI",
+            "SEBI",
+            "NABARD"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 5,
+      "subject": "Reasoning",
+      "difficulty": "easy",
+      "content_text": "A route goes 5 km north and then 3 km east. Where is the endpoint from the start?",
+      "options": [
+        "North-West",
+        "North-East",
+        "South-East",
+        "South-West"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The endpoint is north-east of the start.",
+      "image_url": "/diagrams/direction-grid.svg",
+      "image_alt_text": "A start point with an arrow 5 kilometres north followed by an arrow 3 kilometres east.",
+      "translations": {
+        "hi-IN": {
+          "content_text": "एक मार्ग 5 किमी उत्तर और फिर 3 किमी पूर्व जाता है। प्रारंभ से अंतिम बिंदु किस दिशा में है?",
+          "options": [
+            "North-West",
+            "North-East",
+            "South-East",
+            "South-West"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఒక మార్గం 5 కి.మీ ఉత్తరం, తరువాత 3 కి.మీ తూర్పు వెళ్తుంది. ప్రారంభ స్థానం నుంచి చివరి బిందువు ఏ దిశలో ఉంది?",
+          "options": [
+            "North-West",
+            "North-East",
+            "South-East",
+            "South-West"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 6,
+      "subject": "General Knowledge",
+      "difficulty": "easy",
+      "content_text": "Which Article deals with life and personal liberty?",
+      "options": [
+        "Article 14",
+        "Article 19",
+        "Article 21",
+        "Article 32"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Article 21 protects life and personal liberty.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "जीवन और व्यक्तिगत स्वतंत्रता से संबंधित अनुच्छेद कौन सा है?",
+          "options": [
+            "Article 14",
+            "Article 19",
+            "Article 21",
+            "Article 32"
+          ]
+        },
+        "te-IN": {
+          "content_text": "జీవనం మరియు వ్యక్తిగత స్వేచ్ఛకు సంబంధించిన అధికరణం ఏది?",
+          "options": [
+            "Article 14",
+            "Article 19",
+            "Article 21",
+            "Article 32"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 7,
+      "subject": "General Knowledge",
+      "difficulty": "easy",
+      "content_text": "Which city is the headquarters of the World Health Organization?",
+      "options": [
+        "Geneva",
+        "Paris",
+        "Rome",
+        "Vienna"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "WHO is headquartered in Geneva.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "विश्व स्वास्थ्य संगठन का मुख्यालय किस शहर में है?",
+          "options": [
+            "Geneva",
+            "Paris",
+            "Rome",
+            "Vienna"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ప్రపంచ ఆరోగ్య సంస్థ ప్రధాన కార్యాలయం ఏ నగరంలో ఉంది?",
+          "options": [
+            "Geneva",
+            "Paris",
+            "Rome",
+            "Vienna"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 8,
+      "subject": "Reasoning",
+      "difficulty": "medium",
+      "content_text": "Bird:Nest :: Bee:___.",
+      "options": [
+        "Hive",
+        "Stable",
+        "Kennel",
+        "Burrow"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "A hive is the shelter associated with bees.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "पक्षी:घोंसला :: मधुमक्खी:___।",
+          "options": [
+            "Hive",
+            "Stable",
+            "Kennel",
+            "Burrow"
+          ]
+        },
+        "te-IN": {
+          "content_text": "పక్షి:గూడు :: తేనెటీగ:___.",
+          "options": [
+            "Hive",
+            "Stable",
+            "Kennel",
+            "Burrow"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 9,
+      "subject": "Science",
+      "difficulty": "medium",
+      "content_text": "Which gas is a major greenhouse gas emitted by human activities?",
+      "options": [
+        "Carbon dioxide",
+        "Oxygen",
+        "Helium",
+        "Hydrogen"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Carbon dioxide is a major greenhouse gas.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "मानवीय गतिविधियों से निकलने वाली प्रमुख ग्रीनहाउस गैस कौन सी है?",
+          "options": [
+            "कार्बन डाइऑक्साइड",
+            "ऑक्सीजन",
+            "हीलियम",
+            "हाइड्रोजन"
+          ]
+        },
+        "te-IN": {
+          "content_text": "మానవ కార్యకలాపాల వల్ల విడుదలయ్యే ప్రధాన హరితగృహ వాయువు ఏది?",
+          "options": [
+            "కార్బన్ డయాక్సైడ్",
+            "ఆక్సిజన్",
+            "హీలియం",
+            "హైడ్రోజన్"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 10,
+      "subject": "Reasoning",
+      "difficulty": "medium",
+      "content_text": "The seating diagram shows A-B-C-D-E from left to right. Who is directly to the right of C?",
+      "options": [
+        "A",
+        "B",
+        "D",
+        "E"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "D is directly right of C.",
+      "image_url": "/diagrams/seating-row.svg",
+      "image_alt_text": "Five seats labelled A, B, C, D and E from left to right.",
+      "translations": {
+        "hi-IN": {
+          "content_text": "बैठने के चित्र में बाएँ से A-B-C-D-E हैं। C के ठीक दाएँ कौन है?",
+          "options": [
+            "A",
+            "B",
+            "D",
+            "E"
+          ]
+        },
+        "te-IN": {
+          "content_text": "కూర్చునే చిత్రంలో ఎడమ నుంచి A-B-C-D-E ఉన్నాయి. Cకి వెంటనే కుడివైపు ఎవరు?",
+          "options": [
+            "A",
+            "B",
+            "D",
+            "E"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 11,
+      "subject": "Reasoning",
+      "difficulty": "medium",
+      "content_text": "Mohan is ninth from the top and sixteenth from the bottom. What is the class size?",
+      "options": [
+        "24",
+        "25",
+        "26",
+        "27"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Total = 9 + 16 − 1 = 24.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "मोहन ऊपर से नौवाँ और नीचे से सोलहवाँ है। कक्षा में कितने विद्यार्थी हैं?",
+          "options": [
+            "24",
+            "25",
+            "26",
+            "27"
+          ]
+        },
+        "te-IN": {
+          "content_text": "మోహన్ పై నుంచి 9వ, కింద నుంచి 16వ స్థానంలో ఉన్నాడు. తరగతి పరిమాణం ఎంత?",
+          "options": [
+            "24",
+            "25",
+            "26",
+            "27"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 12,
+      "subject": "General Knowledge",
+      "difficulty": "medium",
+      "content_text": "How many Indian states are crossed by the Tropic of Cancer?",
+      "options": [
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The Tropic of Cancer crosses eight Indian states.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "कर्क रेखा भारत के कितने राज्यों से होकर गुजरती है?",
+          "options": [
+            "6",
+            "7",
+            "8",
+            "9"
+          ]
+        },
+        "te-IN": {
+          "content_text": "కర్కట రేఖ భారతదేశంలోని ఎన్ని రాష్ట్రాల గుండా వెళ్తుంది?",
+          "options": [
+            "6",
+            "7",
+            "8",
+            "9"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 13,
+      "subject": "History & Polity",
+      "difficulty": "medium",
+      "content_text": "Which Mauryan ruler is closely associated with the spread of Buddhism?",
+      "options": [
+        "Ashoka",
+        "Bindusara",
+        "Chandragupta Maurya",
+        "Harsha"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Ashoka is associated with spreading Buddhism.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "किस मौर्य शासक को बौद्ध धर्म के प्रसार से जोड़ा जाता है?",
+          "options": [
+            "Ashoka",
+            "Bindusara",
+            "Chandragupta Maurya",
+            "Harsha"
+          ]
+        },
+        "te-IN": {
+          "content_text": "బౌద్ధమత వ్యాప్తితో సంబంధం ఉన్న మౌర్య పాలకుడు ఎవరు?",
+          "options": [
+            "Ashoka",
+            "Bindusara",
+            "Chandragupta Maurya",
+            "Harsha"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 14,
+      "subject": "Reasoning",
+      "difficulty": "medium",
+      "content_text": "Using a two-place forward letter shift, what is the code for CAT?",
+      "options": [
+        "DBU",
+        "ECV",
+        "FDW",
+        "GBX"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "C→E, A→C, T→V.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "दो स्थान आगे अक्षर बदलने पर CAT का कूट क्या होगा?",
+          "options": [
+            "DBU",
+            "ECV",
+            "FDW",
+            "GBX"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ప్రతి అక్షరాన్ని రెండు స్థానాలు ముందుకు మార్చితే CAT కోడ్ ఏమిటి?",
+          "options": [
+            "DBU",
+            "ECV",
+            "FDW",
+            "GBX"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 15,
+      "subject": "General Knowledge",
+      "difficulty": "medium",
+      "content_text": "India introduced GST nationwide on which date?",
+      "options": [
+        "1 April 2016",
+        "1 July 2017",
+        "15 August 2017",
+        "26 January 2018"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "GST was launched on 1 July 2017.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "भारत में GST देशभर में किस तारीख को लागू हुआ?",
+          "options": [
+            "1 April 2016",
+            "1 July 2017",
+            "15 August 2017",
+            "26 January 2018"
+          ]
+        },
+        "te-IN": {
+          "content_text": "భారతదేశంలో GST దేశవ్యాప్తంగా ఏ తేదీన అమల్లోకి వచ్చింది?",
+          "options": [
+            "1 April 2016",
+            "1 July 2017",
+            "15 August 2017",
+            "26 January 2018"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 16,
+      "subject": "History & Polity",
+      "difficulty": "medium",
+      "content_text": "When did the Constituent Assembly adopt the Constitution?",
+      "options": [
+        "15 August 1947",
+        "26 November 1949",
+        "26 January 1950",
+        "2 October 1950"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The Constitution was adopted on 26 November 1949.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "संविधान सभा ने संविधान कब अपनाया था?",
+          "options": [
+            "15 August 1947",
+            "26 November 1949",
+            "26 January 1950",
+            "2 October 1950"
+          ]
+        },
+        "te-IN": {
+          "content_text": "రాజ్యాంగ సభ రాజ్యాంగాన్ని ఎప్పుడు ఆమోదించింది?",
+          "options": [
+            "15 August 1947",
+            "26 November 1949",
+            "26 January 1950",
+            "2 October 1950"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 17,
+      "subject": "Reasoning",
+      "difficulty": "hard",
+      "content_text": "In a group, 25 people like tea, 18 like coffee and 10 like both. How many like at least one?",
+      "options": [
+        "30",
+        "31",
+        "33",
+        "35"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "25 + 18 − 10 = 33.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "एक समूह में 25 को चाय, 18 को कॉफी और 10 को दोनों पसंद हैं। कम से कम एक पसंद करने वाले कितने हैं?",
+          "options": [
+            "30",
+            "31",
+            "33",
+            "35"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఒక సమూహంలో 25 మందికి టీ, 18 మందికి కాఫీ, 10 మందికి రెండూ ఇష్టం. కనీసం ఒకదాన్ని ఇష్టపడేవారు ఎంతమంది?",
+          "options": [
+            "30",
+            "31",
+            "33",
+            "35"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 18,
+      "subject": "Reasoning",
+      "difficulty": "hard",
+      "content_text": "Which number does not belong: 16, 25, 36, 49, 63?",
+      "options": [
+        "16",
+        "25",
+        "49",
+        "63"
+      ],
+      "correct_answer_index": 3,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The first four are perfect squares; 63 is not.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "16, 25, 36, 49, 63 में से कौन सी संख्या समूह में नहीं है?",
+          "options": [
+            "16",
+            "25",
+            "49",
+            "63"
+          ]
+        },
+        "te-IN": {
+          "content_text": "16, 25, 36, 49, 63లో ఏ సంఖ్య సమూహానికి చెందదు?",
+          "options": [
+            "16",
+            "25",
+            "49",
+            "63"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 19,
+      "subject": "General Knowledge",
+      "difficulty": "hard",
+      "content_text": "National Science Day is observed on which date in India?",
+      "options": [
+        "26 January",
+        "28 February",
+        "15 August",
+        "5 September"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "National Science Day is observed on 28 February.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "भारत में राष्ट्रीय विज्ञान दिवस किस तारीख को मनाया जाता है?",
+          "options": [
+            "26 January",
+            "28 February",
+            "15 August",
+            "5 September"
+          ]
+        },
+        "te-IN": {
+          "content_text": "భారతదేశంలో జాతీయ విజ్ఞాన దినోత్సవం ఏ తేదీన జరుపుతారు?",
+          "options": [
+            "26 January",
+            "28 February",
+            "15 August",
+            "5 September"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 20,
+      "subject": "History & Polity",
+      "difficulty": "hard",
+      "content_text": "Which is the permanent House of the Indian Parliament?",
+      "options": [
+        "Lok Sabha",
+        "Rajya Sabha",
+        "Both",
+        "Neither"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Rajya Sabha is a permanent House.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "भारतीय संसद का स्थायी सदन कौन सा है?",
+          "options": [
+            "लोकसभा",
+            "राज्यसभा",
+            "दोनों",
+            "कोई नहीं"
+          ]
+        },
+        "te-IN": {
+          "content_text": "భారత పార్లమెంట్‌లో శాశ్వత సభ ఏది?",
+          "options": [
+            "లోక్‌సభ",
+            "రాజ్యసభ",
+            "రెండూ",
+            "ఏదీ కాదు"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 21,
+      "subject": "Reasoning",
+      "difficulty": "hard",
+      "content_text": "A route goes 6 km north, 4 km east and 6 km south. What is the displacement?",
+      "options": [
+        "4 km west",
+        "4 km east",
+        "6 km south",
+        "10 km east"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The vertical movements cancel, leaving 4 km east.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "एक मार्ग 6 किमी उत्तर, 4 किमी पूर्व और 6 किमी दक्षिण जाता है। विस्थापन क्या है?",
+          "options": [
+            "4 km west",
+            "4 km east",
+            "6 km south",
+            "10 km east"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఒక మార్గం 6 కి.మీ ఉత్తరం, 4 కి.మీ తూర్పు, 6 కి.మీ దక్షిణం వెళ్తుంది. స్థానచలనం ఎంత?",
+          "options": [
+            "4 km west",
+            "4 km east",
+            "6 km south",
+            "10 km east"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 22,
+      "subject": "General Knowledge",
+      "difficulty": "hard",
+      "content_text": "Where is the SAARC Secretariat located?",
+      "options": [
+        "Dhaka",
+        "Kathmandu",
+        "New Delhi",
+        "Colombo"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The SAARC Secretariat is in Kathmandu.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "SAARC सचिवालय कहाँ स्थित है?",
+          "options": [
+            "Dhaka",
+            "Kathmandu",
+            "New Delhi",
+            "Colombo"
+          ]
+        },
+        "te-IN": {
+          "content_text": "SAARC సచివాలయం ఎక్కడ ఉంది?",
+          "options": [
+            "Dhaka",
+            "Kathmandu",
+            "New Delhi",
+            "Colombo"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 23,
+      "subject": "Reasoning",
+      "difficulty": "hard",
+      "content_text": "All pens are stationery and some stationery is expensive. What can be concluded with certainty?",
+      "options": [
+        "All pens are expensive",
+        "Some pens are expensive",
+        "All expensive items are pens",
+        "No definite relation between pens and expensive stationery"
+      ],
+      "correct_answer_index": 3,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The expensive stationery need not be pens.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "सभी पेन स्टेशनरी हैं और कुछ स्टेशनरी महँगी है। निश्चित रूप से क्या कहा जा सकता है?",
+          "options": [
+            "सभी पेन महँगे हैं",
+            "कुछ पेन महँगे हैं",
+            "सभी महँगी वस्तुएँ पेन हैं",
+            "पेन और महँगी स्टेशनरी के बीच कोई निश्चित संबंध नहीं है"
+          ]
+        },
+        "te-IN": {
+          "content_text": "అన్ని పెన్నులు స్టేషనరీ, కొంత స్టేషనరీ ఖరీదైనది. ఖచ్చితంగా ఏమి చెప్పవచ్చు?",
+          "options": [
+            "అన్ని పెన్నులు ఖరీదైనవి",
+            "కొన్ని పెన్నులు ఖరీదైనవి",
+            "అన్ని ఖరీదైన వస్తువులు పెన్నులే",
+            "పెన్నులు మరియు ఖరీదైన స్టేషనరీ మధ్య ఖచ్చితమైన సంబంధం లేదు"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 24,
+      "subject": "Reasoning",
+      "difficulty": "hard",
+      "content_text": "Find the next number: 2, 6, 12, 20, 30, ___.",
+      "options": [
+        "36",
+        "40",
+        "42",
+        "44"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The successive differences are 4, 6, 8, 10 and 12.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "अगली संख्या ज्ञात कीजिए: 2, 6, 12, 20, 30, ___.",
+          "options": [
+            "36",
+            "40",
+            "42",
+            "44"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తదుపరి సంఖ్యను కనుగొనండి: 2, 6, 12, 20, 30, ___.",
+          "options": [
+            "36",
+            "40",
+            "42",
+            "44"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 25,
+      "subject": "Science",
+      "difficulty": "hard",
+      "content_text": "Which lens converges parallel rays of light?",
+      "options": [
+        "Concave lens",
+        "Convex lens",
+        "Plane mirror",
+        "Prism"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "A convex lens converges parallel rays.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "समानांतर प्रकाश किरणों को अभिसारित करने वाला लेंस कौन सा है?",
+          "options": [
+            "अवतल लेंस",
+            "उत्तल लेंस",
+            "समतल दर्पण",
+            "प्रिज़्म"
+          ]
+        },
+        "te-IN": {
+          "content_text": "సమాంతర కాంతి కిరణాలను ఏకాగ్రం చేసే లెన్స్ ఏది?",
+          "options": [
+            "అవతల లెన్స్",
+            "కుంభాకార లెన్స్",
+            "సమతల అద్దం",
+            "ప్రిజమ్"
+          ]
+        }
+      }
+    }
+  ]
+}

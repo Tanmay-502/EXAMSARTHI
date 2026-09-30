@@ -10,7 +10,7 @@ import { VoiceCore } from '@/components/voice/VoiceCore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchPracticeQuestions, fetchAvailablePracticeSubjects, startPracticeSession, verifyActiveSession } from '@/app/exam/actions';
 import { usePreferredMode } from '@/lib/hooks/usePreferredMode';
-import { resolveSubject } from '@/lib/catalog/examCatalog';
+import { resolveSubject } from '@/app/exam/actions';
 import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
 import { parseCommand } from '@/lib/voice/commandParser';
 import { SafeAction } from '@/lib/voice/safeActionRegistry';
@@ -18,6 +18,7 @@ import { shouldEscapeToGlobal } from '@/lib/voice/navigationEscape';
 import { useVoiceAppContext } from '@/lib/store/voiceContextStore';
 import { clearExamStorage } from '@/lib/store/clearExamStorage';
 
+/** Configures or resumes a practice session and renders the exam engine, starting automatic listening only in voice-first mode. */
 function PracticeContent() {
   const initializeExam = useExamStore(state => state.initializeExam);
   const persistedUserId = useExamStore(state => state.userId);
@@ -29,7 +30,7 @@ function PracticeContent() {
   const { t, tParams, lang } = useI18n();
   const setVoiceContext = useVoiceAppContext(state => state.setContext);
   const searchParams = useSearchParams();
-  const { speak, startContinuousListening, isContinuous } = useVoice();
+  const { speak, startContinuousListening, pauseListening, isContinuous } = useVoice();
   const { useVoiceAction } = useGlobalVoice();
   
   const initialSubject = searchParams.get('subject') || '';
@@ -95,11 +96,15 @@ function PracticeContent() {
   }, [setVoiceContext]);
 
   useEffect(() => {
-    if (!isContinuous && !hasStartedRef.current) {
-      hasStartedRef.current = true;
-      startContinuousListening();
+    if (!isLoaded) return;
+    if (interactionMode === 'standard') {
+      pauseListening();
+      return;
     }
-  }, [isContinuous, startContinuousListening]);
+    if (interactionMode !== 'voice-first' || isContinuous || hasStartedRef.current) return;
+    hasStartedRef.current = true;
+    startContinuousListening();
+  }, [interactionMode, isContinuous, isLoaded, pauseListening, startContinuousListening]);
 
   useEffect(() => {
     fetchAvailablePracticeSubjects()
@@ -312,6 +317,9 @@ function PracticeContent() {
           } else {
             setSetupState('ASK_COUNT');
           }
+        }).catch((error) => {
+          console.error('Failed to resolve practice subject', error);
+          handleVoiceFallback(t('practice_load_error'), t('practice_subject_prompt'));
         });
         return true;
       }

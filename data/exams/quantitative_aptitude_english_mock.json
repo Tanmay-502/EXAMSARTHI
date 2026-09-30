@@ -1,0 +1,1074 @@
+{
+  "title": "Quantitative Aptitude & English Mock",
+  "description": "25-question original mock combining quantitative aptitude and English language items in a banking/SSC-style pattern. Not an official previous-year paper.",
+  "duration_minutes": 40,
+  "kind": "exam",
+  "questions": [
+    {
+      "order_index": 1,
+      "subject": "Quantitative Aptitude",
+      "difficulty": "easy",
+      "content_text": "What is 20% of 450?",
+      "options": [
+        "80",
+        "90",
+        "100",
+        "110"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "20% of 450 = 90.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "450 का 20% कितना है?",
+          "options": [
+            "80",
+            "90",
+            "100",
+            "110"
+          ]
+        },
+        "te-IN": {
+          "content_text": "450లో 20% ఎంత?",
+          "options": [
+            "80",
+            "90",
+            "100",
+            "110"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "20/100*450"
+      }
+    },
+    {
+      "order_index": 2,
+      "subject": "Quantitative Aptitude",
+      "difficulty": "easy",
+      "content_text": "A sum is divided in the ratio 2:3 and the total is 50. What is the larger part?",
+      "options": [
+        "20",
+        "25",
+        "30",
+        "35"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "There are five parts, so the larger three parts total 30.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "एक राशि को 2:3 के अनुपात में बाँटा गया है और कुल 50 है। बड़ा भाग कितना है?",
+          "options": [
+            "20",
+            "25",
+            "30",
+            "35"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఒక మొత్తాన్ని 2:3 నిష్పత్తిలో విభజించారు. మొత్తం 50. పెద్ద భాగం ఎంత?",
+          "options": [
+            "20",
+            "25",
+            "30",
+            "35"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "50*3/5"
+      }
+    },
+    {
+      "order_index": 3,
+      "subject": "Quantitative Aptitude",
+      "difficulty": "easy",
+      "content_text": "What is the average of 12, 18 and 24?",
+      "options": [
+        "16",
+        "18",
+        "20",
+        "22"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The sum is 54 and 54 ÷ 3 = 18.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "12, 18 और 24 का औसत क्या है?",
+          "options": [
+            "16",
+            "18",
+            "20",
+            "22"
+          ]
+        },
+        "te-IN": {
+          "content_text": "12, 18, 24 సగటు ఎంత?",
+          "options": [
+            "16",
+            "18",
+            "20",
+            "22"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "(12+18+24)/3"
+      }
+    },
+    {
+      "order_index": 4,
+      "subject": "Quantitative Aptitude",
+      "difficulty": "easy",
+      "content_text": "What is the simple interest on ₹4,000 at 5% per year for 3 years?",
+      "options": [
+        "₹400",
+        "₹500",
+        "₹600",
+        "₹700"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "SI = 4000 × 5 × 3 / 100 = 600.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "₹4,000 पर 5% वार्षिक साधारण ब्याज से 3 वर्षों का ब्याज कितना होगा?",
+          "options": [
+            "₹400",
+            "₹500",
+            "₹600",
+            "₹700"
+          ]
+        },
+        "te-IN": {
+          "content_text": "₹4,000పై సంవత్సరానికి 5% సరళ వడ్డీతో 3 సంవత్సరాలకు వడ్డీ ఎంత?",
+          "options": [
+            "₹400",
+            "₹500",
+            "₹600",
+            "₹700"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "4000*5*3/100"
+      }
+    },
+    {
+      "order_index": 5,
+      "subject": "Quantitative Aptitude",
+      "difficulty": "easy",
+      "content_text": "An item bought for ₹1,200 is sold for ₹1,380. What is the profit percentage?",
+      "options": [
+        "10%",
+        "12%",
+        "15%",
+        "18%"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Profit = 180 and 180/1200 × 100 = 15%.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "₹1,200 में खरीदी वस्तु ₹1,380 में बेची गई। लाभ प्रतिशत कितना है?",
+          "options": [
+            "10%",
+            "12%",
+            "15%",
+            "18%"
+          ]
+        },
+        "te-IN": {
+          "content_text": "₹1,200కు కొనుగోలు చేసిన వస్తువును ₹1,380కి అమ్మారు. లాభ శాతం ఎంత?",
+          "options": [
+            "10%",
+            "12%",
+            "15%",
+            "18%"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "(1380-1200)/1200*100"
+      }
+    },
+    {
+      "order_index": 6,
+      "subject": "Quantitative Aptitude",
+      "difficulty": "medium",
+      "content_text": "A can do a job in 10 days and B in 15 days. How many days will they take together?",
+      "options": [
+        "5 days",
+        "6 days",
+        "7.5 days",
+        "8 days"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Combined rate = 1/10 + 1/15 = 1/6, so the time is 6 days.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "A एक काम 10 दिनों में और B 15 दिनों में कर सकता है। दोनों मिलकर कितने दिनों में करेंगे?",
+          "options": [
+            "5 days",
+            "6 days",
+            "7.5 days",
+            "8 days"
+          ]
+        },
+        "te-IN": {
+          "content_text": "A ఒక పనిని 10 రోజుల్లో, B 15 రోజుల్లో పూర్తి చేస్తాడు. ఇద్దరూ కలిసి ఎంత సమయం పడుతుంది?",
+          "options": [
+            "5 days",
+            "6 days",
+            "7.5 days",
+            "8 days"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "1/(1/10+1/15)"
+      }
+    },
+    {
+      "order_index": 7,
+      "subject": "Quantitative Aptitude",
+      "difficulty": "medium",
+      "content_text": "A car travels at 60 km/h for 30 minutes. What distance does it cover?",
+      "options": [
+        "20 km",
+        "25 km",
+        "30 km",
+        "35 km"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Thirty minutes is 0.5 hour, so distance = 60 × 0.5 = 30 km.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "एक कार 60 किमी/घंटा की गति से 30 मिनट चलती है। वह कितनी दूरी तय करती है?",
+          "options": [
+            "20 km",
+            "25 km",
+            "30 km",
+            "35 km"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఒక కారు గంటకు 60 కిమీ వేగంతో 30 నిమిషాలు ప్రయాణిస్తుంది. అది ఎంత దూరం వెళ్తుంది?",
+          "options": [
+            "20 km",
+            "25 km",
+            "30 km",
+            "35 km"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "60*0.5"
+      }
+    },
+    {
+      "order_index": 8,
+      "subject": "Quantitative Aptitude",
+      "difficulty": "medium",
+      "content_text": "Solve 4x − 9 = 27.",
+      "options": [
+        "7",
+        "8",
+        "9",
+        "10"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "4x = 36, so x = 9.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "4x − 9 = 27 को हल कीजिए।",
+          "options": [
+            "7",
+            "8",
+            "9",
+            "10"
+          ]
+        },
+        "te-IN": {
+          "content_text": "4x − 9 = 27 ను పరిష్కరించండి.",
+          "options": [
+            "7",
+            "8",
+            "9",
+            "10"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "(27+9)/4"
+      }
+    },
+    {
+      "order_index": 9,
+      "subject": "Quantitative Aptitude",
+      "difficulty": "medium",
+      "content_text": "The bar chart shows books sold by four shops. Which shop sold the most?",
+      "options": [
+        "Shop A",
+        "Shop B",
+        "Shop C",
+        "Shop D"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Shop C has the tallest bar.",
+      "image_url": "/diagrams/bar-chart.svg",
+      "image_alt_text": "A bar chart for four shops, with Shop C having the tallest bar.",
+      "translations": {
+        "hi-IN": {
+          "content_text": "बार चार्ट चार दुकानों द्वारा बेची गई पुस्तकों की संख्या दिखाता है। सबसे अधिक किस दुकान ने बेचा?",
+          "options": [
+            "Shop A",
+            "Shop B",
+            "Shop C",
+            "Shop D"
+          ]
+        },
+        "te-IN": {
+          "content_text": "బార్ చార్ట్ నాలుగు దుకాణాలు అమ్మిన పుస్తకాల సంఖ్యను చూపుతుంది. అత్యధికంగా అమ్మిన దుకాణం ఏది?",
+          "options": [
+            "Shop A",
+            "Shop B",
+            "Shop C",
+            "Shop D"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "bar_chart_max",
+        "values": [
+          120,
+          180,
+          260,
+          150
+        ],
+        "expected_index": 2
+      }
+    },
+    {
+      "order_index": 10,
+      "subject": "Quantitative Aptitude",
+      "difficulty": "medium",
+      "content_text": "What is the area of a rectangle 15 cm long and 8 cm wide?",
+      "options": [
+        "100 cm²",
+        "110 cm²",
+        "120 cm²",
+        "130 cm²"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Area = 15 × 8 = 120 cm².",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "15 सेमी लंबाई और 8 सेमी चौड़ाई वाले आयत का क्षेत्रफल कितना है?",
+          "options": [
+            "100 cm²",
+            "110 cm²",
+            "120 cm²",
+            "130 cm²"
+          ]
+        },
+        "te-IN": {
+          "content_text": "15 సెం.మీ పొడవు, 8 సెం.మీ వెడల్పు ఉన్న దీర్ఘచతురస్రం విస్తీర్ణం ఎంత?",
+          "options": [
+            "100 cm²",
+            "110 cm²",
+            "120 cm²",
+            "130 cm²"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "15*8"
+      }
+    },
+    {
+      "order_index": 11,
+      "subject": "Quantitative Aptitude",
+      "difficulty": "medium",
+      "content_text": "A bag contains 3 white balls and 2 black balls. What is the probability of drawing a black ball?",
+      "options": [
+        "1/5",
+        "2/5",
+        "3/5",
+        "1/2"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "There are five balls and two are black, so probability = 2/5.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "एक थैले में 3 सफेद और 2 काली गेंदें हैं। काली गेंद निकलने की प्रायिकता क्या है?",
+          "options": [
+            "1/5",
+            "2/5",
+            "3/5",
+            "1/2"
+          ]
+        },
+        "te-IN": {
+          "content_text": "ఒక సంచిలో 3 తెల్ల బంతులు, 2 నల్ల బంతులు ఉన్నాయి. నల్ల బంతి తీసే సంభావ్యత ఎంత?",
+          "options": [
+            "1/5",
+            "2/5",
+            "3/5",
+            "1/2"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "fraction",
+        "numerator": 2,
+        "denominator": 5
+      }
+    },
+    {
+      "order_index": 12,
+      "subject": "Quantitative Aptitude",
+      "difficulty": "hard",
+      "content_text": "Find the next term: 4, 9, 16, 25, 36, ___.",
+      "options": [
+        "42",
+        "45",
+        "49",
+        "54"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "These are consecutive squares, so the next term is 7² = 49.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "अगला पद ज्ञात कीजिए: 4, 9, 16, 25, 36, ___.",
+          "options": [
+            "42",
+            "45",
+            "49",
+            "54"
+          ]
+        },
+        "te-IN": {
+          "content_text": "తదుపరి పదాన్ని కనుగొనండి: 4, 9, 16, 25, 36, ___.",
+          "options": [
+            "42",
+            "45",
+            "49",
+            "54"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "sequence",
+        "terms": [
+          4,
+          9,
+          16,
+          25,
+          36
+        ],
+        "rule": "next_square"
+      }
+    },
+    {
+      "order_index": 13,
+      "subject": "Quantitative Aptitude",
+      "difficulty": "hard",
+      "content_text": "The triangle diagram has angles 50° and 60°. What is the third angle?",
+      "options": [
+        "60°",
+        "70°",
+        "80°",
+        "90°"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Angles of a triangle sum to 180°, so the third angle is 70°.",
+      "image_url": "/diagrams/triangle-50-60.svg",
+      "image_alt_text": "A triangle with two interior angles labelled 50 degrees and 60 degrees; the third angle is unlabelled.",
+      "translations": {
+        "hi-IN": {
+          "content_text": "त्रिभुज के चित्र में दो कोण 50° और 60° हैं। तीसरा कोण कितना है?",
+          "options": [
+            "60°",
+            "70°",
+            "80°",
+            "90°"
+          ]
+        },
+        "te-IN": {
+          "content_text": "త్రిభుజ చిత్రంలో రెండు కోణాలు 50° మరియు 60°. మూడో కోణం ఎంత?",
+          "options": [
+            "60°",
+            "70°",
+            "80°",
+            "90°"
+          ]
+        }
+      },
+      "verification": {
+        "kind": "expression",
+        "expression": "180-50-60"
+      }
+    },
+    {
+      "order_index": 14,
+      "subject": "English",
+      "difficulty": "easy",
+      "content_text": "Choose the word closest in meaning to 'rapid'.",
+      "options": [
+        "slow",
+        "quick",
+        "late",
+        "weak"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Rapid means quick or fast.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "'rapid' शब्द के निकटतम अर्थ वाला शब्द चुनिए।",
+          "options": [
+            "slow",
+            "quick",
+            "late",
+            "weak"
+          ]
+        },
+        "te-IN": {
+          "content_text": "'rapid' పదానికి దగ్గర అర్థం ఉన్న పదాన్ని ఎంచుకోండి.",
+          "options": [
+            "slow",
+            "quick",
+            "late",
+            "weak"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 15,
+      "subject": "English",
+      "difficulty": "easy",
+      "content_text": "Choose the opposite of 'scarce'.",
+      "options": [
+        "rare",
+        "limited",
+        "abundant",
+        "small"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Abundant is the opposite of scarce.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "'scarce' शब्द का विलोम चुनिए।",
+          "options": [
+            "rare",
+            "limited",
+            "abundant",
+            "small"
+          ]
+        },
+        "te-IN": {
+          "content_text": "'scarce' పదానికి విరుద్ధార్థక పదాన్ని ఎంచుకోండి.",
+          "options": [
+            "rare",
+            "limited",
+            "abundant",
+            "small"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 16,
+      "subject": "English",
+      "difficulty": "easy",
+      "content_text": "Choose the correct article: ___ honest officer reported the issue.",
+      "options": [
+        "A",
+        "An",
+        "The",
+        "No article"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "'Honest' begins with a vowel sound, so 'an' is used.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "सही article चुनिए: ___ honest officer reported the issue.",
+          "options": [
+            "A",
+            "An",
+            "The",
+            "कोई article नहीं"
+          ]
+        },
+        "te-IN": {
+          "content_text": "సరైన article ఎంచుకోండి: ___ honest officer reported the issue.",
+          "options": [
+            "A",
+            "An",
+            "The",
+            "article లేదు"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 17,
+      "subject": "English",
+      "difficulty": "medium",
+      "content_text": "Choose the correct sentence.",
+      "options": [
+        "She have finished the work.",
+        "She has finished the work.",
+        "She having finished the work.",
+        "She finish the work yesterday."
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The singular subject 'She' takes 'has'.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "सही वाक्य चुनिए।",
+          "options": [
+            "उसने काम पूरा किया हैं।",
+            "उसने काम पूरा किया है।",
+            "वह काम पूरा करते हुए है।",
+            "उसने कल काम पूरा किया।"
+          ]
+        },
+        "te-IN": {
+          "content_text": "సరైన వాక్యాన్ని ఎంచుకోండి.",
+          "options": [
+            "ఆమె పని పూర్తి చేసింది ఉంది.",
+            "ఆమె పని పూర్తి చేసింది.",
+            "ఆమె పని పూర్తి చేస్తోంది.",
+            "ఆమె నిన్న పని పూర్తి."
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 18,
+      "subject": "English",
+      "difficulty": "medium",
+      "content_text": "Choose the correct preposition: She is interested ___ music.",
+      "options": [
+        "at",
+        "in",
+        "on",
+        "for"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The standard expression is 'interested in'.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "सही preposition चुनिए: She is interested ___ music.",
+          "options": [
+            "at",
+            "in",
+            "on",
+            "for"
+          ]
+        },
+        "te-IN": {
+          "content_text": "సరైన preposition ఎంచుకోండి: She is interested ___ music.",
+          "options": [
+            "at",
+            "in",
+            "on",
+            "for"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 19,
+      "subject": "English",
+      "difficulty": "medium",
+      "content_text": "Choose the correct form: He has been working ___ morning.",
+      "options": [
+        "for",
+        "since",
+        "from",
+        "by"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Use since with a starting point such as morning.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "सही form चुनिए: He has been working ___ morning.",
+          "options": [
+            "for",
+            "since",
+            "from",
+            "by"
+          ]
+        },
+        "te-IN": {
+          "content_text": "సరైన రూపాన్ని ఎంచుకోండి: He has been working ___ morning.",
+          "options": [
+            "for",
+            "since",
+            "from",
+            "by"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 20,
+      "subject": "English",
+      "difficulty": "medium",
+      "content_text": "Choose the correct passive voice: They completed the task.",
+      "options": [
+        "The task completed them.",
+        "The task was completed by them.",
+        "The task is completing by them.",
+        "The task has completing by them."
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "A simple past active sentence becomes 'was/were + past participle' in the passive.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "सही passive voice चुनिए: They completed the task.",
+          "options": [
+            "कार्य ने उन्हें पूरा किया।",
+            "कार्य उनके द्वारा पूरा किया गया।",
+            "कार्य उनके द्वारा पूरा किया जा रहा है।",
+            "कार्य उनके द्वारा पूरा कर रहा है।"
+          ]
+        },
+        "te-IN": {
+          "content_text": "సరైన passive voice ఎంచుకోండి: They completed the task.",
+          "options": [
+            "పని వారిని పూర్తి చేసింది.",
+            "పని వారిచే పూర్తి చేయబడింది.",
+            "పని వారిచే పూర్తవుతోంది.",
+            "పని వారిచే పూర్తి చేస్తోంది."
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 21,
+      "subject": "English",
+      "difficulty": "hard",
+      "content_text": "Choose the correct indirect speech: He said, 'I am tired.'",
+      "options": [
+        "He said that I am tired.",
+        "He said that he was tired.",
+        "He says that he tired.",
+        "He said that he is tired yesterday."
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "In reported speech, 'am' changes to 'was' and the pronoun changes to 'he'.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "सही indirect speech चुनिए: He said, 'I am tired.'",
+          "options": [
+            "उसने कहा कि मैं थका हूँ।",
+            "उसने कहा कि वह थका हुआ था।",
+            "वह कहता है कि वह थका।",
+            "उसने कहा कि वह कल थका है।"
+          ]
+        },
+        "te-IN": {
+          "content_text": "సరైన indirect speech ఎంచుకోండి: He said, 'I am tired.'",
+          "options": [
+            "అతను నేను అలసిపోయానని చెప్పాడు.",
+            "అతను తాను అలసిపోయానని చెప్పాడు.",
+            "అతను తాను అలసిపోయాడని చెబుతాడు.",
+            "అతను నిన్న తాను అలసిపోయానని చెప్పాడు."
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 22,
+      "subject": "English",
+      "difficulty": "hard",
+      "content_text": "Choose the correctly spelled word.",
+      "options": [
+        "accomodation",
+        "accommodation",
+        "acommodation",
+        "accommadation"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The standard spelling is accommodation.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "सही वर्तनी वाला शब्द चुनिए।",
+          "options": [
+            "accomodation",
+            "accommodation",
+            "acommodation",
+            "accommadation"
+          ]
+        },
+        "te-IN": {
+          "content_text": "సరైన స్పెల్లింగ్ ఉన్న పదాన్ని ఎంచుకోండి.",
+          "options": [
+            "accomodation",
+            "accommodation",
+            "acommodation",
+            "accommadation"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 23,
+      "subject": "English",
+      "difficulty": "hard",
+      "content_text": "A person who loves books is called a ___.",
+      "options": [
+        "bibliophile",
+        "cartographer",
+        "philanthropist",
+        "linguist"
+      ],
+      "correct_answer_index": 0,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "Bibliophile means a person who loves or collects books.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "जो व्यक्ति किताबों से प्रेम करता है उसे क्या कहते हैं?",
+          "options": [
+            "bibliophile",
+            "cartographer",
+            "philanthropist",
+            "linguist"
+          ]
+        },
+        "te-IN": {
+          "content_text": "పుస్తకాలను ఇష్టపడే వ్యక్తిని ఏమంటారు?",
+          "options": [
+            "bibliophile",
+            "cartographer",
+            "philanthropist",
+            "linguist"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 24,
+      "subject": "English",
+      "difficulty": "hard",
+      "content_text": "What does the idiom 'once in a blue moon' mean?",
+      "options": [
+        "Very often",
+        "Never",
+        "Very rarely",
+        "Immediately"
+      ],
+      "correct_answer_index": 2,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "The idiom means very rarely.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "'once in a blue moon' मुहावरे का अर्थ क्या है?",
+          "options": [
+            "बहुत अक्सर",
+            "कभी नहीं",
+            "बहुत कम",
+            "तुरंत"
+          ]
+        },
+        "te-IN": {
+          "content_text": "'once in a blue moon' అనే idiom అర్థం ఏమిటి?",
+          "options": [
+            "చాలా తరచుగా",
+            "ఎప్పుడూ కాదు",
+            "చాలా అరుదుగా",
+            "వెంటనే"
+          ]
+        }
+      }
+    },
+    {
+      "order_index": 25,
+      "subject": "English",
+      "difficulty": "hard",
+      "content_text": "Choose the correct sentence: Neither Ram nor Shyam ___ present.",
+      "options": [
+        "were",
+        "was",
+        "are",
+        "have"
+      ],
+      "correct_answer_index": 1,
+      "source": "ExamSaarthi original, SSC/banking pattern",
+      "exam_year": null,
+      "verified": false,
+      "translation_reviewed": false,
+      "explanation": "With neither...nor, the verb agrees with the nearer singular subject, Shyam.",
+      "image_url": null,
+      "image_alt_text": null,
+      "translations": {
+        "hi-IN": {
+          "content_text": "सही वाक्य चुनिए: Neither Ram nor Shyam ___ present.",
+          "options": [
+            "were",
+            "was",
+            "are",
+            "have"
+          ]
+        },
+        "te-IN": {
+          "content_text": "సరైన వాక్యాన్ని ఎంచుకోండి: Neither Ram nor Shyam ___ present.",
+          "options": [
+            "were",
+            "was",
+            "are",
+            "have"
+          ]
+        }
+      }
+    }
+  ]
+}
