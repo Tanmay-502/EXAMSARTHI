@@ -27,7 +27,7 @@ const GlobalVoiceContext = createContext<GlobalVoiceContextType | undefined>(und
 
 export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
   const { setOnResult, speak } = useVoice();
-  const { lang, setLang } = useI18n();
+  const { lang, setLang, t } = useI18n();
   const pathname = usePathname();
   const voiceContext = useVoiceAppContext((state) => state.context);
   const router = useRouter();
