@@ -39,10 +39,13 @@ export async function POST(req: Request) {
     if (!apiKey) return NextResponse.json({ intent: 'UNKNOWN_COMMAND' });
 
     const google = createGoogleGenerativeAI({ apiKey });
-    const { object } = await generateObject({
-      model: google('gemini-3.8-flash'),
-      schema: z.object({
-        intent: z.enum([
+    const models = [
+      process.env.EXAMSAARTHI_INTENT_MODEL || 'gemini-3.6-flash',
+      'gemini-3.5-flash-lite',
+      'gemini-3.8-flash',
+    ].filter((model, index, list) => list.indexOf(model) === index);
+    const buildOptions = () => z.object({
+      intent: z.enum([
           'OPEN_DASHBOARD', 'OPEN_HISTORY', 'OPEN_SETTINGS', 'OPEN_PRACTICE', 'OPEN_EXAM',
           'START_PRACTICE', 'START_EXAM', 'CHANGE_LANGUAGE', 'READ_PROGRESS', 'READ_HISTORY',
           'READ_RESULTS', 'HELP', 'REPEAT', 'NEXT_QUESTION', 'PREVIOUS_QUESTION',
@@ -50,10 +53,18 @@ export async function POST(req: Request) {
           'QUESTION_SOLVING', 'SIGN_IN', 'OPEN_ANALYSIS', 'UNKNOWN_COMMAND',
           'TIME_LEFT', 'JUMP_TO_QUESTION', 'REVIEW_UNANSWERED', 'REVIEW_MARKED',
           'READ_QUESTION', 'READ_OPTIONS'
-        ]),
-        payload: z.unknown().optional(),
-      }),
-      prompt: `Parse the following voice transcript into an intent.
+      ]),
+      payload: z.unknown().optional(),
+    });
+
+    let object: z.infer<ReturnType<typeof buildOptions>> | null = null;
+    for (const model of models) {
+      try {
+        const result = await generateObject({
+          model: google(model),
+          maxRetries: 0,
+          schema: buildOptions(),
+          prompt: `Parse the following voice transcript into an intent.
 Transcript: "${transcript}"
 Language: ${lang}
 Context: ${JSON.stringify(safeContext)}
@@ -70,9 +81,15 @@ If the user asks for an exam/practice operation, return the matching operation i
 Never return an intent outside the enum.
 If the user is asking you to solve a question, return QUESTION_SOLVING.
 If you cannot determine the intent, return UNKNOWN_COMMAND.`,
-    });
+        });
+        object = result.object;
+        break;
+      } catch (error) {
+        console.warn(`[VOICE_INTENT] Model ${model} unavailable; trying fallback.`, error);
+      }
+    }
 
-    return NextResponse.json(object);
+    return NextResponse.json(object ?? { intent: 'UNKNOWN_COMMAND' });
   } catch (err) {
     console.error('LLM intent parsing error', err);
     return NextResponse.json({ intent: 'UNKNOWN_COMMAND' });
