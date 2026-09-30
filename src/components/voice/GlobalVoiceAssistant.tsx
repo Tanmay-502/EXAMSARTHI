@@ -323,10 +323,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setOnResult(async (transcript) => {
-      if (isNavigatingRef.current) {
-        console.log(`[VOICE] Dropping command "${transcript}" because a navigation is in progress.`);
-        return;
-      }
+      if (isNavigatingRef.current) return;
 
       // Try raw intercept first to bypass LLM delay during setup states
       let handledRaw = false;
@@ -337,10 +334,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
           break;
         }
       }
-      if (handledRaw) {
-        console.log(`[VOICE] Transcript "${transcript}" handled locally without intent parsing.`);
-        return;
-      }
+      if (handledRaw) return;
 
       conversationStateRef.current = 'AWAITING_INTENT';
       const capturedVersion = contextVersionRef.current;
@@ -374,10 +368,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
         command = await intentProvider.parse(bestTranscript, lang, intentContext);
       }
 
-      if (capturedVersion !== contextVersionRef.current) {
-        console.log(`[VOICE] Dropping stale command "${bestTranscript}". Context changed during processing.`);
-        return;
-      }
+      if (capturedVersion !== contextVersionRef.current) return;
 
       let action: SafeAction | null = null;
       let payload: Record<string, unknown> | null = null;
@@ -420,16 +411,10 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
       if (action) {
         conversationStateRef.current = 'EXECUTING_ACTION';
         lastActionRef.current = { action, at: Date.now() };
-        console.log(`[VOICE]
-raw transcript: ${transcript}
-normalized transcript: ${bestTranscript.trim().toLowerCase()}
-current route: ${pathname}
-current voice state: ${conversationStateRef.current}
-current context: ${getContextName()}
-deterministic intent: ${command.type}
-LLM intent (if used): ${command.type === 'NATURAL_INTENT' ? command.intent : 'N/A'}
-final intent: ${action}
-authorization: ${registry.isActionAllowed(action, getContextName()) ? 'ALLOWED' : 'REJECTED'}`);
+        if (!registry.isActionAllowed(action, getContextName())) {
+          dispatchAction('UNKNOWN_COMMAND', null);
+          return;
+        }
         dispatchAction(action, payload, bestTranscript);
       } else if (command.type === 'UNKNOWN') {
         conversationStateRef.current = 'ERROR_RECOVERY';
