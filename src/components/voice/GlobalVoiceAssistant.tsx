@@ -36,6 +36,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
   const conversationStateRef = React.useRef<ConversationState>('IDLE');
   const pendingIntentRef = React.useRef<SafeAction | null>(null);
   const collectedParamsRef = React.useRef<Record<string, unknown>>({});
+  const lastActionRef = React.useRef<{ action: SafeAction; at: number } | null>(null);
   const intentProvider = React.useMemo(() => new OptionalLLMIntentProvider(), []);
   const registry = React.useMemo(() => new SafeActionRegistry(), []);
 
@@ -136,7 +137,10 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
       }
     }
 
-    if (handledLocally) return;
+    if (handledLocally) {
+      conversationStateRef.current = 'IDLE';
+      return;
+    }
 
 
     // Fallback for unknown
@@ -153,26 +157,37 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
        return;
     }
 
-    // Authentication is an explicit step in the public flow.
-    // Never silently skip the visible Sign In / Create Account screen just
-    // because the browser already has an existing session.
-    if (action === 'SIGN_IN' || action === 'SIGN_UP') {
-      const message = action === 'SIGN_IN'
-        ? (lang === 'hi-IN'
-            ? 'साइन इन पेज खोल रहा हूँ।'
-            : lang === 'te-IN'
-              ? 'సైన్ ఇన్ పేజీని తెరుస్తున్నాను.'
-              : 'Opening the sign in and account page.')
-        : (lang === 'hi-IN'
-            ? 'साइन इन और अकाउंट बनाने का पेज खोल रहा हूँ।'
-            : lang === 'te-IN'
-              ? 'సైన్ ఇన్ లేదా ఖాతా సృష్టించే పేజీని తెరుస్తున్నాను.'
-              : 'Opening the sign in and create account page.');
-
-      speak(message);
+    if (action === 'SIGN_IN') {
+      speak(t('voice_login_opening'));
       isNavigatingRef.current = true;
-      router.push(action === 'SIGN_UP' ? '/auth/signup?from=voice' : '/auth/login?from=voice');
+      router.push('/auth/login');
       return;
+    }
+
+    const authRequiredActions: SafeAction[] = [
+      'OPEN_DASHBOARD', 'OPEN_HISTORY', 'OPEN_SETTINGS', 'OPEN_PRACTICE', 'OPEN_EXAM',
+      'START_PRACTICE', 'START_EXAM', 'READ_PROGRESS', 'OPEN_ANALYSIS'
+    ];
+
+    if (context === 'landing' && authRequiredActions.includes(action)) {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          const next = action === 'OPEN_HISTORY' ? '/history'
+            : action === 'OPEN_SETTINGS' ? '/settings'
+              : action === 'OPEN_PRACTICE' || action === 'START_PRACTICE' ? '/practice'
+                : action === 'OPEN_EXAM' || action === 'START_EXAM' ? '/exam'
+                  : action === 'OPEN_ANALYSIS' ? '/analysis'
+                    : '/dashboard';
+          speak(t('voice_login_required'));
+          isNavigatingRef.current = true;
+          router.push('/auth/login?next=' + encodeURIComponent(next));
+          return;
+        }
+      } catch (error) {
+        console.error('[VOICE] Auth gate check failed:', error);
+      }
     }
 
     if (['OPEN_DASHBOARD', 'OPEN_HISTORY', 'OPEN_SETTINGS', 'LOGOUT', 'READ_PROGRESS', 'READ_HISTORY', 'READ_RESULTS', 'OPEN_ANALYSIS'].includes(action)) {
@@ -283,8 +298,8 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
         return;
       }
 
+      conversationStateRef.current = 'AWAITING_INTENT';
       const capturedVersion = contextVersionRef.current;
-      
       const command = await intentProvider.parse(transcript, lang, { 
         context: getContextName(),
         conversationState: conversationStateRef.current,
@@ -336,6 +351,8 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
       }
 
       if (action) {
+        conversationStateRef.current = 'EXECUTING_ACTION';
+        lastActionRef.current = { action, at: Date.now() };
         console.log(`[VOICE]
 raw transcript: ${transcript}
 normalized transcript: ${transcript.trim().toLowerCase()}
@@ -348,6 +365,7 @@ final intent: ${action}
 authorization: ${registry.isActionAllowed(action, getContextName()) ? 'ALLOWED' : 'REJECTED'}`);
         dispatchAction(action, payload, transcript);
       } else if (command.type === 'UNKNOWN') {
+        conversationStateRef.current = 'ERROR_RECOVERY';
         dispatchAction('UNKNOWN_COMMAND', { transcript }, transcript);
       }
     });
