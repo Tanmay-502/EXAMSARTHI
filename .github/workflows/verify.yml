@@ -29,6 +29,8 @@ jobs:
         run: node --test src/lib/voice/__tests__/commandParser.test.ts
       - name: Run speech recognition regression gate
         run: npx tsx --test src/lib/voice/__tests__/recognitionResults.test.ts
+      - name: Run schema compatibility unit gate
+        run: npx tsx --test src/lib/db/__tests__/schemaCompatibility.test.ts
       - name: Run voice credential unit gate
         run: npx tsx --test src/lib/auth/__tests__/voiceCredentials.test.ts
       - name: Run i18n dictionary unit gate

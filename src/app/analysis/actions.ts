@@ -2,6 +2,7 @@
 
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { chunk } from '@/lib/db/chunk'
+import { isMissingColumnError } from '@/lib/db/schemaCompatibility'
 
 export type SubjectStats = {
   subject: string;
@@ -37,14 +38,49 @@ export async function fetchAnalyticsData(): Promise<AnalyticsData> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Unauthorized');
 
-  const { data: sessions, error: sessionsError } = await supabase
-    .from('exam_sessions')
-    .select('id, is_practice, exam_id, question_ids, percentage, started_at, completed_at, score, total_questions')
-    .eq('candidate_id', user.id)
-    .eq('status', 'submitted')
-    .order('started_at', { ascending: true }); // Chronological for trend analysis
+  type AnalyticsSession = {
+    id: string;
+    is_practice?: boolean | null;
+    practice_subject?: string | null;
+    exam_id: string | null;
+    question_ids?: unknown;
+    percentage: number | null;
+    started_at: string;
+    completed_at: string | null;
+  };
+
+  const sessionSelects = [
+    'id, is_practice, practice_subject, exam_id, question_ids, percentage, started_at, completed_at',
+    'id, practice_subject, exam_id, question_ids, percentage, started_at, completed_at',
+    'id, exam_id, question_ids, percentage, started_at, completed_at',
+    'id, exam_id, percentage, started_at, completed_at',
+  ];
+
+  let sessions: AnalyticsSession[] | null = null;
+  let sessionsError: { message?: string } | null = null;
+
+  for (const select of sessionSelects) {
+    const result = await supabase
+      .from('exam_sessions')
+      .select(select)
+      .eq('candidate_id', user.id)
+      .eq('status', 'submitted')
+      .order('started_at', { ascending: true });
+
+    if (!result.error) {
+      sessions = (result.data || []) as unknown as AnalyticsSession[];
+      sessionsError = null;
+      break;
+    }
+
+    sessionsError = result.error;
+    if (!isMissingColumnError(result.error)) {
+      break;
+    }
+  }
 
   if (sessionsError) throw new Error(sessionsError.message);
+
 
   const completedSessions = sessions || [];
   const totalSessions = completedSessions.length;
@@ -52,7 +88,9 @@ export async function fetchAnalyticsData(): Promise<AnalyticsData> {
     id: session.id,
     label: new Date(session.started_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
     percentage: Math.round(session.percentage || 0),
-    isPractice: Boolean(session.is_practice),
+    isPractice: typeof session.is_practice === 'boolean'
+      ? session.is_practice
+      : Boolean(session.practice_subject && !session.exam_id),
   }));
 
   let avgPercentage = 0;
