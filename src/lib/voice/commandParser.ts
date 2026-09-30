@@ -125,7 +125,6 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
     if (/(నేను|నాకు).*(పరీక్ష|టెస్ట్).*(రాయ|ప్రారంభ|తీసుకో)/.test(normalized)) return { type: 'DASHBOARD_EXAM' };
     if (/(నేను|నాకు).*(ప్రాక్టీస్).*(చేయ|ప్రారంభ)/.test(normalized)) return { type: 'DASHBOARD_PRACTICE' };
     if (/(సైన్ ఇన్|లాగిన్).*/.test(normalized)) return { type: 'SIGN_IN' };
-    if (/(సైన్ అప్|ఖాతా సృష్టించ|అకౌంట్).*/.test(normalized)) return { type: 'SIGN_UP' };
     if (/(డాష్‌బోర్డ్|డాష్బోర్డ్|హోమ్).*(వెళ్ల|తెర|తిరిగి)/.test(normalized)) return { type: 'OPEN_DASHBOARD' };
   }
 
