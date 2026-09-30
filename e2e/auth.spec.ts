@@ -10,6 +10,7 @@ test.describe('Voice Authentication Flow & Gateway Routing', () => {
     await expect(voiceButton).toBeVisible()
     await expect(voiceButton).toBeFocused()
 
+    await page.locator('main').click({ position: { x: 20, y: 20 } })
     await page.keyboard.press('l')
     await expect(page).toHaveURL(/\/auth\/login$/)
   })
