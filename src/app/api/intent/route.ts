@@ -48,7 +48,7 @@ export async function POST(req: Request) {
       intent: z.enum([
           'OPEN_DASHBOARD', 'OPEN_HISTORY', 'OPEN_SETTINGS', 'OPEN_PRACTICE', 'OPEN_EXAM',
           'START_PRACTICE', 'START_EXAM', 'CHANGE_LANGUAGE', 'READ_PROGRESS', 'READ_HISTORY',
-          'READ_RESULTS', 'HELP', 'REPEAT', 'NEXT_QUESTION', 'PREVIOUS_QUESTION',
+          'READ_RESULTS', 'READ_CONTEXT', 'HELP', 'REPEAT', 'NEXT_QUESTION', 'PREVIOUS_QUESTION',
           'SELECT_OPTION', 'MARK_REVIEW', 'CONFIRM', 'CHANGE', 'SUBMIT_EXAM', 'LOGOUT',
           'QUESTION_SOLVING', 'SIGN_IN', 'OPEN_ANALYSIS', 'UNKNOWN_COMMAND',
           'TIME_LEFT', 'JUMP_TO_QUESTION', 'REVIEW_UNANSWERED', 'REVIEW_MARKED',
@@ -77,6 +77,8 @@ If the user asks to see history or results, return OPEN_HISTORY.
 If the user asks to see analysis, return OPEN_ANALYSIS.
 If the user asks to go to dashboard/home, return OPEN_DASHBOARD.
 If the user asks to read/list available exams, return OPEN_EXAM.
+If the user asks where they are, what page they are on, or what this screen is, return READ_CONTEXT.
+If the user asks you to repeat what you just said, return REPEAT.
 If the user asks for an exam/practice operation, return the matching operation intent.
 Never return an intent outside the enum.
 If the user is asking you to solve a question, return QUESTION_SOLVING.
