@@ -6,7 +6,7 @@ import { normalizeSpokenEmail } from '../emailParser';
 describe('Voice Command Parser', () => {
   describe('Voice orientation commands', () => {
     test('recognizes deterministic help, repeat, and current-context commands', () => {
-      assert.deepStrictEqual(parseCommand('what can you say', 'en-IN'), { type: 'HELP' });
+      assert.deepStrictEqual(parseCommand('what can i say', 'en-IN'), { type: 'HELP' });
       assert.deepStrictEqual(parseCommand('say that again', 'en-IN'), { type: 'REPEAT' });
       assert.deepStrictEqual(parseCommand('where am i', 'en-IN'), { type: 'READ_CONTEXT' });
       assert.deepStrictEqual(parseCommand('मदद', 'hi-IN'), { type: 'HELP' });
