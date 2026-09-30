@@ -88,7 +88,6 @@ export class SafeActionRegistry {
       'READ_PROGRESS': 'READ_PROGRESS',
       'REMOVE_REVIEW': 'MARK_REVIEW', // toggle
       'SIGN_IN': 'SIGN_IN',
-      'SIGN_UP': 'SIGN_UP',
       'SELECT_MODE_STANDARD': 'SELECT_MODE_STANDARD',
       'SELECT_MODE_VOICE': 'SELECT_MODE_VOICE',
       'OPEN_ANALYSIS': 'OPEN_ANALYSIS',
