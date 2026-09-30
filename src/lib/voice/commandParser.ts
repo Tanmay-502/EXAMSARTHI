@@ -24,6 +24,7 @@ export type VoiceCommand =
   | { type: 'LOGOUT' }
   | { type: 'DASHBOARD_EXAM' }
   | { type: 'READ_PROGRESS' }
+  | { type: 'READ_CONTEXT' }
   | { type: 'OPEN_DASHBOARD' }
   | { type: 'DASHBOARD_PRACTICE' }
   | { type: 'SET_LANGUAGE_ENGLISH' }
@@ -49,6 +50,33 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
     const regex = new RegExp(`(^|\\s)${escaped}(?=\\s|$)`, 'i');
     return regex.test(text);
   };
+
+  const helpPhrases = [
+    'help', 'what can i say', 'what can you do', 'how do i use this', 'how can you help',
+    'मदद', 'मैं क्या बोल सकता हूं', 'आप क्या कर सकते हैं', 'कैसे इस्तेमाल करूं',
+    'సహాయం', 'నేను ఏమి చెప్పాలి', 'మీరు ఏమి చేయగలరు', 'దీన్ని ఎలా ఉపయోగించాలి',
+  ];
+  if (helpPhrases.some((phrase) => matchesPhrase(normalized, phrase))) {
+    return { type: 'HELP' };
+  }
+
+  const repeatPhrases = [
+    'repeat', 'repeat that', 'say that again', 'what did you say', 'say it again',
+    'दोबारा', 'फिर से बोलो', 'वह फिर से बताएं', 'क्या कहा',
+    'మళ్లీ', 'మళ్లీ చెప్పు', 'మరొకసారి చెప్పండి', 'ఏమన్నారు',
+  ];
+  if (repeatPhrases.some((phrase) => matchesPhrase(normalized, phrase))) {
+    return { type: 'REPEAT' };
+  }
+
+  const contextPhrases = [
+    'where am i', 'what page am i on', 'where are we', 'what is this page', 'current page',
+    'मैं कहां हूं', 'मैं किस पेज पर हूं', 'यह कौन सा पेज है', 'मैं कहाँ हूँ',
+    'నేను ఎక్కడ ఉన్నాను', 'నేను ఏ పేజీలో ఉన్నాను', 'ఇది ఏ పేజీ',
+  ];
+  if (contextPhrases.some((phrase) => matchesPhrase(normalized, phrase))) {
+    return { type: 'READ_CONTEXT' };
+  }
 
   const contextualModeAnalysis = new Set(['mode_selection', 'onboarding', 'dashboard']);
 

@@ -1,7 +1,13 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const PUBLIC_ASSET_PATHS = new Set(['/manifest.json', '/sw.js', '/icon.svg', '/favicon.ico'])
+const PUBLIC_ASSET_PATHS = new Set([
+  '/manifest.json',
+  '/sw.js',
+  '/icon.svg',
+  '/favicon.ico',
+  '/api/voice/transcribe',
+])
 
 function isPublicPath(pathname: string) {
   if (pathname === '/' || pathname === '/auth' || pathname.startsWith('/auth/')) return true
@@ -13,10 +19,26 @@ function isPublicPath(pathname: string) {
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
+  const pathname = request.nextUrl.pathname
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  if (!supabaseUrl || !supabaseAnonKey) throw new Error('Missing Supabase environment variables in proxy')
+  // Public pages and the login-time voice transcription endpoint must remain reachable
+  // even when a preview deployment is missing Supabase configuration. Protected routes
+  // still fail closed rather than crashing the middleware with an opaque 500.
+  if (!supabaseUrl || !supabaseAnonKey) {
+    if (isPublicPath(pathname)) return supabaseResponse
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Service configuration unavailable' }, { status: 503 })
+    }
+    const url = request.nextUrl.clone()
+    url.pathname = '/auth/login'
+    url.search = ''
+    url.searchParams.set('code', 'service_unavailable')
+    const nextPath = request.nextUrl.pathname + request.nextUrl.search
+    if (nextPath !== '/auth/login') url.searchParams.set('next', nextPath)
+    return NextResponse.redirect(url)
+  }
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
@@ -30,8 +52,6 @@ export async function updateSession(request: NextRequest) {
   })
 
   const { data: { user } } = await supabase.auth.getUser()
-  const pathname = request.nextUrl.pathname
-
   if (!user && !isPublicPath(pathname)) {
     if (pathname.startsWith('/api/')) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const url = request.nextUrl.clone()

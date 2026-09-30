@@ -64,6 +64,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const finalResultCursorRef = useRef(0);
   const pendingTranscriptRef = useRef('');
   const transcriptDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const resultOwnerRef = useRef<'global' | 'secure' | 'none'>('none');
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -72,6 +73,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const lastAudioBlobRef = useRef<{ blob: Blob; at: number } | null>(null);
   const lastAudioSensitiveRef = useRef(false);
   const audioMimeTypeRef = useRef<string>('audio/webm');
+  const recordingRequestIdRef = useRef(0);
 
   const updateVoiceState = useCallback((state: VoiceState) => {
     setVoiceState(state);
@@ -105,6 +107,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       }
       mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
       mediaStreamRef.current = null;
+      resultOwnerRef.current = 'none';
       if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.cancel();
       }
@@ -270,11 +273,14 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     if (typeof window === 'undefined' || typeof navigator === 'undefined') return;
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') return;
 
+    const requestId = ++recordingRequestIdRef.current;
+    const recordingSensitive = sensitiveInputRef.current;
+
     try {
       const existingStream = mediaStreamRef.current;
       const hasLiveTrack = existingStream?.getTracks().some((track) => track.readyState === 'live');
       if (!hasLiveTrack) {
-        mediaStreamRef.current = await navigator.mediaDevices.getUserMedia({
+        const stream = await navigator.mediaDevices.getUserMedia({
           audio: {
             channelCount: 1,
             echoCancellation: true,
@@ -282,10 +288,15 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
             autoGainControl: true,
           },
         });
+        if (requestId !== recordingRequestIdRef.current) {
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+        mediaStreamRef.current = stream;
       }
 
       const mimeType = getAudioMimeType();
-      if (!mimeType || !mediaStreamRef.current) return;
+      if (requestId !== recordingRequestIdRef.current || !mimeType || !mediaStreamRef.current) return;
 
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         try { mediaRecorderRef.current.stop(); } catch { /* ignore */ }
@@ -308,7 +319,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
           : null;
         if (blob && blob.size > 0) {
           lastAudioBlobRef.current = { blob, at: Date.now() };
-          lastAudioSensitiveRef.current = sensitiveInputRef.current;
+          lastAudioSensitiveRef.current = recordingSensitive;
         }
         audioReadyResolveRef.current?.(blob);
         audioReadyResolveRef.current = null;
@@ -328,6 +339,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   }, [getAudioMimeType]);
 
   const stopUtteranceRecording = useCallback(() => {
+    recordingRequestIdRef.current += 1;
     const recorder = mediaRecorderRef.current;
     if (!recorder || recorder.state === 'inactive') return;
     try {
@@ -609,6 +621,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const startContinuousListening = useCallback((onResult?: (text: string) => void | Promise<void>) => {
     sensitiveInputRef.current = false;
     lastAudioSensitiveRef.current = false;
+    resultOwnerRef.current = 'global';
     isContinuousRef.current = true;
     setIsContinuous(true);
     if (onResult) onResultRef.current = onResult;
@@ -618,6 +631,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const startSecureContinuousListening = useCallback((onResult: (text: string) => void | Promise<void>) => {
     sensitiveInputRef.current = true;
     lastAudioSensitiveRef.current = true;
+    resultOwnerRef.current = 'secure';
     isContinuousRef.current = true;
     setIsContinuous(true);
     onResultRef.current = onResult;
@@ -625,6 +639,10 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   }, [startListening]);
 
   const setOnResult = useCallback((onResult: (text: string) => void | Promise<void>) => {
+    // Secure flows (voice login) own the microphone until they unmount or explicitly pause.
+    // The global command router must not overwrite a sensitive callback during that window.
+    if (resultOwnerRef.current === 'secure') return;
+    resultOwnerRef.current = 'global';
     onResultRef.current = onResult;
   }, []);
 
@@ -640,6 +658,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       transcriptDebounceRef.current = null;
     }
     setIsContinuous(false);
+    resultOwnerRef.current = 'none';
     onResultRef.current = null;
     stopListening();
     updateVoiceState('PAUSED');

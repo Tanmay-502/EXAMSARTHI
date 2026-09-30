@@ -69,6 +69,26 @@ function LoginForm() {
     const trimmed = transcript.trim()
     if (!trimmed) return
 
+    if (/\b(help|what can i say|what can you do|मदद|सहायता|सहాయం)\b/i.test(trimmed)) {
+      const promptKey = stageRef.current === 'PASSWORD'
+        ? 'voice_login_password_prompt'
+        : stageRef.current === 'CONFIRM_USER_ID'
+          ? 'voice_login_confirm_yes_no'
+          : 'voice_login_user_id_prompt'
+      speak(t(promptKey), { dedupe: false })
+      return
+    }
+
+    if (/\b(repeat|say that again|say it again|फिर से|दोबारा|मళ్లీ|మరొకసారి)\b/i.test(trimmed)) {
+      const promptKey = stageRef.current === 'PASSWORD'
+        ? 'voice_login_password_prompt'
+        : stageRef.current === 'CONFIRM_USER_ID'
+          ? 'voice_login_confirm_yes_no'
+          : 'voice_login_user_id_prompt'
+      speak(t(promptKey), { dedupe: false })
+      return
+    }
+
     if (RETRY_PATTERN.test(trimmed) && stageRef.current !== 'AUTHENTICATING') {
       resetToUserId(true)
       return
