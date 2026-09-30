@@ -19,7 +19,8 @@ type VoiceContextType = {
   isSpeaking: boolean;
   startListening: () => void;
   stopListening: () => void;
-  startContinuousListening: (onResult?: (text: string) => void) => void;
+  startContinuousListening: (onResult?: (text: string) => void | Promise<void>) => void;
+  startSecureContinuousListening: (onResult: (text: string) => void | Promise<void>) => void;
   pauseListening: () => void;
   setOnResult: (onResult: (text: string) => void | Promise<void>) => void;
   isListening: boolean;
@@ -56,6 +57,10 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const [speechWarning, setSpeechWarning] = useState<string | null>(null);
   const lastSpeechWarningLangRef = useRef<string>('');
   const lastTranscriptRef = useRef<{ text: string; at: number }>({ text: '', at: 0 });
+  const sensitiveInputRef = useRef(false);
+  const finalResultCursorRef = useRef(0);
+  const pendingTranscriptRef = useRef('');
+  const transcriptDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const updateVoiceState = useCallback((state: VoiceState) => {
     setVoiceState(state);
@@ -77,6 +82,9 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     return () => {
       if (restartTimeoutRef.current) {
         clearTimeout(restartTimeoutRef.current);
+      }
+      if (transcriptDebounceRef.current) {
+        clearTimeout(transcriptDebounceRef.current);
       }
       if (recognitionRef.current) {
         try { recognitionRef.current.abort(); } catch { /* ignore */ }
@@ -256,7 +264,8 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       try {
         recognition = new SpeechRecognition();
         recognition.continuous = false;
-        recognition.interimResults = false;
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 3;
         recognitionRef.current = recognition;
       } catch (error) {
         console.error('[VOICE] SpeechRecognition initialization failed:', error);
@@ -278,8 +287,17 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     micErrorRef.current = null;
     
     recognition.lang = langRef.current;
+    recognition.continuous = isContinuousRef.current;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 3;
     
     recognition.onstart = () => {
+      finalResultCursorRef.current = 0;
+      pendingTranscriptRef.current = '';
+      if (transcriptDebounceRef.current) {
+        clearTimeout(transcriptDebounceRef.current);
+        transcriptDebounceRef.current = null;
+      }
       if (voiceStateRef.current !== 'SPEAKING') {
         updateVoiceState('LISTENING');
       }
@@ -287,73 +305,99 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onresult = (event: any) => {
-      const resultTranscript = String(event.results[event.results.length - 1][0].transcript || '').trim();
-      if (!resultTranscript) return;
+      let finalText = '';
+      const startIndex = Math.max(Number(event.resultIndex ?? 0), finalResultCursorRef.current);
+      for (let i = startIndex; i < event.results.length; i += 1) {
+        const result = event.results[i];
+        if (result?.isFinal) {
+          finalText += String(result[0]?.transcript || '');
+        }
+      }
+      finalResultCursorRef.current = event.results.length;
+      if (!finalText.trim()) return;
 
-      const normalizedTranscript = resultTranscript.toLowerCase().replace(/\s+/g, ' ');
-      const now = Date.now();
-      if (
-        lastTranscriptRef.current.text === normalizedTranscript &&
-        now - lastTranscriptRef.current.at < 1200
-      ) {
-        updateVoiceState('LISTENING');
+      const processTranscript = (text: string) => {
+        const resultTranscript = text.trim();
+        if (!resultTranscript) return;
+
+        const normalizedTranscript = resultTranscript.toLowerCase().replace(/\s+/g, ' ');
+        const now = Date.now();
+        if (
+          lastTranscriptRef.current.text === normalizedTranscript &&
+          now - lastTranscriptRef.current.at < 1200
+        ) {
+          return;
+        }
+        lastTranscriptRef.current = { text: normalizedTranscript, at: now };
+
+        updateVoiceState('PROCESSING');
+        processingRef.current = true;
+
+        if (!sensitiveInputRef.current) {
+          setTranscript(prev => [...prev, {
+            id: Math.random().toString(36).substring(7),
+            sender: 'user',
+            text: resultTranscript,
+            timestamp: new Date()
+          }]);
+        }
+
+        const callback = onResultRef.current;
+        if (callback) {
+          Promise.resolve(callback(resultTranscript))
+            .catch((error) => {
+              console.error('Voice command processing failed:', error);
+              speak(
+                langRef.current === 'hi-IN'
+                  ? 'कमांड को संसाधित नहीं किया जा सका। कृपया फिर से बोलें।'
+                  : langRef.current === 'te-IN'
+                    ? 'వాయిస్ కమాండ్‌ను ప్రాసెస్ చేయలేకపోయాను. దయచేసి మళ్లీ చెప్పండి.'
+                    : 'I could not process that command. Please try again.'
+              );
+            })
+            .finally(() => {
+              processingRef.current = false;
+              if (
+                isContinuousRef.current &&
+                voiceStateRef.current === 'PROCESSING' &&
+                micErrorRef.current !== 'denied' &&
+                micErrorRef.current !== 'not-supported'
+              ) {
+                updateVoiceState('IDLE');
+                if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+                restartTimeoutRef.current = setTimeout(() => {
+                  if (
+                    isContinuousRef.current &&
+                    !processingRef.current &&
+                    voiceStateRef.current !== 'SPEAKING'
+                  ) {
+                    try { recognition.start(); } catch { /* ignore already-started race */ }
+                  }
+                }, 250);
+              }
+            });
+        } else {
+          processingRef.current = false;
+        }
+      };
+
+      if (!isContinuousRef.current) {
+        processTranscript(finalText);
         return;
       }
-      lastTranscriptRef.current = { text: normalizedTranscript, at: now };
 
-      if (restartTimeoutRef.current) {
-        clearTimeout(restartTimeoutRef.current);
-        restartTimeoutRef.current = null;
-      }
-      updateVoiceState('PROCESSING');
-      processingRef.current = true;
-      
-      setTranscript(prev => [...prev, {
-        id: Math.random().toString(36).substring(7),
-        sender: 'user',
-        text: resultTranscript,
-        timestamp: new Date()
-      }]);
-      
-      const callback = onResultRef.current;
-      if (callback) {
-        Promise.resolve(callback(resultTranscript))
-          .catch((error) => {
-            console.error('Voice command processing failed:', error);
-            speak(
-              langRef.current === 'hi-IN'
-                ? 'कमांड को संसाधित नहीं किया जा सका। कृपया फिर से बोलें।'
-                : langRef.current === 'te-IN'
-                  ? 'వాయిస్ కమాండ్‌ను ప్రాసెస్ చేయలేకపోయాను. దయచేసి మళ్లీ చెప్పండి.'
-                  : 'I could not process that command. Please try again.'
-            );
-          })
-          .finally(() => {
-            processingRef.current = false;
-
-            if (
-              isContinuousRef.current &&
-              voiceStateRef.current === 'PROCESSING' &&
-              micErrorRef.current !== 'denied' &&
-              micErrorRef.current !== 'not-supported'
-            ) {
-              updateVoiceState('IDLE');
-              if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
-              restartTimeoutRef.current = setTimeout(() => {
-                if (
-                  isContinuousRef.current &&
-                  !processingRef.current &&
-                  voiceStateRef.current !== 'SPEAKING'
-                ) {
-                  try { recognition.start(); } catch { /* ignore already-started race */ }
-                }
-              }, 250);
-            }
-          });
-      } else {
-        processingRef.current = false;
-      }
-    };
+      pendingTranscriptRef.current = [pendingTranscriptRef.current, finalText]
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+      if (transcriptDebounceRef.current) clearTimeout(transcriptDebounceRef.current);
+      transcriptDebounceRef.current = setTimeout(() => {
+        const pending = pendingTranscriptRef.current.trim();
+        pendingTranscriptRef.current = '';
+        transcriptDebounceRef.current = null;
+        if (pending) processTranscript(pending);
+      }, 420);
+    }
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onerror = (event: any) => {
@@ -434,12 +478,19 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     }
   }, [updateVoiceState]);
 
-  const startContinuousListening = useCallback((onResult?: (text: string) => void) => {
+  const startContinuousListening = useCallback((onResult?: (text: string) => void | Promise<void>) => {
+    sensitiveInputRef.current = false;
     isContinuousRef.current = true;
     setIsContinuous(true);
-    if (onResult) {
-      onResultRef.current = onResult;
-    }
+    if (onResult) onResultRef.current = onResult;
+    startListening();
+  }, [startListening]);
+
+  const startSecureContinuousListening = useCallback((onResult: (text: string) => void | Promise<void>) => {
+    sensitiveInputRef.current = true;
+    isContinuousRef.current = true;
+    setIsContinuous(true);
+    onResultRef.current = onResult;
     startListening();
   }, [startListening]);
 
@@ -450,6 +501,12 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const pauseListening = useCallback(() => {
     isContinuousRef.current = false;
     processingRef.current = false;
+    sensitiveInputRef.current = false;
+    pendingTranscriptRef.current = '';
+    if (transcriptDebounceRef.current) {
+      clearTimeout(transcriptDebounceRef.current);
+      transcriptDebounceRef.current = null;
+    }
     setIsContinuous(false);
     onResultRef.current = null;
     stopListening();
