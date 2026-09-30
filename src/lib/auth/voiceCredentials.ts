@@ -1,4 +1,5 @@
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto'
+import { normalizeVoicePassword, normalizeVoiceUserId } from './voiceCredentialNormalization'
 
 export type VoiceCredential = {
   userId: string
@@ -12,7 +13,6 @@ const DEFAULT_VOICE_CREDENTIAL: VoiceCredential = {
   displayName: 'Tanmay',
 }
 
-import { normalizeVoicePassword, normalizeVoiceUserId } from './voiceCredentialNormalization'
 
 export function getVoiceCredentials(): VoiceCredential[] {
   const raw = process.env.EXAMSAARTHI_VOICE_USERS_JSON
