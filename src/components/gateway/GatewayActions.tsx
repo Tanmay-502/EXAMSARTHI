@@ -1,12 +1,10 @@
 'use client'
 
 import { useCallback, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import { useI18n } from '@/lib/i18n/I18nProvider'
 import { useVoice } from '@/lib/voice/VoiceProvider'
 
 export function GatewayActions() {
-  const router = useRouter()
   const { t } = useI18n()
   const { speak, startContinuousListening } = useVoice()
   const startedRef = useRef(false)
@@ -36,14 +34,10 @@ export function GatewayActions() {
         startVoice()
         return
       }
-      if (event.key.toLowerCase() === 'l') {
-        event.preventDefault()
-        router.push('/auth/login')
-      }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [router, startVoice])
+  }, [startVoice])
 
   return (
     <div className="w-full">
