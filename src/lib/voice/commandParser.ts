@@ -30,7 +30,6 @@ export type VoiceCommand =
   | { type: 'SET_LANGUAGE_HINDI' }
   | { type: 'SET_LANGUAGE_TELUGU' }
   | { type: 'SIGN_IN' }
-  | { type: 'SIGN_UP' }
   | { type: 'SELECT_MODE_STANDARD' }
   | { type: 'SELECT_MODE_VOICE' }
   | { type: 'OPEN_ANALYSIS' }
@@ -114,13 +113,11 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
   if (/\b(take me|go to|open|show|bring me|send me|return to|back to|navigate to)\b.*\b(dashboard|home)\b/.test(normalized)) return { type: 'OPEN_DASHBOARD' };
   if (/\b(give me|show me|tell me|check|what is my|how is my)\b.*\b(progress|performance|score|result|results)\b/.test(normalized)) return { type: 'READ_PROGRESS' };
   if (/\b(i|i'd|i would|i want|i need|would like|can you|could you)\b.*\b(sign in|login|log in)\b/.test(normalized)) return { type: 'SIGN_IN' };
-  if (/\b(i|i'd|i would|i want|i need|would like|can you|could you)\b.*\b(sign up|signup|register|create an account|create account)\b/.test(normalized)) return { type: 'SIGN_UP' };
   // Natural-language shortcuts for Hindi and Telugu voice flows.
   if (lang === 'hi-IN') {
     if (/(मैं|मुझे)\s+.*(परीक्षा|टेस्ट).*(देना|शुरू|लेना)/.test(normalized)) return { type: 'DASHBOARD_EXAM' };
     if (/(मैं|मुझे)\s+.*(अभ्यास|प्रैक्टिस).*(करना|शुरू|चाहिए|है)/.test(normalized)) return { type: 'DASHBOARD_PRACTICE' };
     if (/(मुझे|मैं).*(साइन इन|लॉग इन|लॉगिन)/.test(normalized)) return { type: 'SIGN_IN' };
-    if (/(मुझे|मैं).*(साइन अप|अकाउंट बनाना|खाता बनाना)/.test(normalized)) return { type: 'SIGN_UP' };
     if (/(डैशबोर्ड|होम).*(जाएं|जाओ|खोलें|खोलो|वापस)/.test(normalized)) return { type: 'OPEN_DASHBOARD' };
   }
 
@@ -131,6 +128,8 @@ export function parseCommand(transcript: string, lang: Locale, context?: string)
     if (/(సైన్ అప్|ఖాతా సృష్టించ|అకౌంట్).*/.test(normalized)) return { type: 'SIGN_UP' };
     if (/(డాష్‌బోర్డ్|డాష్బోర్డ్|హోమ్).*(వెళ్ల|తెర|తిరిగి)/.test(normalized)) return { type: 'OPEN_DASHBOARD' };
   }
+
+  if (matchesPhrase(normalized, 'login') || matchesPhrase(normalized, 'log in') || matchesPhrase(normalized, 'sign in') || matchesPhrase(normalized, 'signin') || matchesPhrase(normalized, 'సైన్ ఇన్') || matchesPhrase(normalized, 'లాగిన్') || matchesPhrase(normalized, 'साइन इन') || matchesPhrase(normalized, 'लॉग इन') || matchesPhrase(normalized, 'लॉगिन')) return { type: 'SIGN_IN' };
 
   if (matchesPhrase(normalized, 'skip guide') || matchesPhrase(normalized, 'dismiss guide') || matchesPhrase(normalized, 'close guide')) return { type: 'DISMISS_GUIDE' };
 
