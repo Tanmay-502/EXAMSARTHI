@@ -58,9 +58,26 @@ test.describe('Voice Authentication Architecture Rules', () => {
     const login = fs.readFileSync(path.join(process.cwd(), 'src/app/auth/login/page.tsx'), 'utf-8')
     const provider = fs.readFileSync(path.join(process.cwd(), 'src/lib/voice/VoiceProvider.tsx'), 'utf-8')
     expect(login).toContain('startSecureContinuousListening')
+    expect(login).toContain('CONFIRM_USER_ID')
     expect(login).toContain('normalizeVoicePassword')
     expect(provider).toContain('sensitiveInputRef')
+    expect(provider).toContain('lastAudioSensitiveRef')
     expect(provider).toContain('!sensitiveInputRef.current')
+    expect(provider).toContain('noiseSuppression: true')
+    expect(provider).toContain('autoGainControl: true')
+  })
+
+  test('ambiguous voice commands have a cloud transcription fallback', () => {
+    const provider = fs.readFileSync(path.join(process.cwd(), 'src/lib/voice/VoiceProvider.tsx'), 'utf-8')
+    const globalAssistant = fs.readFileSync(path.join(process.cwd(), 'src/components/voice/GlobalVoiceAssistant.tsx'), 'utf-8')
+    const route = fs.readFileSync(path.join(process.cwd(), 'src/app/api/voice/transcribe/route.ts'), 'utf-8')
+    expect(provider).toContain('retranscribeLastUtterance')
+    expect(globalAssistant).toContain('getRecognitionConfidence')
+    expect(globalAssistant).toContain('confidence < 0.72')
+    expect(globalAssistant).toContain('retranscribeLastUtterance')
+    expect(route).toContain('gemini-3.5-transcribe')
+    expect(route).toContain('customVocabulary')
+    expect(route).toContain('cache: \'no-store\'')
   })
 
   test('signup action surface is absent from voice parser and safe registry', () => {
