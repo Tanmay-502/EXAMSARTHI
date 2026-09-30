@@ -5,12 +5,13 @@ import { VoiceStatusIndicator } from './VoiceStatusIndicator';
 import { VoiceTranscript } from './VoiceTranscript';
 import { DemoGuide } from './DemoGuide';
 import { useVoice } from '@/lib/voice/useVoice';
+import { VolumeX } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/I18nProvider';
 
 const STORAGE_KEY = 'examsaarthi_voice_dock_expanded';
 
 export function VoiceOverlay() {
-  const { transcript } = useVoice();
+  const { transcript, stopSpeaking, isSpeaking } = useVoice();
   const { t, tParams } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const dockRef = useRef<HTMLElement>(null);
@@ -108,6 +109,18 @@ export function VoiceOverlay() {
             >
               {latestAssistantLine}
             </div>
+
+            <button
+              type="button"
+              onClick={stopSpeaking}
+              className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full border border-zinc-700 px-3 text-xs font-black uppercase tracking-[0.12em] text-zinc-100 transition-colors hover:border-zinc-400 hover:bg-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+              aria-label={t('stop_speaking')}
+              title={t('stop_speaking')}
+              disabled={!isSpeaking}
+            >
+              <VolumeX className="h-4 w-4" aria-hidden="true" />
+              <span className="sr-only">{t('stop_speaking')}</span>
+            </button>
 
             <button
               ref={toggleRef}
