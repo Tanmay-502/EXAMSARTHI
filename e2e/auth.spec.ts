@@ -14,6 +14,13 @@ test.describe('Voice Authentication Flow & Gateway Routing', () => {
     await expect(page).toHaveURL(/.*\/$/)
   })
 
+  test('voice transcription endpoint remains public for login-time recovery', () => {
+    const proxy = fs.readFileSync(path.join(process.cwd(), 'src/proxy.ts'), 'utf-8')
+    expect(proxy).toContain("'/api/voice/transcribe'")
+    expect(proxy).toContain("if (isPublicPath(pathname)) return supabaseResponse")
+    expect(proxy).toContain("status: 503")
+  })
+
   test('voice login exposes keyboard fallback without signup controls', async ({ page }) => {
     await page.goto('/auth/login')
     await expect(page.locator('#voice-user-id')).toBeVisible()
