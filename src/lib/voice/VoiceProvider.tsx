@@ -19,7 +19,8 @@ type VoiceContextType = {
   isSpeaking: boolean;
   startListening: () => void;
   stopListening: () => void;
-  startContinuousListening: (onResult?: (text: string) => void) => void;
+  startContinuousListening: (onResult?: (text: string) => void | Promise<void>) => void;
+  startSecureContinuousListening: (onResult: (text: string) => void | Promise<void>) => void;
   pauseListening: () => void;
   setOnResult: (onResult: (text: string) => void | Promise<void>) => void;
   isListening: boolean;
@@ -28,6 +29,8 @@ type VoiceContextType = {
   voiceState: VoiceState;
   transcript: TranscriptMessage[];
   speechWarning: string | null;
+  retranscribeLastUtterance: () => Promise<string | null>;
+  getRecognitionConfidence: () => number | null;
 };
 
 const VoiceContext = createContext<VoiceContextType | undefined>(undefined);
@@ -56,6 +59,19 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const [speechWarning, setSpeechWarning] = useState<string | null>(null);
   const lastSpeechWarningLangRef = useRef<string>('');
   const lastTranscriptRef = useRef<{ text: string; at: number }>({ text: '', at: 0 });
+  const recognitionConfidenceRef = useRef<number | null>(null);
+  const sensitiveInputRef = useRef(false);
+  const finalResultCursorRef = useRef(0);
+  const pendingTranscriptRef = useRef('');
+  const transcriptDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const audioReadyRef = useRef<Promise<Blob | null>>(Promise.resolve(null));
+  const audioReadyResolveRef = useRef<((blob: Blob | null) => void) | null>(null);
+  const lastAudioBlobRef = useRef<{ blob: Blob; at: number } | null>(null);
+  const lastAudioSensitiveRef = useRef(false);
+  const audioMimeTypeRef = useRef<string>('audio/webm');
 
   const updateVoiceState = useCallback((state: VoiceState) => {
     setVoiceState(state);
@@ -78,9 +94,17 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       if (restartTimeoutRef.current) {
         clearTimeout(restartTimeoutRef.current);
       }
+      if (transcriptDebounceRef.current) {
+        clearTimeout(transcriptDebounceRef.current);
+      }
       if (recognitionRef.current) {
         try { recognitionRef.current.abort(); } catch { /* ignore */ }
       }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        try { mediaRecorderRef.current.stop(); } catch { /* ignore */ }
+      }
+      mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+      mediaStreamRef.current = null;
       if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.cancel();
       }
@@ -236,6 +260,111 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     }
   }, [updateVoiceState]);
 
+  const getAudioMimeType = useCallback(() => {
+    if (typeof window === 'undefined' || typeof MediaRecorder === 'undefined') return null;
+    const candidates = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/ogg'];
+    return candidates.find((type) => MediaRecorder.isTypeSupported(type)) ?? null;
+  }, []);
+
+  const startUtteranceRecording = useCallback(async () => {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') return;
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') return;
+
+    try {
+      const existingStream = mediaStreamRef.current;
+      const hasLiveTrack = existingStream?.getTracks().some((track) => track.readyState === 'live');
+      if (!hasLiveTrack) {
+        mediaStreamRef.current = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            channelCount: 1,
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        });
+      }
+
+      const mimeType = getAudioMimeType();
+      if (!mimeType || !mediaStreamRef.current) return;
+
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        try { mediaRecorderRef.current.stop(); } catch { /* ignore */ }
+      }
+
+      audioChunksRef.current = [];
+      audioMimeTypeRef.current = mimeType.split(';')[0];
+      audioReadyRef.current = new Promise((resolve) => {
+        audioReadyResolveRef.current = resolve;
+      });
+
+      const recorder = new MediaRecorder(mediaStreamRef.current, { mimeType, audioBitsPerSecond: 64_000 });
+      mediaRecorderRef.current = recorder;
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+      };
+      recorder.onstop = () => {
+        const blob = audioChunksRef.current.length > 0
+          ? new Blob(audioChunksRef.current, { type: audioMimeTypeRef.current })
+          : null;
+        if (blob && blob.size > 0) {
+          lastAudioBlobRef.current = { blob, at: Date.now() };
+          lastAudioSensitiveRef.current = sensitiveInputRef.current;
+        }
+        audioReadyResolveRef.current?.(blob);
+        audioReadyResolveRef.current = null;
+        mediaRecorderRef.current = null;
+        audioChunksRef.current = [];
+      };
+      recorder.onerror = () => {
+        audioReadyResolveRef.current?.(null);
+        audioReadyResolveRef.current = null;
+        mediaRecorderRef.current = null;
+        audioChunksRef.current = [];
+      };
+      recorder.start(250);
+    } catch (error) {
+      console.warn('[VOICE] Enhanced audio capture unavailable:', error);
+    }
+  }, [getAudioMimeType]);
+
+  const stopUtteranceRecording = useCallback(() => {
+    const recorder = mediaRecorderRef.current;
+    if (!recorder || recorder.state === 'inactive') return;
+    try {
+      recorder.stop();
+    } catch {
+      // Recorder can already be stopping.
+    }
+  }, []);
+
+  const retranscribeLastUtterance = useCallback(async () => {
+    if (typeof window === 'undefined' || lastAudioSensitiveRef.current) return null;
+
+    const readyBlob = await audioReadyRef.current;
+    const candidate = readyBlob ?? (lastAudioBlobRef.current && Date.now() - lastAudioBlobRef.current.at < 15_000
+      ? lastAudioBlobRef.current.blob
+      : null);
+    if (!candidate || candidate.size === 0 || candidate.size > 1_500_000) return null;
+
+    const formData = new FormData();
+    formData.append('audio', candidate, 'utterance.webm');
+    formData.append('lang', langRef.current);
+
+    try {
+      const response = await fetch('/api/voice/transcribe', {
+        method: 'POST',
+        body: formData,
+        cache: 'no-store',
+      });
+      if (!response.ok) return null;
+      const data = await response.json() as { transcript?: unknown };
+      return typeof data.transcript === 'string' ? data.transcript.trim() || null : null;
+    } catch (error) {
+      console.warn('[VOICE] Enhanced transcription fallback failed:', error);
+      return null;
+    }
+  }, []);
+
   const startListening = useCallback(() => {
     let recognition = recognitionRef.current;
 
@@ -256,7 +385,8 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       try {
         recognition = new SpeechRecognition();
         recognition.continuous = false;
-        recognition.interimResults = false;
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 3;
         recognitionRef.current = recognition;
       } catch (error) {
         console.error('[VOICE] SpeechRecognition initialization failed:', error);
@@ -278,8 +408,19 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     micErrorRef.current = null;
     
     recognition.lang = langRef.current;
+    recognition.continuous = isContinuousRef.current;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 3;
     
     recognition.onstart = () => {
+      void startUtteranceRecording();
+      finalResultCursorRef.current = 0;
+      pendingTranscriptRef.current = '';
+      recognitionConfidenceRef.current = null;
+      if (transcriptDebounceRef.current) {
+        clearTimeout(transcriptDebounceRef.current);
+        transcriptDebounceRef.current = null;
+      }
       if (voiceStateRef.current !== 'SPEAKING') {
         updateVoiceState('LISTENING');
       }
@@ -287,73 +428,101 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onresult = (event: any) => {
-      const resultTranscript = String(event.results[event.results.length - 1][0].transcript || '').trim();
-      if (!resultTranscript) return;
+      let finalText = '';
+      const startIndex = Math.max(Number(event.resultIndex ?? 0), finalResultCursorRef.current);
+      for (let i = startIndex; i < event.results.length; i += 1) {
+        const result = event.results[i];
+        if (result?.isFinal) {
+          finalText += String(result[0]?.transcript || '');
+          const confidence = Number(result[0]?.confidence);
+          recognitionConfidenceRef.current = Number.isFinite(confidence) ? confidence : null;
+        }
+      }
+      finalResultCursorRef.current = event.results.length;
+      if (!finalText.trim()) return;
 
-      const normalizedTranscript = resultTranscript.toLowerCase().replace(/\s+/g, ' ');
-      const now = Date.now();
-      if (
-        lastTranscriptRef.current.text === normalizedTranscript &&
-        now - lastTranscriptRef.current.at < 1200
-      ) {
-        updateVoiceState('LISTENING');
+      const processTranscript = (text: string) => {
+        const resultTranscript = text.trim();
+        if (!resultTranscript) return;
+
+        const normalizedTranscript = resultTranscript.toLowerCase().replace(/\s+/g, ' ');
+        const now = Date.now();
+        if (
+          lastTranscriptRef.current.text === normalizedTranscript &&
+          now - lastTranscriptRef.current.at < 1200
+        ) {
+          return;
+        }
+        lastTranscriptRef.current = { text: normalizedTranscript, at: now };
+
+        updateVoiceState('PROCESSING');
+        processingRef.current = true;
+
+        if (!sensitiveInputRef.current) {
+          setTranscript(prev => [...prev, {
+            id: Math.random().toString(36).substring(7),
+            sender: 'user',
+            text: resultTranscript,
+            timestamp: new Date()
+          }]);
+        }
+
+        const callback = onResultRef.current;
+        if (callback) {
+          Promise.resolve(callback(resultTranscript))
+            .catch((error) => {
+              console.error('Voice command processing failed:', error);
+              speak(
+                langRef.current === 'hi-IN'
+                  ? 'कमांड को संसाधित नहीं किया जा सका। कृपया फिर से बोलें।'
+                  : langRef.current === 'te-IN'
+                    ? 'వాయిస్ కమాండ్‌ను ప్రాసెస్ చేయలేకపోయాను. దయచేసి మళ్లీ చెప్పండి.'
+                    : 'I could not process that command. Please try again.'
+              );
+            })
+            .finally(() => {
+              processingRef.current = false;
+              if (
+                isContinuousRef.current &&
+                voiceStateRef.current === 'PROCESSING' &&
+                micErrorRef.current !== 'denied' &&
+                micErrorRef.current !== 'not-supported'
+              ) {
+                updateVoiceState('IDLE');
+                if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
+                restartTimeoutRef.current = setTimeout(() => {
+                  if (
+                    isContinuousRef.current &&
+                    !processingRef.current &&
+                    voiceStateRef.current !== 'SPEAKING'
+                  ) {
+                    try { recognition.start(); } catch { /* ignore already-started race */ }
+                  }
+                }, 250);
+              }
+            });
+        } else {
+          processingRef.current = false;
+        }
+      };
+
+      if (!isContinuousRef.current) {
+        processTranscript(finalText);
         return;
       }
-      lastTranscriptRef.current = { text: normalizedTranscript, at: now };
 
-      if (restartTimeoutRef.current) {
-        clearTimeout(restartTimeoutRef.current);
-        restartTimeoutRef.current = null;
-      }
-      updateVoiceState('PROCESSING');
-      processingRef.current = true;
-      
-      setTranscript(prev => [...prev, {
-        id: Math.random().toString(36).substring(7),
-        sender: 'user',
-        text: resultTranscript,
-        timestamp: new Date()
-      }]);
-      
-      const callback = onResultRef.current;
-      if (callback) {
-        Promise.resolve(callback(resultTranscript))
-          .catch((error) => {
-            console.error('Voice command processing failed:', error);
-            speak(
-              langRef.current === 'hi-IN'
-                ? 'कमांड को संसाधित नहीं किया जा सका। कृपया फिर से बोलें।'
-                : langRef.current === 'te-IN'
-                  ? 'వాయిస్ కమాండ్‌ను ప్రాసెస్ చేయలేకపోయాను. దయచేసి మళ్లీ చెప్పండి.'
-                  : 'I could not process that command. Please try again.'
-            );
-          })
-          .finally(() => {
-            processingRef.current = false;
-
-            if (
-              isContinuousRef.current &&
-              voiceStateRef.current === 'PROCESSING' &&
-              micErrorRef.current !== 'denied' &&
-              micErrorRef.current !== 'not-supported'
-            ) {
-              updateVoiceState('IDLE');
-              if (restartTimeoutRef.current) clearTimeout(restartTimeoutRef.current);
-              restartTimeoutRef.current = setTimeout(() => {
-                if (
-                  isContinuousRef.current &&
-                  !processingRef.current &&
-                  voiceStateRef.current !== 'SPEAKING'
-                ) {
-                  try { recognition.start(); } catch { /* ignore already-started race */ }
-                }
-              }, 250);
-            }
-          });
-      } else {
-        processingRef.current = false;
-      }
-    };
+      pendingTranscriptRef.current = [pendingTranscriptRef.current, finalText]
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+      if (transcriptDebounceRef.current) clearTimeout(transcriptDebounceRef.current);
+      transcriptDebounceRef.current = setTimeout(() => {
+        const pending = pendingTranscriptRef.current.trim();
+        pendingTranscriptRef.current = '';
+        transcriptDebounceRef.current = null;
+        if (pending) processTranscript(pending);
+      }, 420);
+    }
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onerror = (event: any) => {
@@ -386,6 +555,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     };
     
     recognition.onend = () => {
+      stopUtteranceRecording();
       if (voiceStateRef.current === 'LISTENING') {
         updateVoiceState('IDLE');
       }
@@ -418,7 +588,9 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
         updateVoiceState('LISTENING');
       }
     }
-  }, [speak, t, updateVoiceState]);
+  }, [speak, startUtteranceRecording, stopUtteranceRecording, t, updateVoiceState]);
+
+  const getRecognitionConfidence = useCallback(() => recognitionConfidenceRef.current, []);
 
   const stopListening = useCallback(() => {
     const recognition = recognitionRef.current;
@@ -434,12 +606,21 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     }
   }, [updateVoiceState]);
 
-  const startContinuousListening = useCallback((onResult?: (text: string) => void) => {
+  const startContinuousListening = useCallback((onResult?: (text: string) => void | Promise<void>) => {
+    sensitiveInputRef.current = false;
+    lastAudioSensitiveRef.current = false;
     isContinuousRef.current = true;
     setIsContinuous(true);
-    if (onResult) {
-      onResultRef.current = onResult;
-    }
+    if (onResult) onResultRef.current = onResult;
+    startListening();
+  }, [startListening]);
+
+  const startSecureContinuousListening = useCallback((onResult: (text: string) => void | Promise<void>) => {
+    sensitiveInputRef.current = true;
+    lastAudioSensitiveRef.current = true;
+    isContinuousRef.current = true;
+    setIsContinuous(true);
+    onResultRef.current = onResult;
     startListening();
   }, [startListening]);
 
@@ -450,6 +631,14 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const pauseListening = useCallback(() => {
     isContinuousRef.current = false;
     processingRef.current = false;
+    sensitiveInputRef.current = false;
+    lastAudioSensitiveRef.current = false;
+    lastAudioBlobRef.current = null;
+    pendingTranscriptRef.current = '';
+    if (transcriptDebounceRef.current) {
+      clearTimeout(transcriptDebounceRef.current);
+      transcriptDebounceRef.current = null;
+    }
     setIsContinuous(false);
     onResultRef.current = null;
     stopListening();
@@ -460,12 +649,14 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     <VoiceContext.Provider value={{ 
       speak, stopSpeaking, isSpeaking: voiceState === 'SPEAKING', 
       startListening, stopListening, isListening: voiceState === 'LISTENING' || voiceState === 'REQUESTING_PERMISSION', 
-      startContinuousListening, pauseListening, isContinuous,
+      startContinuousListening, startSecureContinuousListening, pauseListening, isContinuous,
       setOnResult,
       micError,
       voiceState,
       transcript,
-      speechWarning
+      speechWarning,
+      retranscribeLastUtterance,
+      getRecognitionConfidence
     }}>
       {children}
     </VoiceContext.Provider>

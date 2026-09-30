@@ -80,9 +80,13 @@ export function useVoiceEmailCapture({ enabled, emailRef, formRef }: UseVoiceEma
       return true
     }
 
-    if (action === 'SIGN_IN' || action === 'SIGN_UP') {
+    if (action === 'SIGN_IN') {
       setVoiceStep('awaiting_email')
-      speak(action === 'SIGN_UP' ? (lang === 'hi-IN' ? 'अकाउंट बनाना चुना गया। अपना ईमेल पता बताएं।' : lang === 'te-IN' ? 'ఖాతా సృష్టించడం ఎంచుకోబడింది. మీ ఈమెయిల్ చిరునామా చెప్పండి.' : 'Create Account selected. Please say your email address.') : (lang === 'hi-IN' ? 'साइन इन चुना गया। अपना ईमेल पता बताएं।' : lang === 'te-IN' ? 'సైన్ ఇన్ ఎంచుకోబడింది. మీ ఈమెయిల్ చిరునామా చెప్పండి.' : 'Sign in selected. Please say your email address.'))
+      speak(lang === 'hi-IN'
+        ? 'साइन इन चुना गया। अपना ईमेल पता बताएं।'
+        : lang === 'te-IN'
+          ? 'సైన్ ఇన్ ఎంచుకోబడింది. మీ ఈమెయిల్ చిరునామా చెప్పండి.'
+          : 'Sign in selected. Please say your email address.')
       emailRef.current?.focus()
       return true
     }

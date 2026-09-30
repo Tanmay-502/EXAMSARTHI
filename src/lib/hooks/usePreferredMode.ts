@@ -22,7 +22,7 @@ export function usePreferredMode(): {
   setMode: (mode: InteractionMode) => void
   isLoaded: boolean
 } {
-  const [mode, setModeState] = useState<InteractionMode>('standard')
+  const [mode, setModeState] = useState<InteractionMode>('voice-first')
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
@@ -55,7 +55,7 @@ export function usePreferredMode(): {
         } = await supabase.auth.getUser()
 
         if (!user) {
-          applyMode(localMode ?? 'standard')
+          applyMode(localMode ?? 'voice-first')
           return
         }
 
@@ -66,7 +66,7 @@ export function usePreferredMode(): {
           .maybeSingle()
 
         if (profileError) {
-          applyMode(localMode ?? 'standard')
+          applyMode(localMode ?? 'voice-first')
           return
         }
 
@@ -77,7 +77,7 @@ export function usePreferredMode(): {
             ? (profile.accessibility_prefs as { preferred_mode?: unknown })
             : null
         const profileMode = profilePrefs?.preferred_mode
-        const nextMode = isInteractionMode(profileMode) ? profileMode : (localMode ?? 'standard')
+        const nextMode = isInteractionMode(profileMode) ? profileMode : (localMode ?? 'voice-first')
 
         if (cancelled) return
 
@@ -90,7 +90,7 @@ export function usePreferredMode(): {
         applyMode(nextMode)
       } catch {
         // Local storage remains the fallback when the authenticated profile is unavailable.
-        applyMode(localMode ?? 'standard')
+        applyMode(localMode ?? 'voice-first')
       }
     }
 

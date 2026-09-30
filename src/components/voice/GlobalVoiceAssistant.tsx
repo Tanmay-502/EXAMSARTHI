@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useVoice } from '@/lib/voice/VoiceProvider';
 import { useI18n } from '@/lib/i18n/I18nProvider';
 import { Locale } from '@/lib/i18n/registry';
-import { OptionalLLMIntentProvider } from '@/lib/voice/intentRouter';
+import { DeterministicIntentProvider, OptionalLLMIntentProvider } from '@/lib/voice/intentRouter';
 import { SafeAction, SafeActionRegistry } from '@/lib/voice/safeActionRegistry';
 import { createClient } from '@/lib/supabase/client';
 import { useVoiceAppContext, type VoiceAppContext } from '@/lib/store/voiceContextStore';
@@ -26,8 +26,8 @@ interface GlobalVoiceContextType {
 const GlobalVoiceContext = createContext<GlobalVoiceContextType | undefined>(undefined);
 
 export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
-  const { setOnResult, speak } = useVoice();
-  const { lang, setLang } = useI18n();
+  const { setOnResult, speak, retranscribeLastUtterance, getRecognitionConfidence } = useVoice();
+  const { lang, setLang, t } = useI18n();
   const pathname = usePathname();
   const voiceContext = useVoiceAppContext((state) => state.context);
   const router = useRouter();
@@ -36,6 +36,8 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
   const conversationStateRef = React.useRef<ConversationState>('IDLE');
   const pendingIntentRef = React.useRef<SafeAction | null>(null);
   const collectedParamsRef = React.useRef<Record<string, unknown>>({});
+  const lastActionRef = React.useRef<{ action: SafeAction; at: number } | null>(null);
+  const deterministicIntentProvider = React.useMemo(() => new DeterministicIntentProvider(), []);
   const intentProvider = React.useMemo(() => new OptionalLLMIntentProvider(), []);
   const registry = React.useMemo(() => new SafeActionRegistry(), []);
 
@@ -136,7 +138,10 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
       }
     }
 
-    if (handledLocally) return;
+    if (handledLocally) {
+      conversationStateRef.current = 'IDLE';
+      return;
+    }
 
 
     // Fallback for unknown
@@ -153,26 +158,37 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
        return;
     }
 
-    // Authentication is an explicit step in the public flow.
-    // Never silently skip the visible Sign In / Create Account screen just
-    // because the browser already has an existing session.
-    if (action === 'SIGN_IN' || action === 'SIGN_UP') {
-      const message = action === 'SIGN_IN'
-        ? (lang === 'hi-IN'
-            ? 'साइन इन पेज खोल रहा हूँ।'
-            : lang === 'te-IN'
-              ? 'సైన్ ఇన్ పేజీని తెరుస్తున్నాను.'
-              : 'Opening the sign in and account page.')
-        : (lang === 'hi-IN'
-            ? 'साइन इन और अकाउंट बनाने का पेज खोल रहा हूँ।'
-            : lang === 'te-IN'
-              ? 'సైన్ ఇన్ లేదా ఖాతా సృష్టించే పేజీని తెరుస్తున్నాను.'
-              : 'Opening the sign in and create account page.');
-
-      speak(message);
+    if (action === 'SIGN_IN') {
+      speak(t('voice_login_opening'));
       isNavigatingRef.current = true;
-      router.push(action === 'SIGN_UP' ? '/auth/signup?from=voice' : '/auth/login?from=voice');
+      router.push('/auth/login');
       return;
+    }
+
+    const authRequiredActions: SafeAction[] = [
+      'OPEN_DASHBOARD', 'OPEN_HISTORY', 'OPEN_SETTINGS', 'OPEN_PRACTICE', 'OPEN_EXAM',
+      'START_PRACTICE', 'START_EXAM', 'READ_PROGRESS', 'OPEN_ANALYSIS'
+    ];
+
+    if (context === 'landing' && authRequiredActions.includes(action)) {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          const next = action === 'OPEN_HISTORY' ? '/history'
+            : action === 'OPEN_SETTINGS' ? '/settings'
+              : action === 'OPEN_PRACTICE' || action === 'START_PRACTICE' ? '/practice'
+                : action === 'OPEN_EXAM' || action === 'START_EXAM' ? '/exam'
+                  : action === 'OPEN_ANALYSIS' ? '/analysis'
+                    : '/dashboard';
+          speak(t('voice_login_required'));
+          isNavigatingRef.current = true;
+          router.push('/auth/login?next=' + encodeURIComponent(next));
+          return;
+        }
+      } catch (error) {
+        console.error('[VOICE] Auth gate check failed:', error);
+      }
     }
 
     if (['OPEN_DASHBOARD', 'OPEN_HISTORY', 'OPEN_SETTINGS', 'LOGOUT', 'READ_PROGRESS', 'READ_HISTORY', 'READ_RESULTS', 'OPEN_ANALYSIS'].includes(action)) {
@@ -283,17 +299,40 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
         return;
       }
 
+      conversationStateRef.current = 'AWAITING_INTENT';
       const capturedVersion = contextVersionRef.current;
-      
-      const command = await intentProvider.parse(transcript, lang, { 
+      const intentContext = {
         context: getContextName(),
         conversationState: conversationStateRef.current,
         pendingIntent: pendingIntentRef.current,
-        collectedParams: collectedParamsRef.current
-      });
-      
+        collectedParams: collectedParamsRef.current,
+        lastAction: lastActionRef.current?.action ?? null,
+        lastActionAt: lastActionRef.current?.at ?? null,
+      };
+
+      let bestTranscript = transcript.trim();
+      let command = await deterministicIntentProvider.parse(bestTranscript, lang, intentContext);
+
+      // Browser speech is fast, but a noisy microphone can produce a low-confidence
+      // or incorrect transcript that still looks like a valid phrase. Escalate low-
+      // confidence and unrecognized speech to the cloud transcription fallback before
+      // any action is authorized. The captured audio is transient and never persisted.
+      const confidence = getRecognitionConfidence();
+      const shouldRecoverAudio = command.type === 'UNKNOWN' || (confidence !== null && confidence < 0.72);
+      if (shouldRecoverAudio) {
+        const recoveredTranscript = await retranscribeLastUtterance();
+        if (recoveredTranscript && recoveredTranscript.toLowerCase() !== bestTranscript.toLowerCase()) {
+          bestTranscript = recoveredTranscript;
+          command = await deterministicIntentProvider.parse(bestTranscript, lang, intentContext);
+        }
+      }
+
+      if (command.type === 'UNKNOWN') {
+        command = await intentProvider.parse(bestTranscript, lang, intentContext);
+      }
+
       if (capturedVersion !== contextVersionRef.current) {
-        console.log(`[VOICE] Dropping stale command "${transcript}". Context changed during processing.`);
+        console.log(`[VOICE] Dropping stale command "${bestTranscript}". Context changed during processing.`);
         return;
       }
 
@@ -336,9 +375,11 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
       }
 
       if (action) {
+        conversationStateRef.current = 'EXECUTING_ACTION';
+        lastActionRef.current = { action, at: Date.now() };
         console.log(`[VOICE]
 raw transcript: ${transcript}
-normalized transcript: ${transcript.trim().toLowerCase()}
+normalized transcript: ${bestTranscript.trim().toLowerCase()}
 current route: ${pathname}
 current voice state: ${conversationStateRef.current}
 current context: ${getContextName()}
@@ -346,12 +387,13 @@ deterministic intent: ${command.type}
 LLM intent (if used): ${command.type === 'NATURAL_INTENT' ? command.intent : 'N/A'}
 final intent: ${action}
 authorization: ${registry.isActionAllowed(action, getContextName()) ? 'ALLOWED' : 'REJECTED'}`);
-        dispatchAction(action, payload, transcript);
+        dispatchAction(action, payload, bestTranscript);
       } else if (command.type === 'UNKNOWN') {
-        dispatchAction('UNKNOWN_COMMAND', { transcript }, transcript);
+        conversationStateRef.current = 'ERROR_RECOVERY';
+        dispatchAction('UNKNOWN_COMMAND', { transcript: bestTranscript }, bestTranscript);
       }
     });
-  }, [lang, setOnResult, intentProvider, getContextName, registry, dispatchAction, pathname]);
+  }, [lang, setOnResult, deterministicIntentProvider, intentProvider, getContextName, registry, dispatchAction, pathname, retranscribeLastUtterance, getRecognitionConfidence]);
 
   return (
     <GlobalVoiceContext.Provider value={{

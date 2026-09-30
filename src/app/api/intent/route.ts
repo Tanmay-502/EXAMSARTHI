@@ -47,7 +47,7 @@ export async function POST(req: Request) {
           'START_PRACTICE', 'START_EXAM', 'CHANGE_LANGUAGE', 'READ_PROGRESS', 'READ_HISTORY',
           'READ_RESULTS', 'HELP', 'REPEAT', 'NEXT_QUESTION', 'PREVIOUS_QUESTION',
           'SELECT_OPTION', 'MARK_REVIEW', 'CONFIRM', 'CHANGE', 'SUBMIT_EXAM', 'LOGOUT',
-          'QUESTION_SOLVING', 'SIGN_IN', 'SIGN_UP', 'OPEN_ANALYSIS', 'UNKNOWN_COMMAND',
+          'QUESTION_SOLVING', 'SIGN_IN', 'OPEN_ANALYSIS', 'UNKNOWN_COMMAND',
           'TIME_LEFT', 'JUMP_TO_QUESTION', 'REVIEW_UNANSWERED', 'REVIEW_MARKED',
           'READ_QUESTION', 'READ_OPTIONS'
         ]),
@@ -59,7 +59,6 @@ Language: ${lang}
 Context: ${JSON.stringify(safeContext)}
 
 If the user wants to log in or sign in, return SIGN_IN.
-If the user wants to create an account, register, or sign up, return SIGN_UP.
 If the user mentions selecting an option, return SELECT_OPTION with payload { index: 0-3 }.
 If the user wants to change language, return CHANGE_LANGUAGE with payload { lang: 'en-IN' | 'hi-IN' | 'te-IN' }.
 If the user wants to practice or take an exam, return START_PRACTICE or START_EXAM. Preserve provided names/details.

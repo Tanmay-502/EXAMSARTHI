@@ -7,9 +7,8 @@ type Route = { path: string; name: string; primary: { role: 'button' | 'textbox'
 
 const viewports: Viewport[] = [{ width: 1280, height: 720 }, { width: 390, height: 844 }, { width: 320, height: 568 }]
 const publicRoutes: Route[] = [
-  { path: '/', name: 'gateway', primary: [{ role: 'button', name: /^Log in/ }, { role: 'button', name: /^Sign up/ }] },
-  { path: '/auth/login', name: 'login', primary: [{ role: 'textbox', name: /email/i }] },
-  { path: '/auth/signup', name: 'signup', primary: [{ role: 'textbox', name: /full name/i }, { role: 'textbox', name: /email/i }] },
+  { path: '/', name: 'gateway', primary: [{ role: 'button', name: /voice/i }] },
+  { path: '/auth/login', name: 'voice login', primary: [{ role: 'textbox', name: /user id/i }, { role: 'textbox', name: /password/i }] },
 ]
 const protectedRoutes: Route[] = [
   { path: '/welcome', name: 'welcome', primary: [{ role: 'button', name: /Get started|Continue to dashboard/i }] },
@@ -21,7 +20,7 @@ async function installSpeechStubs(page: Page) {
   await page.addInitScript(() => {
     Object.defineProperty(navigator, 'userActivation', { configurable: true, value: { hasBeenActive: false } })
     class MockSpeechRecognition {
-      continuous = false; interimResults = false; lang = 'en-IN'; onstart: (() => void) | null = null; onresult: ((event: unknown) => void) | null = null; onerror: ((event: { error: string }) => void) | null = null; onend: (() => void) | null = null;
+      continuous = false; interimResults = true; maxAlternatives = 3; lang = 'en-IN'; onstart: (() => void) | null = null; onresult: ((event: unknown) => void) | null = null; onerror: ((event: { error: string }) => void) | null = null; onend: (() => void) | null = null;
       start() { queueMicrotask(() => this.onstart?.()) } stop() { queueMicrotask(() => this.onend?.()) } abort() { queueMicrotask(() => this.onend?.()) }
     }
     Object.defineProperty(window, 'SpeechRecognition', { configurable: true, value: MockSpeechRecognition })
@@ -43,7 +42,7 @@ async function runDockCoverage(page: Page, route: Route, viewport: Viewport) {
   const panel = page.locator('#voice-transcript-panel')
   await expect(panel).toBeHidden()
   if (viewport.width === 1280 && viewport.height === 720) for (const target of route.primary) await expect(page.getByRole(target.role, { name: target.name })).toBeVisible()
-  if (route.path === '/') { await expect(page.getByRole('button', { name: /Log in/ })).toBeFocused(); await expect(page.getByTestId('demo-guide')).toHaveCount(0); await expect(page.getByText(/Press Space, Enter or click to start voice guidance/i)).toHaveCount(0) }
+  if (route.path === '/') { await expect(page.getByRole('button', { name: /voice/i })).toBeFocused(); await expect(page.getByTestId('demo-guide')).toHaveCount(0) }
   await expect(page.getByRole('button', { name: /Transcript/i })).toHaveAttribute('aria-expanded', 'false')
   await new AxeBuilder({ page }).include('[data-testid="voice-dock"]').analyze().then((result) => expect(result.violations).toEqual([]))
   const toggle = page.getByRole('button', { name: /Transcript/i }); await toggle.focus(); await toggle.press('Enter'); await expect(toggle).toHaveAttribute('aria-expanded', 'true'); await expect(panel).toBeVisible()

@@ -5,7 +5,13 @@ import { normalizeSpokenEmail } from '../emailParser';
 
 describe('Voice Command Parser', () => {
   describe('English (en-IN)', () => {
-    test('should parse SELECT_OPTION correctly', () => {
+    test('plain login commands are deterministic', () => {
+  assert.deepEqual(parseCommand('login', 'en-IN'), { type: 'SIGN_IN' })
+  assert.deepEqual(parseCommand('लॉग इन', 'hi-IN'), { type: 'SIGN_IN' })
+  assert.deepEqual(parseCommand('లాగిన్', 'te-IN'), { type: 'SIGN_IN' })
+})
+
+test('should parse SELECT_OPTION correctly', () => {
       assert.deepStrictEqual(parseCommand('option a', 'en-IN'), { type: 'SELECT_OPTION', index: 0 });
       assert.deepStrictEqual(parseCommand('answer b', 'en-IN'), { type: 'SELECT_OPTION', index: 1 });
       assert.deepStrictEqual(parseCommand('i choose c', 'en-IN', 'exam_active'), { type: 'SELECT_OPTION', index: 2 });
