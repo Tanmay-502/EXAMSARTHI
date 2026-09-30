@@ -49,7 +49,7 @@ describe('Speech recognition final-result extraction', () => {
     };
 
     assert.deepStrictEqual(extractFinalSpeechTranscript(event), {
-      text: 'next  please continue',
+      text: 'next please continue',
       confidence: 0.88,
     });
   });
