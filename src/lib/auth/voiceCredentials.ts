@@ -1,4 +1,4 @@
-import { createHash, createHmac, timingSafeEqual } from 'node:crypto'
+import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
 import { normalizeVoicePassword, normalizeVoiceUserId } from './voiceCredentialNormalization'
 
 export type VoiceCredential = {
@@ -17,6 +17,10 @@ const DEFAULT_VOICE_CREDENTIAL: VoiceCredential = {
   displayName: 'Tanmay',
 }
 
+// Never ship a predictable server-side password derivation secret. When an explicit
+// deployment secret is not configured, use a process-local random secret so the public
+// demo credential cannot be converted into a reusable Supabase password off-platform.
+const PROCESS_INTERNAL_SECRET = randomBytes(32).toString('hex')
 
 export function getVoiceCredentials(): VoiceCredential[] {
   const raw = process.env.EXAMSAARTHI_VOICE_USERS_JSON
@@ -69,7 +73,7 @@ export function getVoiceAuthEmail(userId: string) {
 }
 
 export function getInternalAuthPassword(userId: string) {
-  const secret = process.env.EXAMSAARTHI_VOICE_INTERNAL_SECRET || 'examsaarthi-demo-internal-secret'
+  const secret = process.env.EXAMSAARTHI_VOICE_INTERNAL_SECRET || PROCESS_INTERNAL_SECRET
   return `${createHmac('sha256', secret).update(`voice-auth:${userId}`).digest('base64url')}Aa1!`
 }
 
