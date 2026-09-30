@@ -2,10 +2,9 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
   getSafeVoiceNextPath,
-  normalizeVoicePassword,
-  normalizeVoiceUserId,
   verifyVoiceCredentials,
 } from '../voiceCredentials'
+import { normalizeVoicePassword, normalizeVoiceUserId } from '../voiceCredentialNormalization'
 
 test('voice credentials normalize spoken user ids', () => {
   assert.equal(normalizeVoiceUserId('My user id is Tan May zero nine'), 'tanmay09')
