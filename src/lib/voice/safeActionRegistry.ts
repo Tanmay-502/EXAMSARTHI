@@ -35,7 +35,7 @@ export type SafeAction =
 
 export class SafeActionRegistry {
   private allowedActionsByContext: Record<string, SafeAction[]> = {
-    landing: ['DISMISS_GUIDE', 'SIGN_IN', 'CHANGE_LANGUAGE', 'HELP', 'UNKNOWN_COMMAND'],
+    landing: ['DISMISS_GUIDE', 'SIGN_IN', 'CHANGE_LANGUAGE', 'HELP', 'OPEN_DASHBOARD', 'OPEN_HISTORY', 'OPEN_SETTINGS', 'OPEN_PRACTICE', 'OPEN_EXAM', 'START_PRACTICE', 'START_EXAM', 'READ_PROGRESS', 'OPEN_ANALYSIS', 'UNKNOWN_COMMAND'],
     mode_selection: ['SELECT_MODE_STANDARD', 'SELECT_MODE_VOICE', 'HELP', 'UNKNOWN_COMMAND'],
     language_selection: ['CHANGE_LANGUAGE', 'HELP', 'UNKNOWN_COMMAND'],
     onboarding: ['DISMISS_GUIDE', 'SELECT_MODE_STANDARD', 'SELECT_MODE_VOICE', 'CHANGE_LANGUAGE', 'SIGN_IN', 'HELP', 'UNKNOWN_COMMAND'],
