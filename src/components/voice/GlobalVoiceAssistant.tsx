@@ -26,8 +26,8 @@ interface GlobalVoiceContextType {
 const GlobalVoiceContext = createContext<GlobalVoiceContextType | undefined>(undefined);
 
 export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
-  const { setOnResult, speak, retranscribeLastUtterance, getRecognitionConfidence } = useVoice();
-  const { lang, setLang, t } = useI18n();
+  const { setOnResult, speak, retranscribeLastUtterance, getRecognitionConfidence, transcript: voiceTranscript } = useVoice();
+  const { lang, setLang, t, tParams } = useI18n();
   const pathname = usePathname();
   const voiceContext = useVoiceAppContext((state) => state.context);
   const router = useRouter();
@@ -37,6 +37,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
   const pendingIntentRef = React.useRef<SafeAction | null>(null);
   const collectedParamsRef = React.useRef<Record<string, unknown>>({});
   const lastActionRef = React.useRef<{ action: SafeAction; at: number } | null>(null);
+  const voiceTranscriptRef = React.useRef(voiceTranscript);
   const deterministicIntentProvider = React.useMemo(() => new DeterministicIntentProvider(), []);
   const intentProvider = React.useMemo(() => new OptionalLLMIntentProvider(), []);
   const registry = React.useMemo(() => new SafeActionRegistry(), []);
@@ -69,6 +70,10 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
 
   const contextVersionRef = React.useRef(0);
   const isNavigatingRef = React.useRef(false);
+  React.useEffect(() => {
+    voiceTranscriptRef.current = voiceTranscript;
+  }, [voiceTranscript]);
+
   
   React.useEffect(() => {
     contextVersionRef.current += 1;
@@ -82,6 +87,24 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   const dispatchAction = React.useCallback(async (action: SafeAction, payload?: Record<string, unknown> | null, transcript?: string) => {
+  const contextLabelKey: Record<VoiceAppContext, string> = {
+    landing: 'brand_name',
+    mode_selection: 'interaction_mode',
+    language_selection: 'language_selection_page',
+    onboarding: 'interaction_mode',
+    auth: 'voice_login_heading',
+    settings: 'settings_page',
+    dashboard: 'command_center',
+    exam_lobby: 'exam',
+    exam_active: 'exam',
+    practice_setup: 'practice',
+    practice_active: 'practice',
+    results: 'results',
+    history: 'history',
+    analysis: 'analysis',
+    unknown: 'voice_assistant',
+  };
+
     const context = getContextName();
 
     if (action === 'QUESTION_SOLVING' as SafeAction) {
@@ -139,6 +162,26 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
     }
 
     if (handledLocally) {
+      conversationStateRef.current = 'IDLE';
+      return;
+    }
+
+    if (action === 'REPEAT') {
+      const latestAssistant = [...voiceTranscriptRef.current]
+        .reverse()
+        .find((message) => message.sender === 'assistant' && message.text.trim());
+      if (latestAssistant) {
+        speak(latestAssistant.text, { dedupe: false });
+      } else {
+        speak(t('voice_no_previous_message'), { dedupe: false });
+      }
+      conversationStateRef.current = 'IDLE';
+      return;
+    }
+
+    if (action === 'READ_CONTEXT') {
+      const pageLabel = t(contextLabelKey[context] ?? 'voice_assistant');
+      speak(tParams('voice_current_context', { page: pageLabel }), { dedupe: false });
       conversationStateRef.current = 'IDLE';
       return;
     }
@@ -276,7 +319,7 @@ export function GlobalVoiceAssistant({ children }: { children: ReactNode }) {
       }
     }
 
-  }, [getContextName, registry, router, setLang, speak, lang, pathname]);
+  }, [getContextName, registry, router, setLang, speak, lang, pathname, t, tParams]);
 
   useEffect(() => {
     setOnResult(async (transcript) => {
