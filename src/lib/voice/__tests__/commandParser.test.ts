@@ -4,6 +4,20 @@ import { parseCommand } from '../commandParser';
 import { normalizeSpokenEmail } from '../emailParser';
 
 describe('Voice Command Parser', () => {
+  describe('Voice orientation commands', () => {
+    test('recognizes deterministic help, repeat, and current-context commands', () => {
+      assert.deepStrictEqual(parseCommand('what can you say', 'en-IN'), { type: 'HELP' });
+      assert.deepStrictEqual(parseCommand('say that again', 'en-IN'), { type: 'REPEAT' });
+      assert.deepStrictEqual(parseCommand('where am i', 'en-IN'), { type: 'READ_CONTEXT' });
+      assert.deepStrictEqual(parseCommand('मदद', 'hi-IN'), { type: 'HELP' });
+      assert.deepStrictEqual(parseCommand('फिर से बोलो', 'hi-IN'), { type: 'REPEAT' });
+      assert.deepStrictEqual(parseCommand('मैं किस पेज पर हूं', 'hi-IN'), { type: 'READ_CONTEXT' });
+      assert.deepStrictEqual(parseCommand('సహాయం', 'te-IN'), { type: 'HELP' });
+      assert.deepStrictEqual(parseCommand('మళ్లీ చెప్పు', 'te-IN'), { type: 'REPEAT' });
+      assert.deepStrictEqual(parseCommand('నేను ఎక్కడ ఉన్నాను', 'te-IN'), { type: 'READ_CONTEXT' });
+    });
+  });
+
   describe('English (en-IN)', () => {
     test('plain login commands are deterministic', () => {
   assert.deepEqual(parseCommand('login', 'en-IN'), { type: 'SIGN_IN' })
