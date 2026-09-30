@@ -15,6 +15,8 @@ import { usePreferredMode } from '@/lib/hooks/usePreferredMode';
 import { say } from '@/lib/voice/say';
 import { clearExamStorage } from '@/lib/store/clearExamStorage';
 import { signOut } from '@/app/auth/actions';
+import { useGlobalVoice } from '@/components/voice/GlobalVoiceAssistant';
+import { SafeAction } from '@/lib/voice/safeActionRegistry';
 
 /** Renders language, accessibility, interaction-mode, and learning-profile consent settings for the candidate. */
 export default function SettingsPage() {
@@ -29,6 +31,7 @@ export default function SettingsPage() {
   } = useAccessibility();
   const { speak, pauseListening, startContinuousListening, isContinuous } = useVoice();
   const { mode: interactionMode, setMode, isLoaded: modeLoaded } = usePreferredMode();
+  const { useVoiceAction } = useGlobalVoice();
   const router = useRouter();
   
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -76,6 +79,51 @@ export default function SettingsPage() {
       window.speechSynthesis.removeEventListener('voiceschanged', updateVoices);
     };
   }, []);
+
+  useVoiceAction((action: SafeAction, payload?: Record<string, unknown> | null) => {
+    if (action === 'SET_SPEECH_RATE' && typeof payload?.rate === 'number') {
+      const rate = payload.rate;
+      if (rate < 0.75 || rate > 1.5) return true;
+      updateAccessibilityPreferences({ speechRate: rate });
+      announce(tParams('speech_rate_set', { rate }));
+      return true;
+    }
+    if (action === 'SET_FONT_SCALE' && typeof payload?.scale === 'number') {
+      const scale = payload.scale;
+      if (scale < 1 || scale > 1.5) return true;
+      updateAccessibilityPreferences({ fontScale: scale });
+      announce(tParams('font_scaling_set', { percent: Math.round(scale * 100) }));
+      return true;
+    }
+    if (action === 'SET_HIGH_CONTRAST' && typeof payload?.enabled === 'boolean') {
+      updateAccessibilityPreferences({ highContrast: payload.enabled });
+      announce(payload.enabled ? t('high_contrast_enabled') : t('high_contrast_disabled'));
+      return true;
+    }
+    if (action === 'SET_LEARNING_PROFILE_CONSENT' && typeof payload?.enabled === 'boolean') {
+      void handleConsentToggle(payload.enabled);
+      return true;
+    }
+    if (action === 'SET_VOICE_DEFAULT') {
+      updateAccessibilityPreferences({ voiceURI: '' });
+      announce(t('browser_default_voice'));
+      return true;
+    }
+    if (action === 'SET_VOICE_LANGUAGE' && typeof payload?.lang === 'string') {
+      const target = payload.lang as Lang;
+      if (!LANGUAGE_REGISTRY[target]) return true;
+      setLang(target);
+      updateAccessibilityPreferences({ voiceURI: '' });
+      const selected = LANGUAGE_REGISTRY[target];
+      announce(selected.dictionary.language_changed.replace('{language}', selected.nativeName));
+      return true;
+    }
+    if (action === 'TEST_VOICE') {
+      speak(t('test_voice_message'), { dedupe: false });
+      return true;
+    }
+    return false;
+  });
 
   const handleLanguageChange = (newLang: Lang) => {
     setLang(newLang);

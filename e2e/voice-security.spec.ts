@@ -36,4 +36,21 @@ test.describe('Voice Security Boundary (Phase 10)', () => {
     expect(registry.isActionAllowed('REPEAT', 'analysis')).toBe(true);
   });
 
+  test('settings context authorizes only explicit settings mutations', () => {
+    const registry = new SafeActionRegistry();
+    for (const action of [
+      'SET_SPEECH_RATE',
+      'SET_VOICE_DEFAULT',
+      'SET_VOICE_LANGUAGE',
+      'SET_HIGH_CONTRAST',
+      'SET_FONT_SCALE',
+      'SET_LEARNING_PROFILE_CONSENT',
+      'TEST_VOICE',
+    ] as const) {
+      expect(registry.isActionAllowed(action, 'settings')).toBe(true);
+      expect(registry.isActionAllowed(action, 'dashboard')).toBe(false);
+      expect(registry.isActionAllowed(action, 'exam_active')).toBe(false);
+    }
+  });
+
 });

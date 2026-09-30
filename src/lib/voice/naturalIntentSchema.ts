@@ -8,6 +8,8 @@ export const naturalIntentNameSchema = z.enum([
   'QUESTION_SOLVING', 'SIGN_IN', 'OPEN_ANALYSIS', 'UNKNOWN_COMMAND',
   'TIME_LEFT', 'JUMP_TO_QUESTION', 'REVIEW_UNANSWERED', 'REVIEW_MARKED',
   'READ_QUESTION', 'READ_OPTIONS',
+  'SET_SPEECH_RATE', 'SET_VOICE_DEFAULT', 'SET_VOICE_LANGUAGE', 'SET_HIGH_CONTRAST',
+  'SET_FONT_SCALE', 'SET_LEARNING_PROFILE_CONSENT', 'TEST_VOICE',
 ])
 
 export const naturalIntentEnvelopeSchema = z.object({
@@ -40,6 +42,10 @@ const examPayloadSchema = z.object({
   exam_name: z.string().trim().min(1).max(200).optional(),
 }).strict().optional().nullable()
 
+const speechRatePayloadSchema = z.object({ rate: z.number().min(0.75).max(1.5) }).strict()
+const fontScalePayloadSchema = z.object({ scale: z.number().min(1).max(1.5) }).strict()
+const booleanPayloadSchema = z.object({ enabled: z.boolean() }).strict()
+const voiceLanguagePayloadSchema = z.object({ lang: z.enum(['en-IN','hi-IN','te-IN']) }).strict()
 const emptyPayloadSchema = z.undefined().or(z.null()).or(z.object({}).strict())
 
 export function validateNaturalIntentPayload(intent: z.infer<typeof naturalIntentNameSchema>, payload: unknown) {
@@ -56,6 +62,18 @@ export function validateNaturalIntentPayload(intent: z.infer<typeof naturalInten
     case 'START_EXAM':
     case 'OPEN_EXAM':
       return examPayloadSchema.safeParse(payload)
+    case 'SET_SPEECH_RATE':
+      return speechRatePayloadSchema.safeParse(payload)
+    case 'SET_FONT_SCALE':
+      return fontScalePayloadSchema.safeParse(payload)
+    case 'SET_HIGH_CONTRAST':
+    case 'SET_LEARNING_PROFILE_CONSENT':
+      return booleanPayloadSchema.safeParse(payload)
+    case 'SET_VOICE_LANGUAGE':
+      return voiceLanguagePayloadSchema.safeParse(payload)
+    case 'SET_VOICE_DEFAULT':
+    case 'TEST_VOICE':
+      return emptyPayloadSchema.safeParse(payload)
     default:
       return emptyPayloadSchema.safeParse(payload)
   }
