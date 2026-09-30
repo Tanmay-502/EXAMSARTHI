@@ -68,6 +68,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const audioReadyRef = useRef<Promise<Blob | null>>(Promise.resolve(null));
   const audioReadyResolveRef = useRef<((blob: Blob | null) => void) | null>(null);
   const lastAudioBlobRef = useRef<{ blob: Blob; at: number } | null>(null);
+  const lastAudioSensitiveRef = useRef(false);
   const audioMimeTypeRef = useRef<string>('audio/webm');
 
   const updateVoiceState = useCallback((state: VoiceState) => {
@@ -305,6 +306,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
           : null;
         if (blob && blob.size > 0) {
           lastAudioBlobRef.current = { blob, at: Date.now() };
+          lastAudioSensitiveRef.current = sensitiveInputRef.current;
         }
         audioReadyResolveRef.current?.(blob);
         audioReadyResolveRef.current = null;
@@ -334,7 +336,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const retranscribeLastUtterance = useCallback(async () => {
-    if (typeof window === 'undefined') return null;
+    if (typeof window === 'undefined' || lastAudioSensitiveRef.current) return null;
 
     const readyBlob = await audioReadyRef.current;
     const candidate = readyBlob ?? (lastAudioBlobRef.current && Date.now() - lastAudioBlobRef.current.at < 15_000
@@ -599,6 +601,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
 
   const startContinuousListening = useCallback((onResult?: (text: string) => void | Promise<void>) => {
     sensitiveInputRef.current = false;
+    lastAudioSensitiveRef.current = false;
     isContinuousRef.current = true;
     setIsContinuous(true);
     if (onResult) onResultRef.current = onResult;
@@ -607,6 +610,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
 
   const startSecureContinuousListening = useCallback((onResult: (text: string) => void | Promise<void>) => {
     sensitiveInputRef.current = true;
+    lastAudioSensitiveRef.current = true;
     isContinuousRef.current = true;
     setIsContinuous(true);
     onResultRef.current = onResult;
@@ -621,6 +625,8 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     isContinuousRef.current = false;
     processingRef.current = false;
     sensitiveInputRef.current = false;
+    lastAudioSensitiveRef.current = false;
+    lastAudioBlobRef.current = null;
     pendingTranscriptRef.current = '';
     if (transcriptDebounceRef.current) {
       clearTimeout(transcriptDebounceRef.current);
