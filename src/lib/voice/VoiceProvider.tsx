@@ -30,6 +30,7 @@ type VoiceContextType = {
   transcript: TranscriptMessage[];
   speechWarning: string | null;
   retranscribeLastUtterance: () => Promise<string | null>;
+  getRecognitionConfidence: () => number | null;
 };
 
 const VoiceContext = createContext<VoiceContextType | undefined>(undefined);
@@ -58,6 +59,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const [speechWarning, setSpeechWarning] = useState<string | null>(null);
   const lastSpeechWarningLangRef = useRef<string>('');
   const lastTranscriptRef = useRef<{ text: string; at: number }>({ text: '', at: 0 });
+  const recognitionConfidenceRef = useRef<number | null>(null);
   const sensitiveInputRef = useRef(false);
   const finalResultCursorRef = useRef(0);
   const pendingTranscriptRef = useRef('');
@@ -414,6 +416,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       void startUtteranceRecording();
       finalResultCursorRef.current = 0;
       pendingTranscriptRef.current = '';
+      recognitionConfidenceRef.current = null;
       if (transcriptDebounceRef.current) {
         clearTimeout(transcriptDebounceRef.current);
         transcriptDebounceRef.current = null;
@@ -431,6 +434,8 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
         const result = event.results[i];
         if (result?.isFinal) {
           finalText += String(result[0]?.transcript || '');
+          const confidence = Number(result[0]?.confidence);
+          recognitionConfidenceRef.current = Number.isFinite(confidence) ? confidence : null;
         }
       }
       finalResultCursorRef.current = event.results.length;
@@ -585,6 +590,8 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     }
   }, [speak, startUtteranceRecording, stopUtteranceRecording, t, updateVoiceState]);
 
+  const getRecognitionConfidence = useCallback(() => recognitionConfidenceRef.current, []);
+
   const stopListening = useCallback(() => {
     const recognition = recognitionRef.current;
     if (recognition) {
@@ -648,7 +655,8 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       voiceState,
       transcript,
       speechWarning,
-      retranscribeLastUtterance
+      retranscribeLastUtterance,
+      getRecognitionConfidence
     }}>
       {children}
     </VoiceContext.Provider>
