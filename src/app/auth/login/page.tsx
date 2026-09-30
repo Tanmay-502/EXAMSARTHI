@@ -31,7 +31,7 @@ function looksLikeUserIdInput(raw: string, normalized: string) {
 }
 
 function LoginForm() {
-  const { t } = useI18n()
+  const { t, tParams } = useI18n()
   const searchParams = useSearchParams()
   const router = useRouter()
   const nextPath = searchParams.get('next')
@@ -84,9 +84,9 @@ function LoginForm() {
 
       userIdRef.current = normalized
       setUserId(normalized)
-      setMessage(t('voice_login_user_id_heard', { userId: normalized }))
+      setMessage(tParams('voice_login_user_id_heard', { userId: normalized }))
       setStageSafe('CONFIRM_USER_ID')
-      speak(t('voice_login_user_id_confirm', { userId: normalized }))
+      speak(tParams('voice_login_user_id_confirm', { userId: normalized }))
       return
     }
 
