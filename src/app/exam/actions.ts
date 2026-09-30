@@ -6,6 +6,63 @@ import { SupabaseClient, User } from '@supabase/supabase-js'
 import { writeAudit } from '@/lib/audit/writeAudit'
 import { chunk } from '@/lib/db/chunk'
 import { assertPracticeFeedbackAccess, buildPracticeAnswerFeedback } from '@/lib/practice/feedback'
+import { isMissingColumnError } from '@/lib/db/schemaCompatibility'
+
+type CandidateSession = {
+  id: string;
+  candidate_id: string;
+  exam_id: string | null;
+  is_practice: boolean;
+  practice_subject: string | null;
+  status: string;
+  question_ids: unknown;
+  started_at: string;
+};
+
+async function readCandidateSession(
+  supabase: SupabaseClient,
+  userId: string,
+  sessionId: string,
+): Promise<CandidateSession | null> {
+  const selects = [
+    'id, candidate_id, exam_id, is_practice, practice_subject, status, question_ids, started_at',
+    'id, candidate_id, exam_id, practice_subject, status, question_ids, started_at',
+    'id, candidate_id, exam_id, status, question_ids, started_at',
+  ];
+
+  for (const select of selects) {
+    const result = await supabase
+      .from('exam_sessions')
+      .select(select)
+      .eq('id', sessionId)
+      .eq('candidate_id', userId)
+      .single();
+
+    if (!result.error && result.data) {
+      const row = result.data as unknown as Record<string, unknown>;
+      const examId = typeof row.exam_id === 'string' ? row.exam_id : null;
+      const practiceSubject = typeof row.practice_subject === 'string' ? row.practice_subject : null;
+      const isPractice = typeof row.is_practice === 'boolean'
+        ? row.is_practice
+        : Boolean(practiceSubject && !examId);
+
+      return {
+        id: String(row.id),
+        candidate_id: String(row.candidate_id),
+        exam_id: examId,
+        is_practice: isPractice,
+        practice_subject: practiceSubject,
+        status: String(row.status),
+        question_ids: row.question_ids,
+        started_at: String(row.started_at),
+      };
+    }
+
+    if (!isMissingColumnError(result.error)) return null;
+  }
+
+  return null;
+}
 
 type ServerAnalyticsQuestion = {
   id: string;
@@ -26,16 +83,26 @@ export async function fetchAvailableExams() {
     throw new Error('Unauthorized')
   }
 
-  const { data, error } = await adminClient
+  let { data, error } = await adminClient
     .from('exams')
     .select('id, title, description, duration_minutes, questions(count)')
     .eq('kind', 'exam');
+
+  // Legacy production schemas predate the exam-mode classifier. In that schema
+  // every exam row is an exam-mode assessment, so it is safe to omit the filter.
+  if (error && isMissingColumnError(error)) {
+    const legacy = await adminClient
+      .from('exams')
+      .select('id, title, description, duration_minutes, questions(count)');
+    data = legacy.data;
+    error = legacy.error;
+  }
 
   if (error) {
     throw new Error(`Failed to fetch exams: ${error.message}`)
   }
 
-  return data
+  return (data ?? [])
     .map((exam: { id: string; title: string; description: string | null; duration_minutes: number; questions: unknown }) => {
       const qs = exam.questions as { count: number }[] | null;
       return {
@@ -222,12 +289,25 @@ export async function startExamSession(examId: string) {
   // Provision profile if it doesn't exist
   await ensureCandidateProfile(supabase, user)
 
-  const { data: examConfig, error: examConfigError } = await adminClient
+  let { data: examConfig, error: examConfigError } = await adminClient
     .from('exams')
     .select('id, kind')
     .eq('id', examId)
     .eq('kind', 'exam')
     .single();
+
+  // A pre-classifier production schema contains only timed exams. Treat the
+  // requested row as an exam in that legacy case, without weakening the modern
+  // kind-based check when the column exists.
+  if (examConfigError && isMissingColumnError(examConfigError)) {
+    const legacy = await adminClient
+      .from('exams')
+      .select('id')
+      .eq('id', examId)
+      .single();
+    examConfig = legacy.data ? { ...legacy.data, kind: 'exam' } : null;
+    examConfigError = legacy.error;
+  }
 
   if (examConfigError || !examConfig) {
     throw new Error('Requested exam is not an exam-mode assessment');
@@ -248,7 +328,7 @@ export async function startExamSession(examId: string) {
     throw new Error('This exam currently has no available questions')
   }
 
-  const { data: existing } = await adminClient
+  let existingQuery = await adminClient
     .from('exam_sessions')
     .select('id, started_at, question_ids')
     .eq('exam_id', examId)
@@ -258,6 +338,24 @@ export async function startExamSession(examId: string) {
     .order('started_at', { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  if (existingQuery.error && isMissingColumnError(existingQuery.error)) {
+    existingQuery = await adminClient
+      .from('exam_sessions')
+      .select('id, started_at, question_ids')
+      .eq('exam_id', examId)
+      .eq('candidate_id', user.id)
+      .eq('status', 'in_progress')
+      .order('started_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+  }
+
+  if (existingQuery.error && !isMissingColumnError(existingQuery.error)) {
+    throw new Error(`Failed to inspect active exam session: ${existingQuery.error.message}`);
+  }
+
+  const existing = existingQuery.data;
 
   if (existing) {
     const { data: exam } = await adminClient
@@ -305,7 +403,7 @@ export async function startExamSession(examId: string) {
 
   if (error) {
     if (error.code === '23505') {
-      const { data: raced } = await adminClient
+      let racedQuery = await adminClient
         .from('exam_sessions')
         .select('id, started_at')
         .eq('exam_id', examId)
@@ -316,6 +414,19 @@ export async function startExamSession(examId: string) {
         .limit(1)
         .maybeSingle();
 
+      if (racedQuery.error && isMissingColumnError(racedQuery.error)) {
+        racedQuery = await adminClient
+          .from('exam_sessions')
+          .select('id, started_at')
+          .eq('exam_id', examId)
+          .eq('candidate_id', user.id)
+          .eq('status', 'in_progress')
+          .order('started_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+      }
+
+      const raced = racedQuery.data;
       if (raced) {
         const racedSession = raced as { id: string; started_at: string };
         return { id: racedSession.id, startedAt: racedSession.started_at, serverNow: Date.now(), userId: user.id };
@@ -704,14 +815,9 @@ export async function checkPracticeAnswer(
     throw new Error('Invalid option index')
   }
 
-  const { data: session, error: sessionError } = await supabase
-    .from('exam_sessions')
-    .select('id, candidate_id, is_practice, status, question_ids')
-    .eq('id', sessionId)
-    .eq('candidate_id', user.id)
-    .single()
+  const session = await readCandidateSession(supabase, user.id, sessionId);
 
-  if (sessionError || !session) {
+  if (!session) {
     throw new Error('Practice session not found or unauthorized')
   }
 
@@ -771,14 +877,9 @@ export async function saveAnswer(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Unauthorized');
 
-  const { data: session, error: sessionError } = await supabase
-    .from('exam_sessions')
-    .select('id, exam_id, is_practice, status, question_ids, started_at')
-    .eq('id', sessionId)
-    .eq('candidate_id', user.id)
-    .single();
+  const session = await readCandidateSession(supabase, user.id, sessionId);
 
-  if (sessionError || !session) {
+  if (!session) {
     throw new Error('Exam session not found or unauthorized');
   }
 
@@ -868,14 +969,9 @@ export async function submitExamAnswers(sessionId: string, answers: Record<strin
   }
 
   // 1. Fetch the exam session to get exam_id and check if practice
-  const { data: session, error: sessionErr } = await supabase
-    .from('exam_sessions')
-    .select('exam_id, status, is_practice, question_ids, started_at')
-    .eq('id', sessionId)
-    .eq('candidate_id', user.id)
-    .single()
+  const session = await readCandidateSession(supabase, user.id, sessionId);
     
-  if (sessionErr || !session) {
+  if (!session) {
     throw new Error('Exam session not found or unauthorized')
   }
 
@@ -1092,18 +1188,13 @@ export async function verifyActiveSession(sessionId: string, isPractice: boolean
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
-  const { data: session, error } = await supabase
-    .from('exam_sessions')
-    .select('id, candidate_id, exam_id, is_practice, status, question_ids, started_at')
-    .eq('id', sessionId)
-    .eq('candidate_id', user.id)
-    .single()
+  const session = await readCandidateSession(supabase, user.id, sessionId);
 
   const questionIds = Array.isArray(session?.question_ids)
     ? session.question_ids.filter((id: unknown): id is string => typeof id === 'string')
     : []
 
-  if (error || !session || session.is_practice !== isPractice || session.status !== 'in_progress' || questionIds.length === 0) {
+  if (!session || session.is_practice !== isPractice || session.status !== 'in_progress' || questionIds.length === 0) {
     return { valid: false as const, serverNow: Date.now(), userId: user.id }
   }
 
