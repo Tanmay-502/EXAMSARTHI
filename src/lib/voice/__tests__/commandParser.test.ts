@@ -129,6 +129,24 @@ test('should parse SELECT_OPTION correctly', () => {
       assert.deepStrictEqual(parseCommand('నా పనితీరు ఎలా ఉంది', 'te-IN', 'dashboard'), { type: 'OPEN_ANALYSIS' });
     });
   });
+  describe('Settings voice commands', () => {
+    test('parses explicit settings values only on settings context', () => {
+      assert.deepStrictEqual(parseCommand('set speech rate to 1.25', 'en-IN', 'settings'), { type: 'SET_SPEECH_RATE', rate: 1.25 });
+      assert.deepStrictEqual(parseCommand('set font size to 150 percent', 'en-IN', 'settings'), { type: 'SET_FONT_SCALE', scale: 1.5 });
+      assert.deepStrictEqual(parseCommand('turn on high contrast', 'en-IN', 'settings'), { type: 'SET_HIGH_CONTRAST', enabled: true });
+      assert.deepStrictEqual(parseCommand('turn off high contrast', 'en-IN', 'settings'), { type: 'SET_HIGH_CONTRAST', enabled: false });
+      assert.deepStrictEqual(parseCommand('turn on ai insights', 'en-IN', 'settings'), { type: 'SET_LEARNING_PROFILE_CONSENT', enabled: true });
+      assert.deepStrictEqual(parseCommand('use the default voice', 'en-IN', 'settings'), { type: 'SET_VOICE_DEFAULT' });
+      assert.deepStrictEqual(parseCommand('use the Hindi voice', 'en-IN', 'settings'), { type: 'SET_VOICE_LANGUAGE', lang: 'hi-IN' });
+      assert.deepStrictEqual(parseCommand('test the voice', 'en-IN', 'settings'), { type: 'TEST_VOICE' });
+    });
+
+    test('does not parse settings mutations elsewhere', () => {
+      assert.deepStrictEqual(parseCommand('set speech rate to 2', 'en-IN', 'dashboard'), { type: 'UNKNOWN' });
+      assert.deepStrictEqual(parseCommand('turn on high contrast', 'en-IN', 'dashboard'), { type: 'UNKNOWN' });
+    });
+  });
+
   describe('Spoken email parsing', () => {
     test('normalizes natural spoken Gmail addresses', () => {
       assert.strictEqual(
