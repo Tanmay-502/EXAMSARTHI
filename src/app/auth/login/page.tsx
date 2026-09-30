@@ -7,7 +7,7 @@ import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher'
 import { VoiceCore } from '@/components/voice/VoiceCore'
 import { useI18n } from '@/lib/i18n/I18nProvider'
 import { useVoice } from '@/lib/voice/VoiceProvider'
-import { normalizeVoicePassword, normalizeVoiceUserId } from '@/lib/auth/voiceCredentials'
+import { normalizeVoicePassword, normalizeVoiceUserId } from '@/lib/auth/voiceCredentialNormalization'
 
 type LoginStage = 'USER_ID' | 'PASSWORD' | 'AUTHENTICATING' | 'ERROR'
 
